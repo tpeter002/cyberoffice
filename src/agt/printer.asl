@@ -4,12 +4,11 @@ printer_ready.
 no_error.
 
 // Plans
-+!print
++print[source(proba)]
     : printer_ready & no_error
    <- .print("Printing...");
-      .send(mainframe, tell, printing);
-      print;
-      .send(mainframe, tell, printed).
+   print.
+
 
 +printer_error
     : true
@@ -22,5 +21,3 @@ no_error.
     : true
    <- .send(mainframe, tell, printer_error).
 
-// Actions
-+!print <- true.
