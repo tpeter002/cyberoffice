@@ -1,2 +1,2 @@
 # cyberoffice
-Homework for the subject Intellignet Distributed Systems.
+Homework for the subject Intelligent Distributed Systems.
