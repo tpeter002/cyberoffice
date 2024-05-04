@@ -73,13 +73,6 @@ public class OfficeEnv extends Environment {
         private VacuumCleanerModel vacuumCleanerModel;
         private LightModel lightModel;
         private MainframeModel mainframeModel;
-        
-        // ... other agent-specific environment classes
-
-        public static final int MErr = 2; // max error in pick garb
-        int nerr; // number of tries of pick garb
-        boolean r1HasGarb = false; // whether r1 is carrying garbage or no
-
 
         public static int n_human_agents = (int)((GSize/4) * (GSize/4));
 
@@ -89,7 +82,6 @@ public class OfficeEnv extends Environment {
 
             // initial location of agents
             try {
-
                 // add walls, initialize rooms
                 int yMainWall = (int)(GSize/4);
                 int xVacuumDoor = (int)(GSize/4);
@@ -105,7 +97,7 @@ public class OfficeEnv extends Environment {
                         }
                     }
                 }
-                
+
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
                 // setup ligtning
@@ -117,68 +109,66 @@ public class OfficeEnv extends Environment {
                 // add human agents
                 humanAgentModel = new HumanAgentModel(this, GSize); 
 
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        void nextSlot() throws Exception {
-            Location r1 = getAgPos(0);
-            r1.x++;
-            if (r1.x == getWidth()) {
-                r1.x = 0;
-                r1.y++;
-            }
-            // finished searching the whole grid
-            if (r1.y == getHeight()) {
-                return;
-            }
-            setAgPos(0, r1);
-            setAgPos(1, getAgPos(1)); // just to draw it in the view
+        private enum ROOM {
+            HALL,
+            PRINTER,
+            VACUUM,
         }
 
-        void moveTowards(int x, int y) throws Exception {
-            Location r1 = getAgPos(0);
-            if (r1.x < x)
-                r1.x++;
-            else if (r1.x > x)
-                r1.x--;
-            if (r1.y < y)
-                r1.y++;
-            else if (r1.y > y)
-                r1.y--;
-            setAgPos(0, r1);
-            setAgPos(1, getAgPos(1)); // just to draw it in the view
-        }
-
-        void pickGarb() {
-            // r1 location has garbage
-            if (model.hasObject(GARB, getAgPos(0))) {
-                // sometimes the "picking" action doesn't work
-                // but never more than MErr times
-                if (random.nextBoolean() || nerr == MErr) {
-                    remove(GARB, getAgPos(0));
-                    nerr = 0;
-                    r1HasGarb = true;
-                } else {
-                    nerr++;
-                }
+        public ROOM whichRoom(int x, int y) {
+            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+                return ROOM.VACUUM;
+            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+                return ROOM.PRINTER;
+            } else if (y > (int)(GSize/4)) {
+                return ROOM.HALL;
+            } else {
+                return null;
             }
         }
 
-        void dropGarb() {
-            if (r1HasGarb) {
-                r1HasGarb = false;
-                add(GARB, getAgPos(0));
+        public boolean roomIsEmpty(ROOM room) {
+            switch (room) {
+                case VACUUM:
+                    for (int i = 0; i < (int)(GSize/4); i++) {
+                        for (int j = 0; j < (int)(GSize/4); j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                case PRINTER:
+                    for (int i = (int)(GSize/4); i < GSize; i++) {
+                        for (int j = 0; j < (int)(GSize/4); j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int i = 0; i < GSize; i++) {
+                        for (int j = (int)(GSize/4); j < GSize; j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
             }
+            return true;
         }
-        void burnGarb() {
-            // r2 location has garbage
-            if (model.hasObject(GARB, getAgPos(1))) {
-                remove(GARB, getAgPos(1));
-            }
+
+        public boolean cellOccupied(int x, int y) {
+            return humanAgentModel.cellOccupied(x, y);
         }
+
     }
 
     class OfficeView extends GridWorldView {
@@ -194,9 +184,6 @@ public class OfficeEnv extends Environment {
         @Override
         public void draw(Graphics g, int x, int y, int object) {
             switch (object) {
-                //case OfficeEnv.GARB:
-                //    drawGarb(g, x, y);
-                //    break;
                 case OfficeEnv.WALL:
                     drawGarb(g, x, y);
                     break;
@@ -226,6 +213,7 @@ public class OfficeEnv extends Environment {
                 label = "V";
             }
 
+            // draw human agents
             if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
                 c = Color.red;
                 label = "H";
