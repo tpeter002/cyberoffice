@@ -7,14 +7,15 @@
     This file defines the initial state of the MAS
 
     Jason 3.2.0
-    május 04, 2024 - 14:34:35
+    may 04, 2024
 */
 
 MAS cyberoffice {
 
     environment: example.Env(10)
 
-    agents: bob;
+    agents: vacuumcleaner;
+            bob;
             alice;
 
     aslSourcePath: "src/agt";
