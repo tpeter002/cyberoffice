@@ -1,0 +1,21 @@
+/*
+    cyberoffice
+    ---------------------------
+
+    Jason Application File
+
+    This file defines the initial state of the MAS
+
+    Jason 3.2.0
+    május 04, 2024 - 14:34:35
+*/
+
+MAS cyberoffice {
+
+    environment: example.Env(10)
+
+    agents: bob;
+            alice;
+
+    aslSourcePath: "src/agt";
+}
