@@ -1,2 +1,2 @@
 # cyberoffice
-Homework for the subject Intelligent Distributed Systems.
+Homework for the Intelligent Distributed Systems course of BME-VIK.
