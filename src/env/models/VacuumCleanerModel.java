@@ -21,6 +21,13 @@ public class VacuumCleanerModel  {
         // Initialize the positions
     }
 
+    public executeAction(String action){
+        if(action.equals("clean")){
+            // Clean the floor
+            model.removeObject(OfficeEnv.DIRT, model.getAgPos(1).x, model.getAgPos(1).y);
+        }
+    }
+
     public void initializePositions(int GSize){
         // Initialize the positions
         model.setAgPos(1, 0, 0);
