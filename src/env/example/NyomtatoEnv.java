@@ -1,8 +1,11 @@
+package example;
+
 import jason.asSyntax.*;
 import jason.environment.Environment;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Logger;
+
 
 public class NyomtatoEnv extends Environment {
     private static final Logger logger = Logger.getLogger(NyomtatoEnv.class.getName());

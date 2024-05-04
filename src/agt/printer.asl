@@ -1,3 +1,4 @@
+
 // Initial beliefs
 printer_ready.
 no_error.
