@@ -34,4 +34,33 @@ public class HumanAgentModel  {
             model.setAgPos(i, x, y);
         }
     }
+
+    void moveTowards(int agentId, int targetX, int targetY) throws Exception {
+        int currentX = model.getAgPos(agentId).x;
+        int currentY = model.getAgPos(agentId).y;
+    
+        // Calculate the direction to move towards the target position
+        int dx = Integer.compare(targetX, currentX);
+        int dy = Integer.compare(targetY, currentY);
+    
+        // Check if the agent has already reached the target position
+        if (dx == 0 && dy == 0) {
+            return;
+        }
+    
+        // Calculate the new position after moving towards the target
+        int newX = currentX + dx;
+        int newY = currentY + dy;
+    
+        // Check if the new position is within the grid boundaries
+        if (newX >= 0 && newX < model.getWidth() && newY >= 0 && newY < model.getHeight()) {
+            // Check if the new position is not occupied by a wall or another agent
+            if (!model.hasObject(OfficeEnv.WALL, newX, newY) && !model.hasObject(0, newX, newY)) {
+                // Move the agent to the new position
+                model.setAgPos(agentId, newX, newY);
+            }
+        }
+    }
+
+
 }
