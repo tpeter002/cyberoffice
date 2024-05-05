@@ -22,7 +22,7 @@ import models.MainframeModel;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 16; // garbage code in grid model
+    public static final int GARB  = 254; // garbage code in grid model
     public static final int WALL = 255; // wall code in grid model
 
     private OfficeModel model;
@@ -35,38 +35,38 @@ public class OfficeEnv extends Environment {
         model = new OfficeModel();
         view  = new OfficeView(model);
         model.setView(view);
-        //updatePercepts();
+        updatePercepts();
     }
 
-    //@Override
-    //public boolean executeAction(String agentName, Structure action) {
-        //if (agentName.equals("vacuum_cleaner")) {
-        //    return vacuumCleanerEnv.executeAction(agentName, action);
-        //} else if (agentName.equals("human_agent")) {
-        //    return humanAgentEnv.executeAction(agentName, action);
-        //}
-        // ... handle actions for other agents
-    //}
+    @Override
+    public boolean executeAction(String agentName, Structure action) {
 
-    //@Override
-    //public void updatePercepts() {
-        //vacuumCleanerEnv.updatePercepts();
-        //humanAgentEnv.updatePercepts();
-        // ... update percepts for other agent-specific environments
+        // TODO: literals may be needed for agent names
 
-        // Collect percepts from all agent-specific environments
-        // and update the overall environment state
-        // ...
-    //}
+        if (agentName.equals("printer")) {
+            return printerModel.executeAction(action);
+        } else if (agentName.equals("vacuum_cleaner")) {
+            return vacuumCleanerModel.executeAction(action);
+        } else if (agentName.equals("human_agent")) {
+            return humanAgentModel.executeAction(action);
+        } else if (agentName.equals("mainframe")) {
+            return mainframeModel.executeAction(action);
+        } else if (agentName.equals("light")) {
+            return lightModel.executeAction(action);
+        }
+    }
+
+    @Override
+    public void updatePercepts() {
+        clearPercepts();    // TODO: do we need to clear percepts?
+        ArrayList<Literal> percepts = model.getUpdatedPercepts();
+        for (Literal percept : percepts) {
+            addPercept(percept);
+        }
+    }
 
 
     public class OfficeModel extends GridWorldModel {
-
-        /*
-        draws the grid, places the items
-        */
-
-        Random random = new Random(System.currentTimeMillis());
 
         private HumanAgentModel humanAgentModel;
         private PrinterModel printerModel;
@@ -169,6 +169,29 @@ public class OfficeEnv extends Environment {
             return humanAgentModel.cellOccupied(x, y);
         }
 
+        public void addGarbage(int x, int y) {
+            add(GARB, x, y);
+        }
+
+        public void removeGarbage(int x, int y) {
+            remove(GARB, x, y);
+        }
+
+        public hasGarbage(int x, int y) {
+            return hasObject(GARB, x, y);
+        }
+
+        public ArrayList<Literal> getUpdatedPercepts() {
+            ArrayList<Literal> percepts = new ArrayList<Literal>();
+            // extend arraylist with percepts from every model
+            percepts.addAll(printerModel.getPercepts());
+            percepts.addAll(vacuumCleanerModel.getPercepts());
+            percepts.addAll(humanAgentModel.getPercepts());
+            percepts.addAll(lightModel.getPercepts());
+            percepts.addAll(mainframeModel.getPercepts());
+            return percepts;
+        }
+
     }
 
     class OfficeView extends GridWorldView {
@@ -185,7 +208,9 @@ public class OfficeEnv extends Environment {
         public void draw(Graphics g, int x, int y, int object) {
             switch (object) {
                 case OfficeEnv.WALL:
-                    drawGarb(g, x, y);
+                    c = Color.black;
+                    label = "";
+                    super.drawObstacle(g, x, y);
                     break;
             }
         }
@@ -223,14 +248,5 @@ public class OfficeEnv extends Environment {
             repaint();
         }
 
-        public void drawGarb(Graphics g, int x, int y) {
-            super.drawObstacle(g, x, y);
-            g.setColor(Color.black);
-            super.drawString(g, x, y, defaultFont, "X");
-        }
-
     }
-
-
-
 }

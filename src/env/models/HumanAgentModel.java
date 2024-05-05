@@ -67,4 +67,12 @@ public class HumanAgentModel  {
         }
     }
 
+    public ArrayList<String> getPercepts() {
+        ArrayList<String> percepts = new ArrayList<String>();
+        for (Human human: agents) {
+            percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
+        }
+        return percepts;
+    }
+
 }

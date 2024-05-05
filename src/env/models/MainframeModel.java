@@ -7,7 +7,7 @@ import java.util.Random;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
-// Human agent environment class
+
 public class MainframeModel  {
     
     private OfficeModel model;
