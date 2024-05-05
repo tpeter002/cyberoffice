@@ -24,8 +24,8 @@ import java.util.ArrayList;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 254; // garbage code in grid model
-    public static final int WALL = 255; // wall code in grid model
+    public static final int GARB  = 16; // garbage code in grid model
+    public static final int WALL = 17; // wall code in grid model
 
     private OfficeModel model;
     private OfficeView  view;
@@ -48,8 +48,10 @@ public class OfficeEnv extends Environment {
         if (agentName.equals("printer")) {
             model.printerModel.executeAction(action);
             return true;
-        } else if (agentName.equals("vacuum_cleaner")) {
+        } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
+            updatePercepts();
+            informAgsEnvironmentChanged();
             return true;
         } else if (agentName.equals("human_agent")) {
             model.humanAgentModel.executeAction(action);
@@ -82,7 +84,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int)((GSize/4) * (GSize/4));
+        public static int n_human_agents = (int)((GSize/10) * (GSize/10));
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
@@ -95,16 +97,11 @@ public class OfficeEnv extends Environment {
                 int xVacuumDoor = (int)(GSize/4);
                 int xPrinterDoor = (int)(GSize/4)*3;
 
-                for (int i = 0; i < GSize; i++) {
-                    if (i != xPrinterDoor && i != xVacuumDoor) {
-                        add(WALL, i, yMainWall);
-                    }
-                    if (i == xVacuumDoor + 1) {
-                        for (int j = 0; j < yMainWall; j++) {
-                            add(WALL, i, j);
-                        }
-                    }
-                }
+                addWall(0, yMainWall, xVacuumDoor, yMainWall);
+                addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
+                addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
+                addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
+                add(GARB,3, 0);
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -138,6 +135,10 @@ public class OfficeEnv extends Environment {
             } else {
                 return null;
             }
+        }
+        //magic numbers
+        public boolean isWall(int x, int y) {
+            return !isFree(4, x, y);
         }
 
         public boolean roomIsEmpty(ROOM room) {
@@ -192,11 +193,7 @@ public class OfficeEnv extends Environment {
         public ArrayList<Literal> getUpdatedPercepts() {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
             // extend arraylist with percepts from every model
-            percepts.addAll(printerModel.getPercepts());
             percepts.addAll(vacuumCleanerModel.getPercepts());
-            percepts.addAll(humanAgentModel.getPercepts());
-            percepts.addAll(lightModel.getPercepts());
-            percepts.addAll(mainframeModel.getPercepts());
             return percepts;
         }
 
@@ -214,23 +211,21 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-            //switch (object) {
-            //    case OfficeEnv.WALL:
-            //        super.drawObstacle(g, x, y);
-            //        break;
-            //}
+            switch (object) {
+                case OfficeEnv.GARB:
+                    g.setColor(Color.RED);
+                    super.drawObstacle(g, x, y);
+                    break;
+               case OfficeEnv.WALL:
+                    g.setColor(Color.PINK);
+                    super.drawObstacle(g, x, y);
+                   break;
+            }
         }
 
         @Override
         public void drawAgent(Graphics g, int x, int y, Color c, int id) {
             String label = "R"+(id+1);
-
-            // draw wall
-            if (id == -1) {
-                c = Color.black;
-                label = "";
-                super.drawObstacle(g, x, y);
-            }
 
             // draw printer
             if (id == 0) {
@@ -249,7 +244,7 @@ public class OfficeEnv extends Environment {
                 c = Color.red;
                 label = "H";
             }
-
+            super.drawAgent(g, x, y, c, id);
             super.drawString(g, x, y, defaultFont, label);
             repaint();
         }
