@@ -6,56 +6,61 @@ room(room_hall).
 room(room_printer).
 room(room_vacuum).
 
+human(alice).
+human(bob).
+
 /* Initial goals */
 
 /* Plans */
 
 +!find_everyone
     <-
-    	.findall(Agent, .my_name(Agent), Agents);
+        .findall(Agent, .my_name(Agent), Agents);
         .send(Agents, askOne, location(Agent, Room), Locations);
         
         .abolish(occupied(_));
-		.abolish(location(_,_));
+        .abolish(location(_,_));
 
-		for (.member(location(Agent, Room), Locations)) {
-			.count(location(_, Room, Locations, Count);
-			if (Count > 0) {
-				+occupied(Room);	
-			}
-			+location(Agent, Room);
-		}.
+        for (.member(location(Agent, Room), Locations)) {
+            .count(location(_, Room, Locations, Count);
+            if (Count > 0) {
+                +occupied(Room);    
+            }
+            +location(Agent, Room);
+        }.
 
 
-+!inform_room_status[source(Source)]
++!inform_room_status[source(S)]
     <-
         .findall(Room, occupied(Room), OccupiedRooms);
-        .findall(Room, room(Room) & not occupied(Room), EmptyRooms);
+        .findall(Room, room(Room) & not occupied(R), EmptyRooms);
         
-        .send(Source, tell, occupied_rooms(OccupiedRooms));
-        .send(Source, tell, empty_rooms(EmptyRooms)).
-
-
-MAS vacuum_cleaner_system {
-
-	environment:
-		VacuumCleanerEnv
-
-	agents:
-		vacuum_cleaner;
-		mainframe;
-
-}
+        .send(S, tell, occupied_rooms(OccupiedRooms));
+        .send(S, tell, empty_rooms(EmptyRooms)).
 
 
 
-// human should fix printer and printer should tell mainframe
++error[source(S)]
+    <-
+        -ready(S);
+        
+        .findall(Human, human(Human), Humans);
+        .length(Humans, Length);
+        .random(R);
+        RandomIndex = math.floor(R * Length) + 1;
+        .nth(RandomIndex, Humans, SelectedHuman);
+        
+        .send(SelectedHuman, tell, fix(S));
+        .print("dispatched ", SelectedHuman, " to fix ", S).
 
-+printer_error : true
++ready[source(S)] : error(S)
+    <- 
+        -error(S).
+
+
+
+// something with the humans' daily tasks
+
++ready[source(S)] : not error(S) & human(S)
 	<-
-		.send(human, tell, go_fix_printer).
-
-+fixed_printer : true
-	<- 
-		-printer_error;
-		-fixed_printer.
+		.send(S, tell, send_routine_to_mainframe).

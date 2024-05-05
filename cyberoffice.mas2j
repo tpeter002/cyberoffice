@@ -13,6 +13,7 @@
 MAS cyberoffice {
     environment: env.OfficeEnv()
 
-    agents: bob; alice; printer; mainframe;
+    agents: mainframe;
+            bob; alice; printer;
     aslSourcePath: "src/agt";
 }
