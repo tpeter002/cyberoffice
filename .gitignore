@@ -1,2 +1,4 @@
 .gradle/
 build/
+.stop___MAS
+target/
