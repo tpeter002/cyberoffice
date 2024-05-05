@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+import java.util.ArrayList;
+
 // Human agent environment class
 public class PrinterModel{
     
@@ -88,6 +90,5 @@ public class PrinterModel{
     public ArrayList<Literal> getPercepts() {
         return percepts;
     }
-
 
 }
