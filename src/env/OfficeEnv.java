@@ -18,11 +18,13 @@ import models.VacuumCleanerModel;
 import models.LightModel;
 import models.MainframeModel;
 
+import java.util.ArrayList;
+
 // Main environment class
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 16; // garbage code in grid model
+    public static final int GARB  = 254; // garbage code in grid model
     public static final int WALL = 255; // wall code in grid model
 
     private OfficeModel model;
@@ -35,51 +37,50 @@ public class OfficeEnv extends Environment {
         model = new OfficeModel();
         view  = new OfficeView(model);
         model.setView(view);
-        //updatePercepts();
+        updatePercepts();
+    }
+
+    @Override
+    public boolean executeAction(String agentName, Structure action) {
+
+        // TODO: literals may be needed for agent names
+
+        if (agentName.equals("printer")) {
+            model.printerModel.executeAction(action);
+            return true;
+        } else if (agentName.equals("vacuum_cleaner")) {
+            model.vacuumCleanerModel.executeAction(action);
+            return true;
+        } else if (agentName.equals("human_agent")) {
+            model.humanAgentModel.executeAction(action);
+            return true;
+        } else if (agentName.equals("mainframe")) {
+            model.mainframeModel.executeAction(action);
+            return true;
+        } else if (agentName.equals("light")) {
+            model.lightModel.executeAction(action);
+            return true;
+        }
+        return false;
     }
 
     //@Override
-    //public boolean executeAction(String agentName, Structure action) {
-        //if (agentName.equals("vacuum_cleaner")) {
-        //    return vacuumCleanerEnv.executeAction(agentName, action);
-        //} else if (agentName.equals("human_agent")) {
-        //    return humanAgentEnv.executeAction(agentName, action);
-        //}
-        // ... handle actions for other agents
-    //}
-
-    //@Override
-    //public void updatePercepts() {
-        //vacuumCleanerEnv.updatePercepts();
-        //humanAgentEnv.updatePercepts();
-        // ... update percepts for other agent-specific environments
-
-        // Collect percepts from all agent-specific environments
-        // and update the overall environment state
-        // ...
-    //}
+    public void updatePercepts() {
+        clearPercepts();    // TODO: do we need to clear percepts?
+        ArrayList<Literal> percepts = model.getUpdatedPercepts();
+        for (Literal percept : percepts) {
+            addPercept(percept);
+        }
+    }
 
 
     public class OfficeModel extends GridWorldModel {
-
-        /*
-        draws the grid, places the items
-        */
-
-        Random random = new Random(System.currentTimeMillis());
 
         private HumanAgentModel humanAgentModel;
         private PrinterModel printerModel;
         private VacuumCleanerModel vacuumCleanerModel;
         private LightModel lightModel;
         private MainframeModel mainframeModel;
-        
-        // ... other agent-specific environment classes
-
-        public static final int MErr = 2; // max error in pick garb
-        int nerr; // number of tries of pick garb
-        boolean r1HasGarb = false; // whether r1 is carrying garbage or no
-
 
         public static int n_human_agents = (int)((GSize/4) * (GSize/4));
 
@@ -89,7 +90,6 @@ public class OfficeEnv extends Environment {
 
             // initial location of agents
             try {
-
                 // add walls, initialize rooms
                 int yMainWall = (int)(GSize/4);
                 int xVacuumDoor = (int)(GSize/4);
@@ -105,7 +105,7 @@ public class OfficeEnv extends Environment {
                         }
                     }
                 }
-                
+
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
                 // setup ligtning
@@ -117,68 +117,89 @@ public class OfficeEnv extends Environment {
                 // add human agents
                 humanAgentModel = new HumanAgentModel(this, GSize); 
 
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        void nextSlot() throws Exception {
-            Location r1 = getAgPos(0);
-            r1.x++;
-            if (r1.x == getWidth()) {
-                r1.x = 0;
-                r1.y++;
-            }
-            // finished searching the whole grid
-            if (r1.y == getHeight()) {
-                return;
-            }
-            setAgPos(0, r1);
-            setAgPos(1, getAgPos(1)); // just to draw it in the view
+        public enum ROOM {
+            HALL,
+            PRINTER,
+            VACUUM,
         }
 
-        void moveTowards(int x, int y) throws Exception {
-            Location r1 = getAgPos(0);
-            if (r1.x < x)
-                r1.x++;
-            else if (r1.x > x)
-                r1.x--;
-            if (r1.y < y)
-                r1.y++;
-            else if (r1.y > y)
-                r1.y--;
-            setAgPos(0, r1);
-            setAgPos(1, getAgPos(1)); // just to draw it in the view
-        }
-
-        void pickGarb() {
-            // r1 location has garbage
-            if (model.hasObject(GARB, getAgPos(0))) {
-                // sometimes the "picking" action doesn't work
-                // but never more than MErr times
-                if (random.nextBoolean() || nerr == MErr) {
-                    remove(GARB, getAgPos(0));
-                    nerr = 0;
-                    r1HasGarb = true;
-                } else {
-                    nerr++;
-                }
+        public ROOM whichRoom(int x, int y) {
+            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+                return ROOM.VACUUM;
+            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+                return ROOM.PRINTER;
+            } else if (y > (int)(GSize/4)) {
+                return ROOM.HALL;
+            } else {
+                return null;
             }
         }
 
-        void dropGarb() {
-            if (r1HasGarb) {
-                r1HasGarb = false;
-                add(GARB, getAgPos(0));
+        public boolean roomIsEmpty(ROOM room) {
+            switch (room) {
+                case VACUUM:
+                    for (int i = 0; i < (int)(GSize/4); i++) {
+                        for (int j = 0; j < (int)(GSize/4); j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                case PRINTER:
+                    for (int i = (int)(GSize/4); i < GSize; i++) {
+                        for (int j = 0; j < (int)(GSize/4); j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int i = 0; i < GSize; i++) {
+                        for (int j = (int)(GSize/4); j < GSize; j++) {
+                            if (cellOccupied(i, j)) {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
             }
+            return true;
         }
-        void burnGarb() {
-            // r2 location has garbage
-            if (model.hasObject(GARB, getAgPos(1))) {
-                remove(GARB, getAgPos(1));
-            }
+
+        public boolean cellOccupied(int x, int y) {
+            return humanAgentModel.cellOccupied(x, y);
         }
+
+        public void addGarbage(int x, int y) {
+            add(GARB, x, y);
+        }
+
+        public void removeGarbage(int x, int y) {
+            remove(GARB, x, y);
+        }
+
+        public boolean hasGarbage(int x, int y) {
+            return hasObject(GARB, x, y);
+        }
+
+        public ArrayList<Literal> getUpdatedPercepts() {
+            ArrayList<Literal> percepts = new ArrayList<Literal>();
+            // extend arraylist with percepts from every model
+            percepts.addAll(printerModel.getPercepts());
+            percepts.addAll(vacuumCleanerModel.getPercepts());
+            percepts.addAll(humanAgentModel.getPercepts());
+            percepts.addAll(lightModel.getPercepts());
+            percepts.addAll(mainframeModel.getPercepts());
+            return percepts;
+        }
+
     }
 
     class OfficeView extends GridWorldView {
@@ -193,14 +214,11 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-            switch (object) {
-                //case OfficeEnv.GARB:
-                //    drawGarb(g, x, y);
-                //    break;
-                case OfficeEnv.WALL:
-                    drawGarb(g, x, y);
-                    break;
-            }
+            //switch (object) {
+            //    case OfficeEnv.WALL:
+            //        super.drawObstacle(g, x, y);
+            //        break;
+            //}
         }
 
         @Override
@@ -226,6 +244,7 @@ public class OfficeEnv extends Environment {
                 label = "V";
             }
 
+            // draw human agents
             if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
                 c = Color.red;
                 label = "H";
@@ -235,14 +254,5 @@ public class OfficeEnv extends Environment {
             repaint();
         }
 
-        public void drawGarb(Graphics g, int x, int y) {
-            super.drawObstacle(g, x, y);
-            g.setColor(Color.black);
-            super.drawString(g, x, y, defaultFont, "X");
-        }
-
     }
-
-
-
 }

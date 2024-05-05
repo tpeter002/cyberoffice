@@ -7,6 +7,8 @@ import java.util.Random;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
+import java.util.ArrayList;
+
 // Human agent environment class
 public class PrinterModel  {
     
@@ -25,4 +27,15 @@ public class PrinterModel  {
         // Initialize the positions
         model.setAgPos(0, GSize-1, 0);
     }
+
+    public ArrayList<Literal> getPercepts() {
+        ArrayList<Literal> percepts = new ArrayList<Literal>(); 
+        return percepts;
+    }
+
+    public void executeAction(Structure action){
+        
+    }
+
+    
 }
