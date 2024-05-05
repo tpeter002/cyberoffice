@@ -32,6 +32,7 @@ public class VacuumCleanerModel  {
 	public static final Term    ns = Literal.parseLiteral("next(slot)");
 	public static final Term    pg = Literal.parseLiteral("pick(garb)");
 	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
+	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
 
 	Random random = new Random(System.currentTimeMillis());
 	private static final double BREAKDOWN_PROBABILITY = 0.01;
@@ -70,9 +71,24 @@ public class VacuumCleanerModel  {
 			else if (action.equals(pg)) {
                 pickGarb();
 			}
+			else if (action.getFunctor().equals("recharge_route")) {
+                moveTowards(0,0);
+			}
         } catch (Exception e) {
             e.printStackTrace();
         }
+	}
+	public void moveTowards(int x, int y){
+		Location vc = model.getAgPos(this.id);
+            if (vc.x < x)
+                vc.x++;
+            else if (vc.x > x)
+                vc.x--;
+            if (vc.y < y)
+                vc.y++;
+            else if (vc.y > y)
+                vc.y--;
+            model.setAgPos(this.id, vc);
 	}
 	/** creates the agents perception based on the MarsModel */
 	private ArrayList<Literal> updatePercepts() {
@@ -88,6 +104,9 @@ public class VacuumCleanerModel  {
 		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
             percepts.add(gvc);
         }
+		if(this.batteryLevel <= 20){
+			percepts.add(recharge);
+		}
 		percepts.add(vcPos);
 
 		return percepts;
@@ -119,6 +138,7 @@ public class VacuumCleanerModel  {
 			catch(Exception e){
 				System.out.println("Error in sleep");
 			}
+			this.batteryLevel -= 90;
 			model.removeGarbage(vc.x, vc.y);
 		}
 	}
