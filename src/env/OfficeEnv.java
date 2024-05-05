@@ -48,8 +48,10 @@ public class OfficeEnv extends Environment {
         if (agentName.equals("printer")) {
             model.printerModel.executeAction(action);
             return true;
-        } else if (agentName.equals("vacuum_cleaner")) {
+        } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
+            updatePercepts();
+            informAgsEnvironmentChanged();
             return true;
         } else if (agentName.equals("human_agent")) {
             model.humanAgentModel.executeAction(action);
@@ -82,7 +84,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int)((GSize/4) * (GSize/4));
+        public static int n_human_agents = (int)((GSize/10) * (GSize/10));
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
@@ -105,6 +107,7 @@ public class OfficeEnv extends Environment {
                         }
                     }
                 }
+                add(GARB,3, 0);
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -138,6 +141,9 @@ public class OfficeEnv extends Environment {
             } else {
                 return null;
             }
+        }
+        public boolean isWall(int x, int y) {
+            return hasObject(WALL, x, y);
         }
 
         public boolean roomIsEmpty(ROOM room) {
@@ -192,11 +198,7 @@ public class OfficeEnv extends Environment {
         public ArrayList<Literal> getUpdatedPercepts() {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
             // extend arraylist with percepts from every model
-            percepts.addAll(printerModel.getPercepts());
             percepts.addAll(vacuumCleanerModel.getPercepts());
-            percepts.addAll(humanAgentModel.getPercepts());
-            percepts.addAll(lightModel.getPercepts());
-            percepts.addAll(mainframeModel.getPercepts());
             return percepts;
         }
 
@@ -249,7 +251,7 @@ public class OfficeEnv extends Environment {
                 c = Color.red;
                 label = "H";
             }
-
+            super.drawAgent(g, x, y, c, id);
             super.drawString(g, x, y, defaultFont, label);
             repaint();
         }
