@@ -207,5 +207,6 @@ public class VacuumCleanerModel  {
 	public ArrayList<Literal> getPercepts() {
         return updatePercepts();
     }
+
 }
 

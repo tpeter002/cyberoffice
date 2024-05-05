@@ -12,8 +12,6 @@
 
 MAS cyberoffice {
     environment: env.OfficeEnv()
-
-    agents: vacuumcleaner;
-            bob; alice; printer;
+    agents: printer; proba; proba2; vacuumcleaner;
     aslSourcePath: "src/agt";
 }

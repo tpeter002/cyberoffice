@@ -27,6 +27,7 @@ public class OfficeEnv extends Environment {
     public static final int GARB  = 16; // garbage code in grid model
     public static final int WALL = 17; // wall code in grid model
 
+
     private OfficeModel model;
     private OfficeView  view;
 
@@ -47,6 +48,7 @@ public class OfficeEnv extends Environment {
 
         if (agentName.equals("printer")) {
             model.printerModel.executeAction(action);
+            updatePercepts();
             return true;
         } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
@@ -66,14 +68,15 @@ public class OfficeEnv extends Environment {
         return false;
     }
 
-    //@Override
+
     public void updatePercepts() {
-        clearPercepts();    // TODO: do we need to clear percepts?
+       // clearPercepts();    // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
         for (Literal percept : percepts) {
             addPercept(percept);
         }
     }
+
 
 
     public class OfficeModel extends GridWorldModel {
@@ -84,7 +87,8 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int)((GSize/10) * (GSize/10));
+        public static int n_human_agents = (int)((GSize/4) * (GSize/4));
+
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
@@ -134,6 +138,7 @@ public class OfficeEnv extends Environment {
                 return ROOM.HALL;
             } else {
                 return null;
+
             }
         }
         //magic numbers
@@ -170,6 +175,7 @@ public class OfficeEnv extends Environment {
                         }
                     }
                     break;
+
             }
             return true;
         }
@@ -193,6 +199,7 @@ public class OfficeEnv extends Environment {
         public ArrayList<Literal> getUpdatedPercepts() {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
             // extend arraylist with percepts from every model
+            percepts.addAll(printerModel.getPercepts());
             percepts.addAll(vacuumCleanerModel.getPercepts());
             return percepts;
         }
@@ -221,6 +228,7 @@ public class OfficeEnv extends Environment {
                     super.drawObstacle(g, x, y);
                    break;
             }
+
         }
 
         @Override
