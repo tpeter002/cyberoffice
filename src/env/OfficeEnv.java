@@ -136,8 +136,9 @@ public class OfficeEnv extends Environment {
                 return null;
             }
         }
+        //magic numbers
         public boolean isWall(int x, int y) {
-            return isFree(WALL, x, y);
+            return !isFree(4, x, y);
         }
 
         public boolean roomIsEmpty(ROOM room) {
