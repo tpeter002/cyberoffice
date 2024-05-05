@@ -9,6 +9,9 @@ import jade.util.Logger;
 import env.OfficeEnv;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 // Human agent environment class
 public class PrinterModel{
     
@@ -19,6 +22,7 @@ public class PrinterModel{
     private boolean printerWorking = false;
     private boolean printerError = false;
     private Queue<String> printQueue = new LinkedList<>();
+    ArrayList<Literal> percepts = new ArrayList<>();
     Logger logger = Logger.getMyLogger(getClass().getName());
 
 
@@ -33,6 +37,7 @@ public class PrinterModel{
         // Initialize the positions
         model.setAgPos(0, GSize-1, 0);
     }
+
     public boolean isPrinterReady() {
         return printerReady;
     }
@@ -46,7 +51,7 @@ public class PrinterModel{
     }
 
     public void print() {
-        if (printerReady && !printerError) {
+        if (printerReady && !printerError && !printerWorking) {
             printerWorking = true;
             String document = printQueue.poll(); // Get the next document from the queue
             if (document != null) {
@@ -59,22 +64,19 @@ public class PrinterModel{
                 printerWorking = false;
 
                 // Randomly set printer error
-                if (Math.random() < 0.1) { // 10% chance of error
+                if (Math.random() < 0.5) { // 10% chance of error
                     printerError = true;
-                    addPercept("printer", Literal.parseLiteral("printer_error"));
-                    logger.info("Printer encountered an error!");
+                    percepts.add(Literal.parseLiteral("printer_error"));
                 } else {
                     printerError = false;
                 }
             } else {
                 printerWorking = false;
             }
-        } else {
-            logger.info("Printer is not ready or has an error!");
-        }
+        } 
     }
 
-    public boolean executeAction(String agentName, Structure action) {
+    public boolean executeAction(Structure action) {
         if (action.getFunctor().equals("print")) {
             printQueue.offer("placeholder"); // Add the document to the print queue
             print(); // Start printing the next document in the queue
@@ -82,4 +84,10 @@ public class PrinterModel{
         }
         return false;
     }
+
+    public ArrayList<Literal> getPercepts() {
+        return percepts;
+    }
+
+
 }
