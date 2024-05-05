@@ -2,22 +2,38 @@
 
 /* Initial beliefs and rules */
 
-/* Initial goals */
+room(room_hall).
+room(room_printer).
+room(room_vacuum).
 
-!inform_room_status.
+/* Initial goals */
 
 /* Plans */
 
-+report_room_change[source(S), from(F), to(T)] : true
-	<- 
-	// TODO: here we need some kind of memory of who is where, 
-	// I need to know the syntax better for this, but if "isin(R, A)" works then that's great 
-	   
++!find_everyone
+    <-
+    	.findall(Agent, .my_name(Agent), Agents);
+        .send(Agents, askOne, location(Agent, Room), Locations);
+        
+        .abolish(occupied(_));
+		.abolish(location(_,_));
 
-+!inform_room_status : room_empty(R)
-	<- .send(vacuum_cleaner, tell, room_empty(R)).
-	// TODO: tell everyone else who needs this info too
+		for (.member(location(Agent, Room), Locations)) {
+			.count(location(_, Room, Locations, Count);
+			if (Count > 0) {
+				+occupied(Room);	
+			}
+			+location(Agent, Room);
+		}.
 
+
++!inform_room_status[source(Source)]
+    <-
+        .findall(Room, occupied(Room), OccupiedRooms);
+        .findall(Room, room(Room) & not occupied(Room), EmptyRooms);
+        
+        .send(Source, tell, occupied_rooms(OccupiedRooms));
+        .send(Source, tell, empty_rooms(EmptyRooms)).
 
 
 MAS vacuum_cleaner_system {
@@ -36,16 +52,10 @@ MAS vacuum_cleaner_system {
 // human should fix printer and printer should tell mainframe
 
 +printer_error : true
-	<- .send(human, tell, go_fix_printer).
+	<-
+		.send(human, tell, go_fix_printer).
 
 +fixed_printer : true
-	<- .-printer_error;
-	   -fixed_printer.
-
-
-
-/* TODO: get occupancy of rooms (all agents tell mainframe? mainframe asks? idk how this works as of now)
- * TODO: interop with other agents
- * 
- * also, wtf is MAS
- */
+	<- 
+		-printer_error;
+		-fixed_printer.
