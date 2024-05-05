@@ -39,14 +39,18 @@ public class OfficeEnv extends Environment {
     }
 
     //@Override
-    //public boolean executeAction(String agentName, Structure action) {
-        //if (agentName.equals("vacuum_cleaner")) {
+    public boolean executeAction(String agentName, Structure action) {
+      //  if (agentName.equals("vacuum_cleaner")) {
         //    return vacuumCleanerEnv.executeAction(agentName, action);
         //} else if (agentName.equals("human_agent")) {
-        //    return humanAgentEnv.executeAction(agentName, action);
+          //  return humanAgentEnv.executeAction(agentName, action);
         //}
-        // ... handle actions for other agents
-    //}
+         if (agentName.equals("printer")) {
+            PrinterModel env = new PrinterModel(this.model, GSize);
+            return env.executeAction(agentName, action);
+        }
+        return false;
+    }
 
     //@Override
     //public void updatePercepts() {

@@ -10,7 +10,7 @@ import env.OfficeEnv;
 import java.util.Queue;
 import java.util.LinkedList;
 // Human agent environment class
-public class PrinterModel extends Environment{
+public class PrinterModel{
     
     private OfficeModel model;
     private int position;
@@ -74,7 +74,6 @@ public class PrinterModel extends Environment{
         }
     }
 
-    @Override
     public boolean executeAction(String agentName, Structure action) {
         if (action.getFunctor().equals("print")) {
             printQueue.offer("placeholder"); // Add the document to the print queue
