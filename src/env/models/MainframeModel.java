@@ -7,6 +7,8 @@ import java.util.Random;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
+import java.util.ArrayList;
+
 
 public class MainframeModel  {
     
@@ -22,5 +24,14 @@ public class MainframeModel  {
     }
 
     public void initializePositions(int GSize){
+    }
+
+    public ArrayList<Literal> getPercepts() {
+        ArrayList<Literal> percepts = new ArrayList<Literal>();
+        return percepts;
+    }
+
+    public void executeAction(Structure action){
+        
     }
 }

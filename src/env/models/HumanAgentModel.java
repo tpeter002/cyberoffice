@@ -67,12 +67,17 @@ public class HumanAgentModel  {
         }
     }
 
-    public ArrayList<String> getPercepts() {
-        ArrayList<String> percepts = new ArrayList<String>();
-        for (Human human: agents) {
-            percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
-        }
+    public ArrayList<Literal> getPercepts() {
+        ArrayList<Literal> percepts = new ArrayList<Literal>();
+        //for (Human human: agents) {
+        //    percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
+        //}
         return percepts;
+    }
+
+
+    public void executeAction(Structure action){
+        
     }
 
 }

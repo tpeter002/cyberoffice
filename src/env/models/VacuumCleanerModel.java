@@ -7,6 +7,8 @@ import java.util.Random;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
+import java.util.ArrayList;
+
 // Human agent environment class
 public class VacuumCleanerModel  {
     
@@ -21,16 +23,21 @@ public class VacuumCleanerModel  {
         // Initialize the positions
     }
 
-    public executeAction(String action){
-        if(action.equals("clean")){
+    public void executeAction(Structure action){
+        //if(action.equals("clean")){
             // Clean the floor
-            model.removeObject(OfficeEnv.DIRT, model.getAgPos(1).x, model.getAgPos(1).y);
-        }
+        //    model.removeObject(OfficeEnv.DIRT, model.getAgPos(1).x, model.getAgPos(1).y);
+        //}
     }
 
     public void initializePositions(int GSize){
         // Initialize the positions
         model.setAgPos(1, 0, 0);
+    }
+
+    public ArrayList<Literal> getPercepts() {
+        ArrayList<Literal> percepts = new ArrayList<Literal>();
+        return percepts;
     }
 }
 
