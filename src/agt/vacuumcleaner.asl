@@ -10,23 +10,26 @@ at(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 +!check(slots): true
    <- next(slot);
-      .wait(1000);
+      .wait(500);
       .print("Checking next slot...");
       !check(slots).
 +!check(slots).
 
 +!ensure_pick(G) : garbage(vc)
    <- pick(garb);
+      .print("Picking up garbage...");
+      .wait(5000);
       !ensure_pick(G).
 +!ensure_pick(_).
 
 +!at(L) : at(L)
    <- .print("I'm at ",L).
-   
+/*
 +!at(L) <- ?pos(L,X,Y);
            move_towards(X,Y);
            .print("Moving to ", L).
            !at(L).
+*/
 
 
 /* Initial beliefs and rules 

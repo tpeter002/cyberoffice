@@ -24,8 +24,8 @@ import java.util.ArrayList;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 254; // garbage code in grid model
-    public static final int WALL = 255; // wall code in grid model
+    public static final int GARB  = 16; // garbage code in grid model
+    public static final int WALL = 17; // wall code in grid model
 
     private OfficeModel model;
     private OfficeView  view;
@@ -97,16 +97,10 @@ public class OfficeEnv extends Environment {
                 int xVacuumDoor = (int)(GSize/4);
                 int xPrinterDoor = (int)(GSize/4)*3;
 
-                for (int i = 0; i < GSize; i++) {
-                    if (i != xPrinterDoor && i != xVacuumDoor) {
-                        add(WALL, i, yMainWall);
-                    }
-                    if (i == xVacuumDoor + 1) {
-                        for (int j = 0; j < yMainWall; j++) {
-                            add(WALL, i, j);
-                        }
-                    }
-                }
+                addWall(0, yMainWall, xVacuumDoor, yMainWall);
+                addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
+                addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
+                addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
                 add(GARB,3, 0);
 
                 // add mainframe
@@ -143,7 +137,7 @@ public class OfficeEnv extends Environment {
             }
         }
         public boolean isWall(int x, int y) {
-            return hasObject(WALL, x, y);
+            return isFree(WALL, x, y);
         }
 
         public boolean roomIsEmpty(ROOM room) {
@@ -216,23 +210,21 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-            //switch (object) {
-            //    case OfficeEnv.WALL:
-            //        super.drawObstacle(g, x, y);
-            //        break;
-            //}
+            switch (object) {
+                case OfficeEnv.GARB:
+                    g.setColor(Color.RED);
+                    super.drawObstacle(g, x, y);
+                    break;
+               case OfficeEnv.WALL:
+                    g.setColor(Color.PINK);
+                    super.drawObstacle(g, x, y);
+                   break;
+            }
         }
 
         @Override
         public void drawAgent(Graphics g, int x, int y, Color c, int id) {
             String label = "R"+(id+1);
-
-            // draw wall
-            if (id == -1) {
-                c = Color.black;
-                label = "";
-                super.drawObstacle(g, x, y);
-            }
 
             // draw printer
             if (id == 0) {

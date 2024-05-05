@@ -66,17 +66,8 @@ public class VacuumCleanerModel  {
         try {
             if (action.equals(ns)) {
                 cleanInnerRoom();
-            } else if (action.getFunctor().equals("move_towards")) {
-                int x = (int)((NumberTerm)action.getTerm(0)).solve();
-                int y = (int)((NumberTerm)action.getTerm(1)).solve();
-				if (this.currRoom.equals(model.whichRoom(x, y))) {
-					System.out.println("Moving towards the trash");
-                	moveTowards(x,y);
-				}
-				else {
-					System.out.println("Can't see trash in this room");
-				}
-            } else if (action.equals(pg)) {
+            }
+			else if (action.equals(pg)) {
                 pickGarb();
 			}
         } catch (Exception e) {
@@ -128,44 +119,30 @@ public class VacuumCleanerModel  {
 		}
 	}
 
-	public void moveTowards(int x, int y) throws Exception {
-		Location r1 = model.getAgPos(this.id);
-		if (r1.x < x)
-			r1.x++;
-		else if (r1.x > x)
-			r1.x--;
-		if (r1.y < y)
-			r1.y++;
-		else if (r1.y > y)
-			r1.y--;
-		model.setAgPos(this.id, r1);
-	}
 	void cleanInnerRoom() throws Exception {
 		Location vc = model.getAgPos(this.id);
-		if (this.direction == DIRECTION.RIGHT)
+		if (this.direction == DIRECTION.RIGHT){
 			vc.x++;
-			if ( this.GSize<vc.x || model.isWall(vc.x, vc.y)) {
+			if ( this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
-				if(model.isWall(vc.x, vc.y)){
+				if(model.isWall(vc.x, vc.y) || !model.inGrid(vc.x, vc.y)){
 					vc.y--;
-					System.out.println("Can't move in this direction");
 				}
 			}
-		else if (this.GSize>vc.x || this.direction == DIRECTION.LEFT)
+		}
+		else if (this.direction == DIRECTION.LEFT){
 			vc.x--;
-			if (model.isWall(vc.x, vc.y)) {
+			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.RIGHT;
 				vc.x++;
 				vc.y++;
-				if(model.isWall(vc.x, vc.y)){
+				if (model.isWall(vc.x, vc.y) || !model.inGrid(vc.x, vc.y)){
 					vc.y--;
-					System.out.println("Can't move in this direction");
 				}
 			}
-		System.out.println("Moving to the next slot:");
-		System.out.println("x: " + vc.x + ", y: " + vc.y);
+		}
 		model.setAgPos(this.id, vc);
 	}
 	/*
