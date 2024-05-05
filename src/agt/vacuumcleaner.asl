@@ -5,20 +5,27 @@ at(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Initial goals */
 !check(slots).
+!ensure_pick(G).
 
 /* Plans */
 
-+!check(slots): true
++!check(slots): not garbage(vc)
    <- next(slot);
-      .wait(500);
+      .wait(1000);
       .print("Checking next slot...");
       !check(slots).
 +!check(slots).
 
++garbage(vc) : not .desire(destroy(garb))
+   <- !destroy(garb).
+
++!destroy(G)
+   <- !ensure_pick(G);
+      .print("Dostroy the world");
+      !check(slots).
+
 +!ensure_pick(G) : garbage(vc)
    <- pick(garb);
-      .print("Picking up garbage...");
-      .wait(5000);
       !ensure_pick(G).
 +!ensure_pick(_).
 

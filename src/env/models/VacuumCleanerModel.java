@@ -79,7 +79,6 @@ public class VacuumCleanerModel  {
 		ArrayList<Literal> percepts = new ArrayList<Literal>();
 
 		updateRoom();
-		percepts.clear();
 
 		Location vcLoc = model.getAgPos(this.id);
 		//position of the vacuum cleaner
@@ -114,7 +113,12 @@ public class VacuumCleanerModel  {
 	public void pickGarb() {
 		Location vc = model.getAgPos(this.id);
 		if (model.hasGarbage(vc.x, vc.y)) {
-			System.out.println("Destorying da garbage");
+			try{
+				Thread.sleep(3000);
+			}
+			catch(Exception e){
+				System.out.println("Error in sleep");
+			}
 			model.removeGarbage(vc.x, vc.y);
 		}
 	}
@@ -127,7 +131,7 @@ public class VacuumCleanerModel  {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
-				if(model.isWall(vc.x, vc.y) || !model.inGrid(vc.x, vc.y)){
+				if(model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))){
 					vc.y--;
 				}
 			}
@@ -138,7 +142,7 @@ public class VacuumCleanerModel  {
 				this.direction = DIRECTION.RIGHT;
 				vc.x++;
 				vc.y++;
-				if (model.isWall(vc.x, vc.y) || !model.inGrid(vc.x, vc.y)){
+				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))){
 					vc.y--;
 				}
 			}
@@ -146,8 +150,6 @@ public class VacuumCleanerModel  {
 		model.setAgPos(this.id, vc);
 	}
 	/*
-	 * Method to pick up garbage
-	 
 	public void pick(String garb) {
 		// Implement the logic for picking up garbage
 		if (this.model.hasGarbage(OfficeEnv.GARB, getAgPos(self.id))) {
