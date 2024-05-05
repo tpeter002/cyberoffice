@@ -18,6 +18,8 @@ import models.VacuumCleanerModel;
 import models.LightModel;
 import models.MainframeModel;
 
+import java.util.ArrayList;
+
 // Main environment class
 public class OfficeEnv extends Environment {
 
@@ -44,19 +46,25 @@ public class OfficeEnv extends Environment {
         // TODO: literals may be needed for agent names
 
         if (agentName.equals("printer")) {
-            return printerModel.executeAction(action);
+            model.printerModel.executeAction(action);
+            return true;
         } else if (agentName.equals("vacuum_cleaner")) {
-            return vacuumCleanerModel.executeAction(action);
+            model.vacuumCleanerModel.executeAction(action);
+            return true;
         } else if (agentName.equals("human_agent")) {
-            return humanAgentModel.executeAction(action);
+            model.humanAgentModel.executeAction(action);
+            return true;
         } else if (agentName.equals("mainframe")) {
-            return mainframeModel.executeAction(action);
+            model.mainframeModel.executeAction(action);
+            return true;
         } else if (agentName.equals("light")) {
-            return lightModel.executeAction(action);
+            model.lightModel.executeAction(action);
+            return true;
         }
+        return false;
     }
 
-    @Override
+    //@Override
     public void updatePercepts() {
         clearPercepts();    // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
@@ -114,7 +122,7 @@ public class OfficeEnv extends Environment {
             }
         }
 
-        private enum ROOM {
+        public enum ROOM {
             HALL,
             PRINTER,
             VACUUM,
@@ -177,7 +185,7 @@ public class OfficeEnv extends Environment {
             remove(GARB, x, y);
         }
 
-        public hasGarbage(int x, int y) {
+        public boolean hasGarbage(int x, int y) {
             return hasObject(GARB, x, y);
         }
 
@@ -206,13 +214,11 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-            switch (object) {
-                case OfficeEnv.WALL:
-                    c = Color.black;
-                    label = "";
-                    super.drawObstacle(g, x, y);
-                    break;
-            }
+            //switch (object) {
+            //    case OfficeEnv.WALL:
+            //        super.drawObstacle(g, x, y);
+            //        break;
+            //}
         }
 
         @Override

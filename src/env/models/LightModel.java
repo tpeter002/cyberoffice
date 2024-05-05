@@ -6,6 +6,8 @@ import java.util.Random;
 
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LightModel  {
     
@@ -19,11 +21,8 @@ public class LightModel  {
     public static final Term operate = Literal.parseLiteral("operate");
 
     // we store the states in an array
-    private Light[] lights = [
-        Light(OfficeModel.ROOM.PRINTER), 
-        Light(OfficeModel.ROOM.VACUUM), 
-        Light(OfficeModel.ROOM.HALL)
-    ]
+    private ArrayList<Light> lights = new ArrayList<Light>();
+
 
     /*  
     * All models get the OfficeModel object, which stores
@@ -38,27 +37,13 @@ public class LightModel  {
     */
     public LightModel(OfficeModel model, int GSize){
         this.model = model;
+
+        lights.add(new Light(OfficeModel.ROOM.PRINTER)); 
+        lights.add(new Light(OfficeModel.ROOM.VACUUM));
+        lights.add(new Light(OfficeModel.ROOM.HALL));
     }
 
-
-    /*
-    * Here we change the state of the model of the agent
-    * which we will later pass on to the agents as percepts using getPercepts()
-    */
-    public void executeAction(String action) {
-        if(action.equals("operate")) {
-            for (Light light: light) {
-                if (model.roomIsEmpty(light.room)) {
-                    light.turnOn();
-                } else {
-                    light.turnOff();
-                }
-        } else {
-            System.out.println("Invalid action");
-        }
-    }
-
-    private class Light:
+    private class Light {
         /*
         * Light class to keep track of states of lights
         * lights are identified by OfficeModel.ROOM enumerator
@@ -80,18 +65,38 @@ public class LightModel  {
             this.isOn = false;
         }
 
-        public void getPercept() {
+        public Literal getPercept() {
             Literal percept = Literal.parseLiteral("light(" + this.room + ")");
             return percept;
         }
     }
+
+
+    /*
+    * Here we change the state of the model of the agent
+    * which we will later pass on to the agents as percepts using getPercepts()
+    */
+    public void executeAction(Structure action) {
+        if(action.equals("operate")) {
+            for (Light light: lights) {
+                if (model.roomIsEmpty(light.room)) {
+                    light.turnOn();
+                } else {
+                    light.turnOff();
+        }}
+        } else {
+            System.out.println("Invalid action");
+        }
+    }    
+
+
 
     /*
     * Here we infer which percepts to give to the agents
     * based on the state of the model
     */
     public ArrayList<Literal> getPercepts() {
-        ArrayList<Literal> percepts = new ArrayList<String>();
+        ArrayList<Literal> percepts = new ArrayList<Literal>();
         for (Light light: lights) {
             if (light.isOn) {
                 percepts.add(light.getPercept());
