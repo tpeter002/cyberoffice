@@ -2,7 +2,7 @@
 
 /* Initial beliefs */
 at(P) :- pos(P,X,Y) & pos(vc,X,Y).
-at(home):- pos(home,0,0) & pos(vc,0,0).
+gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Initial goals */
 !check(slots).
@@ -26,8 +26,9 @@ at(home):- pos(home,0,0) & pos(vc,0,0).
 +!recharge
    <- -+pos(home,0,0);
       !gohome(home);
-      .print("Recharging the vacuum cleaner").
-      
+      .print("Recharging the vacuum cleaner");
+      !check(slots).
+        
 +!destroy(G)
    <- !ensure_pick(G);
       .print("Dostroy the world");
@@ -38,12 +39,11 @@ at(home):- pos(home,0,0) & pos(vc,0,0).
       !ensure_pick(G).
 +!ensure_pick(_).
 
-+!at(L) : at(L)
++!gohome(L) : gohome(L)
    <- .print("I'm at ",L).
 
-+!gohome(L) 
-   <- 
-      ?pos(L,X,Y);
++!gohome(L)
+   <- ?pos(L,X,Y);
       .wait(1000);     
       recharge_route;
       !gohome(L).

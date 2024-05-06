@@ -73,6 +73,9 @@ public class VacuumCleanerModel  {
 			}
 			else if (action.getFunctor().equals("recharge_route")) {
                 moveTowards(0,0);
+				if(model.getAgPos(this.id).x == 0 && model.getAgPos(this.id).y == 0){
+					rechargeBattery();
+				}
 			}
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,6 +92,13 @@ public class VacuumCleanerModel  {
             else if (vc.y > y)
                 vc.y--;
             model.setAgPos(this.id, vc);
+			rechargeBattery();
+	}
+	private void rechargeBattery(){
+		Location vc = model.getAgPos(this.id);
+		if(vc.x == 0 && vc.y == 0){
+			this.batteryLevel = 100;
+		}
 	}
 	/** creates the agents perception based on the MarsModel */
 	private ArrayList<Literal> updatePercepts() {
@@ -106,6 +116,12 @@ public class VacuumCleanerModel  {
         }
 		if(this.batteryLevel <= 20){
 			percepts.add(recharge);
+		}
+		if(this.isBroken){
+			percepts.add(Literal.parseLiteral("broken"));
+		}
+		if(this.batteryLevel == 20){
+			percepts.add(Literal.parseLiteral("fully_charged"));
 		}
 		percepts.add(vcPos);
 
