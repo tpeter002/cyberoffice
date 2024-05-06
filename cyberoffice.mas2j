@@ -15,7 +15,9 @@ MAS cyberoffice {
 
     agents: 
             h human_agent #10;
-            printer; proba; proba2; vacuumcleaner;
+            printer;
+            vacuumcleaner;
+            mainframe;
 
     aslSourcePath: "src/agt";
 }
