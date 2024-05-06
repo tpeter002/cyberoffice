@@ -28,7 +28,7 @@
 		.findall(Human, human(Human), Humans);
 		.length(Humans, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Humans, SelectedHuman);
 		
 		!private_fix_error(Source, SelectedHuman).
@@ -107,7 +107,7 @@
 		.nth(RandomIndex, Vacuums, SelectedVacuum);
 
 		.send(SelectedVacuum, tell, empty(Room));
-		
+
 		-empty(Room).
 
 
