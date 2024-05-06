@@ -9,6 +9,7 @@ import jason.environment.grid.Location;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.io.Console;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -20,6 +21,7 @@ import models.LightModel;
 import models.MainframeModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 // Main environment class
 public class OfficeEnv extends Environment {
@@ -61,10 +63,12 @@ public class OfficeEnv extends Environment {
         } else if (agentName.equals("mainframe")) {
             model.mainframeModel.executeAction(action);
             return true;
-        } else if (agentName.equals("light")) {
-            model.lightModel.executeAction(action);
+        } else if (agentName.charAt(0) == 'l') {
+            model.lightModel.executeAction(agentName, action);
+            updatePercepts();
             return true;
         }
+
         return false;
     }
 
@@ -73,6 +77,20 @@ public class OfficeEnv extends Environment {
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
         for (Literal percept : percepts) {
             addPercept(percept);
+        }
+    }
+
+    public class Percept {
+        public String destination;
+        public Literal message;
+
+        public Percept(String name, Literal message) {
+            this.destination = name;
+            this.message = message;
+        }
+
+        public void noDestination() {
+            destination = null;
         }
     }
 
@@ -193,11 +211,31 @@ public class OfficeEnv extends Environment {
             return hasObject(OfficeEnv.GARB, x, y);
         }
 
-        public ArrayList<Literal> getUpdatedPercepts() {
+        public ArrayList<Percept> getUpdatedPercepts() {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
+            ArrayList<Percept> perceptsList = new ArrayList<Percept>();
             // extend arraylist with percepts from every model
+
             percepts.addAll(printerModel.getPercepts());
+            for (int i = 0; i < percepts.size(); i++) {
+                perceptsList.add(new Percept(null, percepts.get(i)));
+            }
+            percepts.clear();
+
             percepts.addAll(vacuumCleanerModel.getPercepts());
+            for (int i = 0; i < percepts.size(); i++) {
+                perceptsList.add(new Percept(null, percepts.get(i)));
+            }
+            percepts.clear();
+
+            HashMap<Light, ArrayList<Percept>> perceptsMap = lightModel.getPerceptsMap();
+            for (int i = 0; i < 3; i++) {
+                percepts.addAll(perceptsMap.get(lightModel.getLight(i)));
+                for (int j = 0; j < percepts.size(); j++) {
+                    perceptsList.add(new Percept("l" + String.valueOf(i), percepts.get(j)));
+                }
+                percepts.clear();
+            }
             return percepts;
         }
 
