@@ -127,6 +127,7 @@ public class OfficeEnv extends Environment {
             HALL,
             PRINTER,
             VACUUM,
+            DOORWAY,
         }
 
         public ROOM whichRoom(int x, int y) {
@@ -136,7 +137,11 @@ public class OfficeEnv extends Environment {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
-            } else {
+            }
+            else if(y == (int)(GSize/4)){
+                return ROOM.DOORWAY;
+            } 
+            else {
                 return null;
 
             }
@@ -174,6 +179,7 @@ public class OfficeEnv extends Environment {
                             }
                         }
                     }
+                // TODO: kell a doorway is?
                     break;
 
             }
