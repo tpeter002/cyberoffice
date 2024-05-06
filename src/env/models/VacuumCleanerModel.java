@@ -4,7 +4,7 @@ import jason.asSyntax.*;
 import jason.environment.Environment;
 import java.util.Random;
 import jason.environment.grid.Location;
-
+import jason.stdlib.empty;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
@@ -16,11 +16,15 @@ public class VacuumCleanerModel  {
 	private OfficeModel model;
 	private int id;
 	private int GSize;
-	private boolean isBroken;
-	private boolean isVacuumFull;
+
+	private Location homePosition;
+
+	private int garbageSpace;
 	private int batteryLevel;
-	private boolean currRoomEmpty = false;
-	private OfficeModel.ROOM currRoom;
+	private boolean isBroken;
+	private boolean requestedLocation;
+	private OfficeModel.ROOM currentRoom;
+
 	private boolean areHumansFriend = true;
 
 	private enum DIRECTION {
@@ -31,160 +35,178 @@ public class VacuumCleanerModel  {
 	}
 	private DIRECTION direction;
 
-	public static final Term    ns = Literal.parseLiteral("next(slot)");
-	public static final Term    pg = Literal.parseLiteral("pick(garb)");
-	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
-	public static final Literal recharge = Literal.parseLiteral("recharge");
+	public static final Literal next_slot = Literal.parseLiteral("next_slot");
+	public static final Literal slot_has_garbage = Literal.parseLiteral("slot_has_garbage");
+	public static final Literal pick_garbage = Literal.parseLiteral("pick_garbage");
 
+	public static final Literal should_go_home = Literal.parseLiteral("should_go_home");
+	public static final Literal move_home = Literal.parseLiteral("move_home");
+	public static final Literal at_home = Literal.parseLiteral("at_home");
+
+	public static final Literal empty_garbage = Literal.parseLiteral("empty_garbage");
+	public static final Literal recharge_battery = Literal.parseLiteral("recharge_battery");
+
+	public static final Literal current_room_empty = Literal.parseLiteral("current_room_empty");
+	public static final Literal get_location = Literal.parseLiteral("get_location");
+	
+	public static final Literal error = Literal.parseLiteral("error");
+	public static final Literal fix = Literal.parseLiteral("fix");
+	
 	Random random = new Random(System.currentTimeMillis());
-	private static final double BREAKDOWN_PROBABILITY = 0.01;
-	/*
-	 * Constructor for the VacuumCleanerModel class
-	 */
+	private static final double ERROR_PROBABILITY = 0.01;
+	
 	public VacuumCleanerModel(OfficeModel model, int GSize){
 		this.id = 1;
 		this.model = model;
+		this.homePosition = new Location(0,0);
 		this.isBroken = false;
-		this.isVacuumFull = false;
+		this.requestedLocation = false;
+		this.garbageSpace = 100;
 		this.batteryLevel = 100;
 		this.GSize = GSize;
 		this.direction = DIRECTION.RIGHT;
 		initializePositions(GSize);
 	}
-	//maybe change this to x,y coordinates and just go for the trash
-	private boolean updateRoomView() {
+
+	public void initializePositions(int GSize){
+		model.setAgPos(this.id, 0, 0);
 		updateRoom();
-		for(int x=0; x<this.GSize;x++){
-			for(int y=0; y<this.GSize;y++){
-				if(this.currRoom.equals(model.whichRoom(x, y))){
-					System.out.println("Found the room which we are in");
-					return true;
-				}
-			}
+	}
+
+	public void updateRoom() {
+		this.currentRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
+	}
+	
+	public ArrayList<Literal> newPercepts() {
+        ArrayList<Literal> percepts = new ArrayList<Literal>();
+
+		updateRoom();
+
+		Location vc = model.getAgPos(this.id);
+		
+		if (model.hasGarbage(vc.x, vc.y)) {
+            percepts.add(slot_has_garbage);
+        }
+
+		if(this.batteryLevel <= 20 || this.garbageSpace <= 20) {
+			percepts.add(should_go_home);
 		}
-		return false;
+
+		if(model.getAgPos(this.id) == homePosition) {
+			percepts.add(at_home);
+		}
+		
+		if (model.roomIsEmpty(this.currentRoom)) {
+			percepts.add(current_room_empty);
+		}
+
+		if(this.isBroken) {
+			percepts.add(error);
+		}
+
+		if(this.requestedLocation) {
+			percepts.add(Literal.parseLiteral("location(" + vc.x + ", " + vc.y + ")"));
+			this.requestedLocation = false;
+		}
+
+		return percepts;
+    }
+
+	public ArrayList<Literal> perceptsToRemove() {
+		ArrayList<Literal> percepts = new ArrayList<Literal>();
+
+		Location vc = model.getAgPos(this.id);
+
+		if (!model.hasGarbage(vc.x, vc.y)) {
+            percepts.add(slot_has_garbage);
+        }
+
+		if(!(this.batteryLevel <= 20 || this.garbageSpace <= 20)){
+			percepts.add(should_go_home);
+		}
+
+		if(model.getAgPos(this.id) != homePosition) {
+			percepts.add(at_home);
+		}
+		
+		if (!model.roomIsEmpty(this.currentRoom)) {
+			percepts.add(current_room_empty);
+		}
+
+		if(!this.isBroken){
+			percepts.add(error);
+		}
+
+		return percepts;
 	}
 
 	public void executeAction(Structure action){
         try {
-            if (action.equals(ns)) {
-				if (!this.currRoomEmpty) {
+
+            if (action.equals(next_slot)) {
+				if (!model.roomIsEmpty(this.currentRoom)) {
 					System.out.println("Room is not empty");
-					moveTowards(0,0);
+					moveTowards(homePosition);
 				}
-				else if (this.currRoom==OfficeModel.ROOM.DOORWAY){
-					cleanInnerRoom();
-					System.out.println("ajtoban vagyok ");
+				else if (this.currentRoom==OfficeModel.ROOM.DOORWAY){
+					cleanCurrentRoom();
+					System.out.println("ajtoban vagyok");
 				}
 				else{
-					cleanInnerRoom();
+					cleanCurrentRoom();
 				}
             }
-			else if (action.equals(pg)) {
-                pickGarb();
+			else if (action.equals(pick_garbage)) {
+                pickGarbage();
 			}
-			else if (action.getFunctor().equals("recharge_route")) {
-                moveTowards(0,0);
+			else if (action.equals(move_home)) {
+                moveTowards(homePosition);
 			}
-			else if (action.equals(recharge)) {
-				recharge();
-				Thread.sleep(1000);
+			else if (action.equals(empty_garbage)) {
+				empty_garbage();
 			}
+			else if (action.equals(recharge_battery)) {
+				recharge_battery();
+			}
+			else if (action.equals(get_location)) {
+				get_location();
+			}
+			else if (action.equals(fix)) {
+				fix();
+			}
+			
         } catch (Exception e) {
             e.printStackTrace();
         }
 	}
 	
-	public void moveTowards(int x, int y){
+	public void moveTowards(Location loc) {
 		Location vc = model.getAgPos(this.id);
-            if (vc.x < x)
+            if (vc.x < loc.x)
                 vc.x++;
-            else if (vc.x > x)
+            else if (vc.x > loc.x)
                 vc.x--;
-            if (vc.y < y)
+            if (vc.y < loc.y)
                 vc.y++;
-            else if (vc.y > y)
+            else if (vc.y > loc.y)
                 vc.y--;
             model.setAgPos(this.id, vc);
 	}
-	private void recharge(){
+
+	public void pickGarbage() {
 		Location vc = model.getAgPos(this.id);
-		if(vc.x == 0 && vc.y == 0){
-			this.batteryLevel = 100;
-			System.out.println("Battery recharged");
-		}
-	}
-	/** creates the agents perception based on the MarsModel */
-	private ArrayList<Literal> updatePercepts() {
-		ArrayList<Literal> percepts = new ArrayList<Literal>();
+		this.garbageSpace -= 90;
+		this.batteryLevel -= 90;
+		model.removeGarbage(vc.x, vc.y);
+	}	
 
-		updateRoom();
-
-		Location vcLoc = model.getAgPos(this.id);
-		//position of the vacuum cleaner
-		Literal vcPos = Literal.parseLiteral("pos(vc," + vcLoc.x + "," + vcLoc.y + ")");
-		//room which the vacuum cleaner is in
-		Literal vcRoom = Literal.parseLiteral("current_room(" + this.currRoom.ordinal() + ")");
-		if (model.roomIsEmpty(this.currRoom)) {
-			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(true)");
-			this.currRoomEmpty = true;
-			percepts.add(curr_room_empty);
-		}
-		else{
-			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(false)");
-			this.currRoomEmpty = false;
-			percepts.add(curr_room_empty);
-		}
-		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
-            percepts.add(gvc);
-        }
-		if(this.batteryLevel <= 20){
-			percepts.add(recharge);
-		}
-		if(this.isBroken){
-			percepts.add(Literal.parseLiteral("broken"));
-		}
-		percepts.add(vcPos);
-		percepts.add(vcRoom);
-
-		return percepts;
-	}
-	
-	/*
-	 * Method to update the current room of the vacuum cleaner
-	 */
-	public void updateRoom() {
-		this.currRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
-	}
-	/*
-	 * Initialize starting positions of the vacuum cleaner
-	 */
-	public void initializePositions(int GSize){
-		model.setAgPos(this.id, 0, 0);
-		updateRoom();
-	}
-	public void pickGarb() {
-		Location vc = model.getAgPos(this.id);
-		if (model.hasGarbage(vc.x, vc.y)) {
-			try{
-				Thread.sleep(3000);
-			}
-			catch(Exception e){
-				System.out.println("Error in sleep");
-			}
-			this.batteryLevel -= 90;
-			this.batteryLevel -= 90;
-			model.removeGarbage(vc.x, vc.y);
-		}
-	}
-
-	void cleanInnerRoom() throws Exception {
+	void cleanCurrentRoom() {
 		Location vc = model.getAgPos(this.id);
 		if (this.direction == DIRECTION.RIGHT){
 			vc.x++;
 			avoidHumans(vc);
 			avoidHumans(vc);
-			if ( this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
+			if (this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
@@ -210,7 +232,8 @@ public class VacuumCleanerModel  {
 		}
 		model.setAgPos(this.id, vc);
 	}
-	public void avoidHumans(Location vc) throws Exception {
+
+	public void avoidHumans(Location vc) {
 		if (this.areHumansFriend) {
 			if (model.cellOccupied(vc.x, vc.y)) {
 				System.out.println("Human detected, moving away...");
@@ -241,27 +264,23 @@ public class VacuumCleanerModel  {
 			}
 		}
 	}	
-	public void repair() {
-		System.out.println("Repairing vacuum cleaner...");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+
+	private void empty_garbage(){
+		this.garbageSpace = 100;
+		System.out.println("Garbage emptied");
+	}
+
+	private void recharge_battery(){
+		this.batteryLevel = 100;
+		System.out.println("Battery recharged");
+	}
+
+	public void get_location() {
+		this.requestedLocation = true;
+	}
+
+	public void fix() {
 		this.isBroken = false;
-	}
-	public void empty() {
-		System.out.println("Emptying vacuum cleaner...");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		this.isVacuumFull = false;
-		//model.removePercept(1, Literal.parseLiteral("vacuum_full"));
-	}
-	public ArrayList<Literal> getPercepts() {
-        return updatePercepts();
-    }
+	}	
 
 }

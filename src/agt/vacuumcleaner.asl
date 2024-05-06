@@ -1,81 +1,73 @@
 // Agent vacuumcleaner in project 
 
 /* Initial beliefs */
-at(P) :- pos(P,X,Y) & pos(vc,X,Y).
-gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
+//at(P) :- pos(P,X,Y) & pos(vc,X,Y).
+//home(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Initial goals */
-!check(slots).
-!ensure_pick(G).
+!check.
 
 /* Plans */
 
-// Going right till its possible to go right, then goes down, and starts going left, REPEATS
-// Precondition: - battery not dead
-//               - no one is in the room
-+!check(slots): not garbage(vc) & not recharge & curr_room_empty(true)
-   <- next(slot);
-      .wait(100);
-      .print("Checking next slot...");
-      !check(slots).
-+!check(slots).
++should_go_home
+   <- 
+      !go_home.
 
-// Goes home if someone is in the room
-// Precondition: - battery not dead
-//               - human is in the room
-+!check(slots): not garbage(vc) & not recharge & curr_room_empty(false)
-   <- !gohome(home);
-      .print("Going home because they see me rollin'...");
-      !check(slots).
-+!check(slots).
-
-// If we detect that the battery is low, then we should desire to recharge it
-+recharge: not .desire(home)
-   <- !home.
-
-// If we detect that the garbage tank is full we head home
-+vacuumFull(vc) : not .desire(home)
-   <- !home.
-
-// Goes home to recharge the battery, then goes back to checking slots
-+!home
-   <- -+pos(home,0,0);
-      !gohome(home);
-      .print("Recharging the vacuum cleaner");
-      !check(slots).
-
-// If we detect a garbage, then we should desire to destroy it
-+garbage(vc) : not .desire(destroy(garb))
-   <- !destroy(garb).
-
-// Destroys G garbage            
-+!destroy(G)
-   <- !ensure_pick(G);
-      .print("Dostroy the world");
-      !check(slots).
-
-// Pick up G garbage, helper for destroy
-+!ensure_pick(G) : garbage(vc)
-   <- pick(garb);
-      !ensure_pick(G).
-+!ensure_pick(_).
-
-// When at home, recharge the battery and empty the garbage
-+!gohome(L) : gohome(L)
-   <- .print("I'm at ",L);
++!go_home
+   :  not at_home & not error
+   <- 
+      move_home;
       .wait(1000);
-      emptyGarbage;
-      recharge.
+      !go_home.
 
-// Recursive call to go home
-+!gohome(L)
-   <- ?pos(L,X,Y);
-      .wait(1000);     
-      recharge_route;
-      !gohome(L).
++!go_home
+   :  at_home & not error
+   <- 
+      empty_garbage;
+      recharge_battery;
+      .wait(5000);
+      !check.
 
-// When getting fixed by human, and goes back to work
-+fixed <- 
-   .send(mainframe, tell, ready);
-   .print("I'm ready to go!");
-   !check(slots).
++!check
+   :  not slot_has_garbage & not should_go_home & current_room_empty & not error
+   <- 
+      next_slot;
+      .wait(100);
+      !check.
+
++!check
+   :  not slot_has_garbage & not should_go_home & not current_room_empty & not error
+   <- 
+      .print("Going home because they see me rollin'...");
+      +should_go_home.
+
++slot_has_garbage
+   :  not should_go_home
+   <- 
+      pick_garbage;
+      !check.
+
+/* Error */
++error
+   <-
+      .send(mainframe, tell, error).
+
++report_location
+   <- 
+      get_location;
+      -report_location.
+
++location(X, Y)
+   <- 
+      .send(mainframe, tell, location(X, Y);
+      -location(_,_).
+
++fixed
+   <- 
+      -fixed;
+      fix;
+      .print("I'm ready to go once again!");
+      .send(mainframe, tell, vacuum_ready);
+      +should_go_home.
+
+// TODO: error sometimes
