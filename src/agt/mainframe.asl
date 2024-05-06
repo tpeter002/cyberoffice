@@ -133,7 +133,7 @@
 		+light(Light);
 		-light_ready.
 
-+light[source(Light)]
++light_ready[source(Light)]
 	:	error(Light)
 	<-	
 		-error(Light);
