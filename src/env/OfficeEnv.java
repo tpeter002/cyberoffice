@@ -25,8 +25,8 @@ import java.util.ArrayList;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB = 16; // garbage code in grid model
-    public static final int WALL = 17; // wall code in grid model
+    public static final int GARB = 8; // garbage code in grid model
+    public static final int WALL = 4; // wall code in grid model
 
     private OfficeModel model;
     private OfficeView view;
@@ -48,6 +48,7 @@ public class OfficeEnv extends Environment {
 
         if (agentName.equals("printer")) {
             model.printerModel.executeAction(action);
+            updatePercepts();
             return true;
         } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
@@ -60,17 +61,13 @@ public class OfficeEnv extends Environment {
         } else if (agentName.equals("mainframe")) {
             model.mainframeModel.executeAction(action);
             return true;
-        } else if (agentName.charAt(0) == 'l') {
-            model.lightModel.executeAction(agentName, action);
+        } else if (agentName.equals("light")) {
+            model.lightModel.executeAction(action);
             return true;
-
         }
-
-        updatePercepts();
         return false;
     }
 
-    // @Override
     public void updatePercepts() {
         clearPercepts(); // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
@@ -87,7 +84,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int) ((GSize / 10) * (GSize / 10));
+        public static int n_human_agents = (int) ((GSize / 4) * (GSize / 4));
 
         private OfficeModel() {
             // vacuumCleanerEnv = new VacuumCleanerEnvironment(); // 1 agent
@@ -104,7 +101,7 @@ public class OfficeEnv extends Environment {
                 addWall(xVacuumDoor + 2, 0, xVacuumDoor + 2, yMainWall);
                 addWall(xVacuumDoor + 3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor + 2, yMainWall, GSize - 1, yMainWall);
-                add(GARB, 3, 0);
+                add(OfficeEnv.GARB, 3, 0);
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -137,6 +134,7 @@ public class OfficeEnv extends Environment {
                 return ROOM.HALL;
             } else {
                 return null;
+
             }
         }
 
@@ -174,6 +172,7 @@ public class OfficeEnv extends Environment {
                         }
                     }
                     break;
+
             }
             return true;
         }
@@ -183,22 +182,22 @@ public class OfficeEnv extends Environment {
         }
 
         public void addGarbage(int x, int y) {
-            add(GARB, x, y);
+            add(OfficeEnv.GARB, x, y);
         }
 
         public void removeGarbage(int x, int y) {
-            remove(GARB, x, y);
+            remove(OfficeEnv.GARB, x, y);
         }
 
         public boolean hasGarbage(int x, int y) {
-            return hasObject(GARB, x, y);
+            return hasObject(OfficeEnv.GARB, x, y);
         }
 
         public ArrayList<Literal> getUpdatedPercepts() {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
             // extend arraylist with percepts from every model
+            percepts.addAll(printerModel.getPercepts());
             percepts.addAll(vacuumCleanerModel.getPercepts());
-            percepts.addAll(lightModel.getPercepts());
             return percepts;
         }
 
@@ -226,6 +225,7 @@ public class OfficeEnv extends Environment {
                     super.drawObstacle(g, x, y);
                     break;
             }
+
         }
 
         @Override
