@@ -5,6 +5,8 @@ error(false).
 
 // Plans
 
+
+// notify the mainframe that the printer is ready
 +error(false)
     : true
     <- .send(mainframe, tell, printer_ready);
@@ -12,7 +14,7 @@ error(false).
 
 
 
-// print function when the printer is ready
+// print function for Agent sent by SenderAgent (mainframe)
 +print(Agent)[source(SenderAgent)]
     : printer_ready(true)
    <-  -printer_ready(true);
@@ -24,7 +26,7 @@ error(false).
     -printer_ready(false).
 
 
-// print function after the error (printing for the human who repaired it)
+// print function after the error (printing for the human who repaired it, alias Agent)
 +!print(Agent)[source(self)]
     : printer_ready(true)
    <-  -printer_ready(true);
@@ -35,7 +37,7 @@ error(false).
     +printer_ready(true);
     -printer_ready(false).
     
-// print function when the printer is not ready
+// When the printer is not ready, Agent will go in the queue
 +print(Agent)[source(SenderAgent)]
     : printer_ready(false)
     <- .print("Agent ", Agent, " is in the queue.");
@@ -44,18 +46,13 @@ error(false).
     .wait(5000);
     !in_queue(Agent, SenderAgent).
 
-// plan for being in the queue
+
+// In the queue, Agent will try to print again
 +!in_queue(Agent, SenderAgent)
     : true
     <-.print(Agent,"is trying to print again."); 
     -print(Agent)[source(SenderAgent)];
    +print(Agent)[source(SenderAgent)].
-
-// plan for "print success" if some error occurs
-+!print_success(Agent, SenderAgent)
-    : error(true)
-   <- .print("Printing failed for ", Agent);
-      !notify_mainframe_error(Agent, SenderAgent).
 
 // plan for "print success" if no error occurs
 +!print_success(Agent, SenderAgent)
@@ -63,10 +60,13 @@ error(false).
    <- .print("Printing successful for ", Agent);
    .send(mainframe, tell, done(Agent)).
 
-// plan if error occurs
-+printer_error
-    : true
-   <- +error(true).
+
+// plan for "print success" if some error occurs
++!print_success(Agent, SenderAgent)
+    : error(true)
+   <- .print("Printing failed for ", Agent);
+      !notify_mainframe_error(Agent, SenderAgent).
+
 
 // plan to notify mainframe about error
 +!notify_mainframe_error(Agent, SenderAgent)
@@ -85,4 +85,5 @@ error(false).
    <- -error(true);
    .print("Printer repaired.");
     !print(Agent);
-   +error(false).
+   +error(false);
+   .send(mainframe, tell, printer_ready).
