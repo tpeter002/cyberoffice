@@ -2,3 +2,5 @@
 build/
 .stop___MAS
 target/
+settings.gradle
+bin/

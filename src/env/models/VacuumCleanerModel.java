@@ -19,7 +19,9 @@ public class VacuumCleanerModel {
 	private boolean isBroken;
 	private boolean isVacuumFull;
 	private int batteryLevel;
+	private boolean currRoomEmpty = false;
 	private OfficeModel.ROOM currRoom;
+	private boolean areHumansFriend = true;
 
 	private enum DIRECTION {
 		RIGHT,
@@ -33,6 +35,8 @@ public class VacuumCleanerModel {
 	public static final Term ns = Literal.parseLiteral("next(slot)");
 	public static final Term pg = Literal.parseLiteral("pick(garb)");
 	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
+	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
+	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
 
 	Random random = new Random(System.currentTimeMillis());
 	private static final double BREAKDOWN_PROBABILITY = 0.01;
@@ -68,12 +72,46 @@ public class VacuumCleanerModel {
 	public void executeAction(Structure action) {
 		try {
 			if (action.equals(ns)) {
-				cleanInnerRoom();
+				if (!this.currRoomEmpty) {
+					System.out.println("Room is not empty");
+					moveTowards(0, 0);
+				} else if (this.currRoom == OfficeModel.ROOM.DOORWAY) {
+					cleanInnerRoom();
+					System.out.println("ajtoban vagyok ");
+				} else {
+					cleanInnerRoom();
+				}
 			} else if (action.equals(pg)) {
 				pickGarb();
+			} else if (action.getFunctor().equals("recharge_route")) {
+				moveTowards(0, 0);
+			} else if (action.equals(rechargeBatteryLiteral)) {
+				rechargeBattery();
+				Thread.sleep(1000);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void moveTowards(int x, int y) {
+		Location vc = model.getAgPos(this.id);
+		if (vc.x < x)
+			vc.x++;
+		else if (vc.x > x)
+			vc.x--;
+		if (vc.y < y)
+			vc.y++;
+		else if (vc.y > y)
+			vc.y--;
+		model.setAgPos(this.id, vc);
+	}
+
+	private void rechargeBattery() {
+		Location vc = model.getAgPos(this.id);
+		if (vc.x == 0 && vc.y == 0) {
+			this.batteryLevel = 100;
+			System.out.println("Battery recharged");
 		}
 	}
 
@@ -87,11 +125,33 @@ public class VacuumCleanerModel {
 		// position of the vacuum cleaner
 		Literal vcPos = Literal.parseLiteral("pos(vc," + vcLoc.x + "," + vcLoc.y + ")");
 		// room which the vacuum cleaner is in
-		// Literal vcRoom = Literal.parseLiteral("current_room(" + this.currRoom + ")");
+		Literal vcRoom = Literal.parseLiteral("current_room(" + this.currRoom.ordinal() + ")");
+		if (model.roomIsEmpty(this.currRoom)) {
+			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(true)");
+			this.currRoomEmpty = true;
+			percepts.add(curr_room_empty);
+		} else {
+			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(false)");
+			this.currRoomEmpty = false;
+			percepts.add(curr_room_empty);
+		}
 		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
 			percepts.add(gvc);
 		}
+		if (this.batteryLevel <= 20) {
+			percepts.add(recharge);
+		}
+		if (this.isBroken) {
+			percepts.add(Literal.parseLiteral("broken"));
+		}
+		if (this.batteryLevel <= 20) {
+			percepts.add(recharge);
+		}
+		if (this.isBroken) {
+			percepts.add(Literal.parseLiteral("broken"));
+		}
 		percepts.add(vcPos);
+		percepts.add(vcRoom);
 
 		return percepts;
 	}
@@ -100,11 +160,7 @@ public class VacuumCleanerModel {
 	 * Method to update the current room of the vacuum cleaner
 	 */
 	public void updateRoom() {
-		try {
-			this.currRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
-		} catch (Exception e) {
-			System.out.println("Curr room couldn't be initalized: " + e);
-		}
+		this.currRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
 	}
 
 	/*
@@ -123,6 +179,8 @@ public class VacuumCleanerModel {
 			} catch (Exception e) {
 				System.out.println("Error in sleep");
 			}
+			this.batteryLevel -= 90;
+			this.batteryLevel -= 90;
 			model.removeGarbage(vc.x, vc.y);
 		}
 	}
@@ -131,56 +189,65 @@ public class VacuumCleanerModel {
 		Location vc = model.getAgPos(this.id);
 		if (this.direction == DIRECTION.RIGHT) {
 			vc.x++;
+			avoidHumans(vc);
+			avoidHumans(vc);
 			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
 				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
 					vc.y--;
+					avoidHumans(vc);
 				}
 			}
 		} else if (this.direction == DIRECTION.LEFT) {
 			vc.x--;
+			avoidHumans(vc);
+			avoidHumans(vc);
 			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.RIGHT;
 				vc.x++;
 				vc.y++;
 				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
 					vc.y--;
+					avoidHumans(vc);
 				}
 			}
 		}
 		model.setAgPos(this.id, vc);
 	}
 
-	/*
-	 * public void pick(String garb) {
-	 * // Implement the logic for picking up garbage
-	 * if (this.model.hasGarbage(OfficeEnv.GARB, getAgPos(self.id))) {
-	 * remove(OfficeEnv.GARB, getAgPos(self.id));
-	 * }
-	 * if (random.nextDouble() < BREAKDOWN_PROBABILITY) {
-	 * this.isBroken = true;
-	 * }
-	 * // Check if the vacuum cleaner is full
-	 * // ...
-	 * if (isVacuumFull) {
-	 * //model.addPercept(1, Literal.parseLiteral("vacuum_full"));
-	 * }
-	 * }
-	 */
-	public void move_to_room(String room) {
-		// Implement the logic for moving to a specific room
-		// if (this.model.isRoomEmpty(room)) {
-		// model.addPercept(1, Literal.parseLiteral("room_empty"));
-		// }
-		// ...
-		if (random.nextDouble() < BREAKDOWN_PROBABILITY) {
-			this.isBroken = true;
-		}
-		this.batteryLevel -= 10; // Reduce battery level for each movement
-		if (this.batteryLevel <= 20) {
-			// model.addPercept(1, Literal.parseLiteral("low_battery"));
+	public void avoidHumans(Location vc) throws Exception {
+		if (this.areHumansFriend) {
+			if (model.cellOccupied(vc.x, vc.y)) {
+				System.out.println("Human detected, moving away...");
+				if (this.direction == DIRECTION.RIGHT) {
+					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
+							&& !model.cellOccupied(vc.x, vc.y - 1)) {
+						// Move up
+						vc.y--;
+						model.setAgPos(this.id, vc);
+					} else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1)
+							&& !model.cellOccupied(vc.x, vc.y + 1)) {
+						// Move down
+						vc.y++;
+						model.setAgPos(this.id, vc);
+
+					}
+				} else if (this.direction == DIRECTION.LEFT) {
+					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
+							&& !model.cellOccupied(vc.x, vc.y - 1)) {
+						// Move up
+						vc.y--;
+						model.setAgPos(this.id, vc);
+					} else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1)
+							&& !model.cellOccupied(vc.x, vc.y + 1)) {
+						// Move down
+						vc.y++;
+						model.setAgPos(this.id, vc);
+					}
+				}
+			}
 		}
 	}
 
