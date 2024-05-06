@@ -19,6 +19,7 @@ import models.LightModel;
 import models.MainframeModel;
 
 import java.util.ArrayList;
+import env.Percept;
 
 
 // Main environment class
@@ -44,24 +45,6 @@ public class OfficeEnv extends Environment {
         view  = new OfficeView(model);
         model.setView(view);
         updatePercepts();
-    }
-
-    public class Percept {
-        public String destination;
-        public Literal message;
-
-        public Percept(String name, Literal message) {
-            this.destination = name;
-            this.message = message;
-        }
-
-        public boolean hasDestination() {
-            return this.destination != null;
-        }
-
-        public boolean equals(Percept other) {
-            return this.message.equals(other.message) && this.destination.equals(other.destination);
-        }
     }
 
 
@@ -103,6 +86,8 @@ public class OfficeEnv extends Environment {
     public void updatePercepts() {
         clearPercepts();
         ArrayList<Percept> percepts = model.getNewPercepts();
+
+        new Percept("mainframe", Literal.parseLiteral("empty(" + OfficeModel.ROOM.VACUUM + ")"));
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
