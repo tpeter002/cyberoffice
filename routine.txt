@@ -1,0 +1,13 @@
+h1
+printelj
+move(1,2)
+;
+h2
+printelj
+;
+h3
+move(20,0)
+;
+h4
+move(11,6)
+;
