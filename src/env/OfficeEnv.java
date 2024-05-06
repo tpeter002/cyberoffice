@@ -119,7 +119,7 @@ public class OfficeEnv extends Environment {
             try {
                 // add walls, initialize rooms
                 int yMainWall = (int)(GSize/4);
-                int xVacuumDoor = (int)(GSize/4);
+                int xVacuumDoor = (int)((GSize/4)-2);
                 int xPrinterDoor = (int)(GSize/4)*3;
 
 
@@ -156,18 +156,16 @@ public class OfficeEnv extends Environment {
         public ROOM whichRoom(int x, int y) {
             if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
                 return ROOM.VACUUM;
-            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+            } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
             }
-            else if(y == (int)(GSize/4)){
+            else if((y == (int)((GSize/4))) && ((x == (int)(GSize/4 - 1)) || (x == (int)(GSize/4)*3+1))){
                 return ROOM.DOORWAY;
             } 
             else {
                 return null;
-
-
             }
         }
         //magic numbers

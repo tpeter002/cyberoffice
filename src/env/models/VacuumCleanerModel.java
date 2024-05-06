@@ -208,6 +208,7 @@ public class VacuumCleanerModel  {
 				}
 			}
 		}
+		updateRoom();
 		model.setAgPos(this.id, vc);
 	}
 	public void avoidHumans(Location vc) throws Exception {
