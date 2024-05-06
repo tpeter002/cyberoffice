@@ -25,4 +25,7 @@ public class MainframeModel  {
         return percepts;
     }
 
+    public void executeAction(Structure action){
+        
+    }
 }
