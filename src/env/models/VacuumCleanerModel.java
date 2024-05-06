@@ -22,6 +22,7 @@ public class VacuumCleanerModel  {
 	private boolean currRoomEmpty = false;
 	private OfficeModel.ROOM currRoom;
 	private boolean areHumansFriend = true;
+	private boolean areHumansFriend = true;
 
 	private enum DIRECTION {
 		RIGHT,
@@ -34,6 +35,8 @@ public class VacuumCleanerModel  {
 	public static final Term    ns = Literal.parseLiteral("next(slot)");
 	public static final Term    pg = Literal.parseLiteral("pick(garb)");
 	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
+	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
+	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
 	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
 	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
 
@@ -113,6 +116,26 @@ public class VacuumCleanerModel  {
 			this.batteryLevel = 100;
 			System.out.println("Battery recharged");
 		}
+        }
+	}
+	public void moveTowards(int x, int y){
+		Location vc = model.getAgPos(this.id);
+            if (vc.x < x)
+                vc.x++;
+            else if (vc.x > x)
+                vc.x--;
+            if (vc.y < y)
+                vc.y++;
+            else if (vc.y > y)
+                vc.y--;
+            model.setAgPos(this.id, vc);
+	}
+	private void rechargeBattery(){
+		Location vc = model.getAgPos(this.id);
+		if(vc.x == 0 && vc.y == 0){
+			this.batteryLevel = 100;
+			System.out.println("Battery recharged");
+		}
 	}
 	/** creates the agents perception based on the MarsModel */
 	private ArrayList<Literal> updatePercepts() {
@@ -137,6 +160,13 @@ public class VacuumCleanerModel  {
 		}
 		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
             percepts.add(gvc);
+        }
+		if(this.batteryLevel <= 20){
+			percepts.add(recharge);
+		}
+		if(this.isBroken){
+			percepts.add(Literal.parseLiteral("broken"));
+		}
         }
 		if(this.batteryLevel <= 20){
 			percepts.add(recharge);
@@ -173,6 +203,7 @@ public class VacuumCleanerModel  {
 				System.out.println("Error in sleep");
 			}
 			this.batteryLevel -= 90;
+			this.batteryLevel -= 90;
 			model.removeGarbage(vc.x, vc.y);
 		}
 	}
@@ -181,6 +212,7 @@ public class VacuumCleanerModel  {
 		Location vc = model.getAgPos(this.id);
 		if (this.direction == DIRECTION.RIGHT){
 			vc.x++;
+			avoidHumans(vc);
 			avoidHumans(vc);
 			if ( this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
@@ -194,6 +226,7 @@ public class VacuumCleanerModel  {
 		}
 		else if (this.direction == DIRECTION.LEFT){
 			vc.x--;
+			avoidHumans(vc);
 			avoidHumans(vc);
 			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.RIGHT;
@@ -271,4 +304,3 @@ public class VacuumCleanerModel  {
     }
 
 }
-
