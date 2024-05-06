@@ -1,18 +1,5 @@
 // Agent mainframe in project cyberoffice
 
-/* Initial beliefs and rules */
-
-/* Initial goals */
-
-/* Plans */
-
-// Everyone reports in when they're ready TODO: move these to their respective slots
-
-+light_ready[source(Light)] 
-	<-	
-		+light(Light);
-		-light_ready.
-
 
 
 /* GENERIC 
@@ -37,19 +24,19 @@
 
 // Report an error that happened randomly
 +error[source(Source)]
-    <-	
-		findall(Human, human(Human), Humans);
-        .length(Humans, Length);
-        .random(R);
-        RandomIndex = math.floor(R * Length) + 1;
-        .nth(RandomIndex, Humans, SelectedHuman);
-        
+	<-	
+		.findall(Human, human(Human), Humans);
+		.length(Humans, Length);
+		.random(R);
+		RandomIndex = math.floor(R * Length) + 1;
+		.nth(RandomIndex, Humans, SelectedHuman);
+		
 		!private_fix_error(Source, SelectedHuman).
 
 
 
 /* HUMAN 
- *
+ * 
  */
 
 // Please send this signal on startup
@@ -58,14 +45,16 @@
 		+human(Human);
 		-human_ready.
 
-// Call if you want to print
+
+
+// Call if you want to print, you'll either get a done(Printer) or an error(Printer) in return
 +print[source(Requester)]
 	<-	
 		.findall(Printer, printer(Printer), Printers);
-	    .length(Printers, Length);
-        .random(R);
-        RandomIndex = math.floor(R * Length) + 1;
-        .nth(RandomIndex, Printers, SelectedPrinter);
+		.length(Printers, Length);
+		.random(R);
+		RandomIndex = math.floor(R * Length) + 1;
+		.nth(RandomIndex, Printers, SelectedPrinter);
 
 		!private_print(SelectedPrinter, Requester);
 
@@ -109,16 +98,15 @@
 		-error(Vacuum);
 		-vacuum_ready.
 
-+room_empty(Room)
++empty(Room)
 	<-	
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
-	    .length(Vacuums, Length);
-        .random(R);
-        RandomIndex = math.floor(R * Length) + 1;
-        .nth(RandomIndex, Vacuums, SelectedVacuum).
+		.length(Vacuums, Length);
+		.random(R);
+		RandomIndex = math.floor(R * Length) + 1;
+		.nth(RandomIndex, Vacuums, SelectedVacuum).
 
-		// TODO: add this to java
-
+		.send(SelectedVacuum, tell, empty(Room)).
 
 
 
@@ -126,11 +114,18 @@
  *
  */
 
+// Please send this signal on startup, and any time when fixed afterwards
++light_ready[source(Light)]
+	:	not error(Light)
+	<-	
+		+light(Light);
+		-light_ready.
 
-
-
-
-
++light[source(Light)]
+	:	error(Light)
+	<-	
+		-error(Light);
+		-light_ready.
 
 
 
@@ -140,13 +135,13 @@
 	:	not error(Printer)
 	<-	
 		.print("recieved 'print' from ", Requester, ", forwarding to ", Printer);
-	    .send(Printer, tell, print(Requester)).
+		.send(Printer, tell, print(Requester)).
 
 +!private_print(Printer, Requester)
 	:	error(Printer)
 	<-	
 		.print("recieved 'print' from ", Requester, ", but ", Printer, " is non functional");
-	    !private_fix_error(Printer, Requester).
+		!private_fix_error(Printer, Requester).
 
 +!private_fix_error(Errorer, Requester)
 	<-	
@@ -157,26 +152,26 @@
 
 /*
 +!find_everyone
-    <-
-        .findall(Agent, .my_name(Agent), Agents);
-        .send(Agents, askOne, location(Agent, Room), Locations);
-        
-        .abolish(occupied(_));
-        .abolish(location(_,_));
+	<-
+		.findall(Agent, .my_name(Agent), Agents);
+		.send(Agents, askOne, location(Agent, Room), Locations);
+		
+		.abolish(occupied(_));
+		.abolish(location(_,_));
 
-        for (.member(location(Agent, Room), Locations)) {
-            .count(location(_, Room, Locations, Count);
-            if (Count > 0) {
-                +occupied(Room);    
-            }
-            +location(Agent, Room);
-        }.
+		for (.member(location(Agent, Room), Locations)) {
+			.count(location(_, Room, Locations, Count);
+			if (Count > 0) {
+				+occupied(Room);    
+			}
+			+location(Agent, Room);
+		}.
 
 +!inform_room_status[source(S)]
-    <-
-        .findall(Room, occupied(Room), OccupiedRooms);
-        .findall(Room, room(Room) & not occupied(R), EmptyRooms);
-        
-        .send(S, tell, occupied_rooms(OccupiedRooms));
-        .send(S, tell, empty_rooms(EmptyRooms)).
+	<-
+		.findall(Room, occupied(Room), OccupiedRooms);
+		.findall(Room, room(Room) & not occupied(R), EmptyRooms);
+		
+		.send(S, tell, occupied_rooms(OccupiedRooms));
+		.send(S, tell, empty_rooms(EmptyRooms)).
 */
