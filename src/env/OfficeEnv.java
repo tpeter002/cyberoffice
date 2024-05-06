@@ -70,8 +70,8 @@ public class OfficeEnv extends Environment {
             }
             return true;
         } else if (agentName.equals("mainframe")) {
-            model.mainframeModel.executeAction(action);
-            return true;
+            System.out.println("this shouldn't happen");
+            return false;
         } else if (agentName.equals("light")) {
             model.lightModel.executeAction(action);
             return true;
