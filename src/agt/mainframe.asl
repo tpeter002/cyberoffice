@@ -49,6 +49,7 @@
 
 // Call if you want to print, you'll either get a done(Printer) or an error(Printer) in return
 +print[source(Requester)]
+	:	printer(_)
 	<-	
 		.findall(Printer, printer(Printer), Printers);
 		.length(Printers, Length);
@@ -59,6 +60,13 @@
 		!private_print(SelectedPrinter, Requester);
 
 		-print[source(Requester)].
+
++print[source(Requester)]
+	:	not printer(_)
+	<-	
+		-print[source(Requester)];
+		.wait(1000);
+		+print[source(Requester)].
 
 
 
@@ -98,7 +106,9 @@
 		-error(Vacuum);
 		-vacuum_ready.
 
+// Sent every time to 
 +empty(Room)
+	:	vacuum(_)
 	<-	
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
 		.length(Vacuums, Length);
