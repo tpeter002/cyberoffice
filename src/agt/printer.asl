@@ -54,32 +54,34 @@ error(false).
     -print(Agent)[source(SenderAgent)];
    +print(Agent)[source(SenderAgent)].
 
-// plan for "print success" if no error occurs
+// Successful printing
 +!print_success(Agent, SenderAgent)
     : error(false)
    <- .print("Printing successful for ", Agent);
    .send(mainframe, tell, done(Agent)).
 
 
-// plan for "print success" if some error occurs
+// Error while printing
 +!print_success(Agent, SenderAgent)
     : error(true)
    <- .print("Printing failed for ", Agent);
       !notify_mainframe_error(Agent, SenderAgent).
 
 
-// plan to notify mainframe about error
+// Notifying the mainframe about the error
 +!notify_mainframe_error(Agent, SenderAgent)
     : true
    <- .print("Notifying mainframe about error for ", Agent);
    .send(SenderAgent, tell, error(Agent)).
 
-// plan to notify mainframe about printer ready
+
+// Notifying the mainframe that the printer is ready
 +!notify_mainframe_ready(Agent, SenderAgent)
     : true
-   <- .send(mainframe, tell, printer_ready(SenderAgent)).
+   <- .send(mainframe, tell, printer_ready).
 
-// plan to repair the printer
+
+// Repairing the printer
 +repair[source(Agent)]
     : true
    <- -error(true);

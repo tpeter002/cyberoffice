@@ -18,6 +18,8 @@ MAS cyberoffice {
             printer;
             vacuumcleaner;
             mainframe;
+            dummyperson;
+            dummyperson2;
 
     aslSourcePath: "src/agt";
 }

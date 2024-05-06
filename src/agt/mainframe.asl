@@ -11,7 +11,7 @@
 	<-  
 		.print("recieved 'done' from ", Source, ", forwarding to ", Requester);
 		.send(Requester, tell, done(Source));
-
+		.print("Done for ", Requester);
 		-done[source(Source)].
 
 // Report an error that happened during a request from a requester
@@ -19,7 +19,7 @@
 	<-  
 		.print("recieved 'error' from ", Source, ", forwarding to ", Requester);
 		.send(Requester, tell, error(Source));
-		
+		.print("Error for ", Requester);
 		!private_fix_error(Source, Requester).
 
 // Report an error that happened randomly
@@ -28,7 +28,7 @@
 		.findall(Human, human(Human), Humans);
 		.length(Humans, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Humans, SelectedHuman);
 		
 		!private_fix_error(Source, SelectedHuman).
@@ -53,11 +53,9 @@
 		.findall(Printer, printer(Printer), Printers);
 		.length(Printers, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Printers, SelectedPrinter);
-
 		!private_print(SelectedPrinter, Requester);
-
 		-print[source(Requester)].
 
 
@@ -103,7 +101,7 @@
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
 		.length(Vacuums, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length) ;
 		.nth(RandomIndex, Vacuums, SelectedVacuum).
 
 		.send(SelectedVacuum, tell, empty(Room)).
