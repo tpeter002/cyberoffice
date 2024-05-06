@@ -24,8 +24,8 @@ import java.util.ArrayList;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 16; // garbage code in grid model
-    public static final int WALL = 17; // wall code in grid model
+    public static final int GARB  = 8; // garbage code in grid model
+    public static final int WALL = 4; // wall code in grid model
 
 
     private OfficeModel model;
@@ -48,7 +48,6 @@ public class OfficeEnv extends Environment {
 
         if (agentName.equals("printer")) {
             model.printerModel.executeAction(action);
-            informAgsEnvironmentChanged();
             updatePercepts();
             return true;
         } else if (agentName.equals("vacuumcleaner")) {
@@ -71,7 +70,7 @@ public class OfficeEnv extends Environment {
 
 
     public void updatePercepts() {
-       // clearPercepts();    // TODO: do we need to clear percepts?
+        clearPercepts();    // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
         for (Literal percept : percepts) {
             addPercept(percept);
@@ -106,7 +105,7 @@ public class OfficeEnv extends Environment {
                 addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
                 addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
-                add(GARB,3, 0);
+                add(OfficeEnv.GARB,3, 0);
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -186,15 +185,15 @@ public class OfficeEnv extends Environment {
         }
 
         public void addGarbage(int x, int y) {
-            add(GARB, x, y);
+            add(OfficeEnv.GARB, x, y);
         }
 
         public void removeGarbage(int x, int y) {
-            remove(GARB, x, y);
+            remove(OfficeEnv.GARB, x, y);
         }
 
         public boolean hasGarbage(int x, int y) {
-            return hasObject(GARB, x, y);
+            return hasObject(OfficeEnv.GARB, x, y);
         }
 
         public ArrayList<Literal> getUpdatedPercepts() {
