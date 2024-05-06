@@ -75,9 +75,6 @@ public class VacuumCleanerModel  {
 			}
 			else if (action.getFunctor().equals("recharge_route")) {
                 moveTowards(0,0);
-				if(model.getAgPos(this.id).x == 0 && model.getAgPos(this.id).y == 0){
-					
-				}
 			}
 			else if (action.equals(rechargeBatteryLiteral)) {
 				rechargeBattery();
