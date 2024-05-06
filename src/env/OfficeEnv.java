@@ -55,7 +55,7 @@ public class OfficeEnv extends Environment {
             model.printerModel.executeAction(action);
             updatePercepts();
             return true;
-        } else if (agentName.equals("vacuum_cleaner")) {
+        } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
             updatePercepts();
             informAgsEnvironmentChanged();
@@ -100,7 +100,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/4) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =(int)((GSize/10) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
