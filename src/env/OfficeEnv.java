@@ -46,6 +46,25 @@ public class OfficeEnv extends Environment {
         updatePercepts();
     }
 
+    public class Percept {
+        public String destination;
+        public Literal message;
+
+        public Percept(String name, Literal message) {
+            this.destination = name;
+            this.message = message;
+        }
+
+        public boolean hasDestination() {
+            return this.destination != null;
+        }
+
+        public boolean equals(Percept other) {
+            return this.message.equals(other.message) && this.destination.equals(other.destination);
+        }
+    }
+
+
     @Override
     public boolean executeAction(String agentName, Structure action) {
 
@@ -70,7 +89,7 @@ public class OfficeEnv extends Environment {
             }
             return true;
         } else if (agentName.equals("mainframe")) {
-            model.mainframeModel.executeAction(action);
+            //model.mainframeModel.executeAction(action);
             return true;
         } else if (agentName.equals("light")) {
             model.lightModel.executeAction(action);
@@ -82,11 +101,37 @@ public class OfficeEnv extends Environment {
 
 
     public void updatePercepts() {
-        clearPercepts();    // TODO: do we need to clear percepts?
-        ArrayList<Literal> percepts = model.getUpdatedPercepts();
-        for (Literal percept : percepts) {
-            addPercept(percept);
+        clearPercepts();
+        ArrayList<Percept> percepts = model.getNewPercepts();
+
+        // inform mainframe about empty rooms
+        for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
+            if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
+                percepts.add(
+                    new Percept("mainframe", Literal.parseLiteral("empty(" + room + ")"))
+                );
+            }
         }
+
+        // inform agents about new percepts
+        for (Percept percept : percepts) {
+            if (percept.hasDestination()) {
+                addPercept(percept.destination, percept.message);
+            } else {
+                addPercept(percept.message);
+            }
+        }
+
+        // inform agents about percepts to remove
+        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove();
+        for (Percept percept : perceptsToRemove) {
+            if (percept.hasDestination()) {
+                removePercept(percept.destination, percept.message);
+            } else {
+                removePercept(percept.message);
+            }
+        }
+
     }
 
 
@@ -100,7 +145,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/4) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =(int)((GSize/10) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
@@ -143,6 +188,7 @@ public class OfficeEnv extends Environment {
             HALL,
             PRINTER,
             VACUUM,
+            DOORWAY,
         }
 
         public ROOM whichRoom(int x, int y) {
@@ -152,7 +198,11 @@ public class OfficeEnv extends Environment {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
-            } else {
+            }
+            else if(y == (int)(GSize/4)){
+                return ROOM.DOORWAY;
+            } 
+            else {
                 return null;
 
 
@@ -192,6 +242,7 @@ public class OfficeEnv extends Environment {
                             }
                         }
                     }
+                // TODO: kell a doorway is?
                     break;
 
             }
@@ -215,14 +266,32 @@ public class OfficeEnv extends Environment {
             return hasObject(OfficeEnv.GARB, x, y);
         }
 
-        public ArrayList<Literal> getUpdatedPercepts() {
-            ArrayList<Literal> percepts = new ArrayList<Literal>();
-            // extend arraylist with percepts from every model
-            percepts.addAll(printerModel.getPercepts());
-            percepts.addAll(vacuumCleanerModel.getPercepts());
-            return percepts;
+        public ArrayList<Percept> getNewPercepts() {
+
+            ArrayList<Percept> percepts_new = new ArrayList<Percept>();
+
+            //TODO: uncomment when function implemented
+            //percepts_new.addAll(vacuumCleanerModel.newPercepts());
+            percepts_new.addAll(printerModel.newPercepts());
+            //percepts_new.addAll(humanAgentModel.newPercepts());
+            //percepts_new.addAll(lightModel.newPercepts());
+            //percepts_new.addAll(mainframeModel.newPercepts());
+
+            return percepts_new;
         }
 
+        public ArrayList<Percept> getPerceptsToRemove() {
+            ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
+
+            //TODO: uncomment when function implemented
+            //percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
+            percepts_to_remove.addAll(printerModel.perceptsToRemove());
+            //percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
+            //percepts_to_remove.addAll(lightModel.perceptsToRemove());
+            //percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
+
+            return percepts_to_remove;
+        }
 
     }
 

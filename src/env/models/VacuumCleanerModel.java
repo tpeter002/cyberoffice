@@ -19,6 +19,7 @@ public class VacuumCleanerModel  {
 	private boolean isBroken;
 	private boolean isVacuumFull;
 	private int batteryLevel;
+	private boolean currRoomEmpty = false;
 	private OfficeModel.ROOM currRoom;
 	private boolean areHumansFriend = true;
 
@@ -68,16 +69,23 @@ public class VacuumCleanerModel  {
 	public void executeAction(Structure action){
         try {
             if (action.equals(ns)) {
-                cleanInnerRoom();
+				if (!this.currRoomEmpty) {
+					System.out.println("Room is not empty");
+					moveTowards(0,0);
+				}
+				else if (this.currRoom==OfficeModel.ROOM.DOORWAY){
+					cleanInnerRoom();
+					System.out.println("ajtoban vagyok ");
+				}
+				else{
+					cleanInnerRoom();
+				}
             }
 			else if (action.equals(pg)) {
                 pickGarb();
 			}
 			else if (action.getFunctor().equals("recharge_route")) {
                 moveTowards(0,0);
-				if(model.getAgPos(this.id).x == 0 && model.getAgPos(this.id).y == 0){
-					
-				}
 			}
 			else if (action.equals(rechargeBatteryLiteral)) {
 				rechargeBattery();
@@ -87,6 +95,7 @@ public class VacuumCleanerModel  {
             e.printStackTrace();
         }
 	}
+	
 	public void moveTowards(int x, int y){
 		Location vc = model.getAgPos(this.id);
             if (vc.x < x)
@@ -116,7 +125,17 @@ public class VacuumCleanerModel  {
 		//position of the vacuum cleaner
 		Literal vcPos = Literal.parseLiteral("pos(vc," + vcLoc.x + "," + vcLoc.y + ")");
 		//room which the vacuum cleaner is in
-		//Literal vcRoom = Literal.parseLiteral("current_room(" + this.currRoom + ")");
+		Literal vcRoom = Literal.parseLiteral("current_room(" + this.currRoom.ordinal() + ")");
+		if (model.roomIsEmpty(this.currRoom)) {
+			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(true)");
+			this.currRoomEmpty = true;
+			percepts.add(curr_room_empty);
+		}
+		else{
+			Literal curr_room_empty = Literal.parseLiteral("curr_room_empty(false)");
+			this.currRoomEmpty = false;
+			percepts.add(curr_room_empty);
+		}
 		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
             percepts.add(gvc);
         }
@@ -126,7 +145,14 @@ public class VacuumCleanerModel  {
 		if(this.isBroken){
 			percepts.add(Literal.parseLiteral("broken"));
 		}
+		if(this.batteryLevel <= 20){
+			percepts.add(recharge);
+		}
+		if(this.isBroken){
+			percepts.add(Literal.parseLiteral("broken"));
+		}
 		percepts.add(vcPos);
+		percepts.add(vcRoom);
 
 		return percepts;
 	}
@@ -135,11 +161,7 @@ public class VacuumCleanerModel  {
 	 * Method to update the current room of the vacuum cleaner
 	 */
 	public void updateRoom() {
-		try{
-			this.currRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
-		} catch (Exception e) {
-			System.out.println("Curr room couldn't be initalized: " + e);
-		}
+		this.currRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
 	}
 	/*
 	 * Initialize starting positions of the vacuum cleaner
@@ -158,6 +180,7 @@ public class VacuumCleanerModel  {
 				System.out.println("Error in sleep");
 			}
 			this.batteryLevel -= 90;
+			this.batteryLevel -= 90;
 			model.removeGarbage(vc.x, vc.y);
 		}
 	}
@@ -167,17 +190,20 @@ public class VacuumCleanerModel  {
 		if (this.direction == DIRECTION.RIGHT){
 			vc.x++;
 			avoidHumans(vc);
+			avoidHumans(vc);
 			if ( this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
 				if(model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))){
 					vc.y--;
+					avoidHumans(vc);
 				}
 			}
 		}
 		else if (this.direction == DIRECTION.LEFT){
 			vc.x--;
+			avoidHumans(vc);
 			avoidHumans(vc);
 			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.RIGHT;
@@ -185,6 +211,7 @@ public class VacuumCleanerModel  {
 				vc.y++;
 				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))){
 					vc.y--;
+					avoidHumans(vc);
 				}
 			}
 		}
@@ -195,16 +222,16 @@ public class VacuumCleanerModel  {
 			if (model.cellOccupied(vc.x, vc.y)) {
 				System.out.println("Human detected, moving away...");
 				if (this.direction == DIRECTION.RIGHT) {
-					if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1) && !model.cellOccupied(vc.x, vc.y + 1)) {
+					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {
+						// Move up
+						vc.y--;
+						model.setAgPos(this.id, vc);
+					}
+					else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1) && !model.cellOccupied(vc.x, vc.y + 1)) {
 						// Move down
 						vc.y++;
 						model.setAgPos(this.id, vc);
 						
-					}
-					else if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {
-						// Move up
-						vc.y--;
-						model.setAgPos(this.id, vc);
 					}
 				} else if (this.direction == DIRECTION.LEFT) {
 					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {

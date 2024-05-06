@@ -1,7 +1,5 @@
 // Agent mainframe in project cyberoffice
 
-
-
 /* GENERIC 
  * used by any agent in the right circumstance, it is detailed in each agents' own section
  */
@@ -49,6 +47,7 @@
 
 // Call if you want to print, you'll either get a done(Printer) or an error(Printer) in return
 +print[source(Requester)]
+	:	printer(_)
 	<-	
 		.findall(Printer, printer(Printer), Printers);
 		.length(Printers, Length);
@@ -57,6 +56,13 @@
 		.nth(RandomIndex, Printers, SelectedPrinter);
 		!private_print(SelectedPrinter, Requester);
 		-print[source(Requester)].
+
++print[source(Requester)]
+	:	not printer(_)
+	<-	
+		-print[source(Requester)];
+		.wait(1000);
+		+print[source(Requester)].
 
 
 
@@ -96,15 +102,19 @@
 		-error(Vacuum);
 		-vacuum_ready.
 
+// Sent every time to 
 +empty(Room)
+	:	vacuum(_)
 	<-	
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
 		.length(Vacuums, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) ;
-		.nth(RandomIndex, Vacuums, SelectedVacuum).
+		RandomIndex = math.floor(R * Length);
+		.nth(RandomIndex, Vacuums, SelectedVacuum);
 
-		.send(SelectedVacuum, tell, empty(Room)).
+		.send(SelectedVacuum, tell, empty(Room));
+
+		-empty(Room).
 
 
 
@@ -119,7 +129,7 @@
 		+light(Light);
 		-light_ready.
 
-+light[source(Light)]
++light_ready[source(Light)]
 	:	error(Light)
 	<-	
 		-error(Light);
@@ -127,7 +137,7 @@
 
 
 
-/* private helper functions */
+/* private helper "functions" */
 
 +!private_print(Printer, Requester)
 	:	not error(Printer)
@@ -143,8 +153,21 @@
 
 +!private_fix_error(Errorer, Requester)
 	<-	
-		.print("asking ", Requester, " to fix ", Errorer);
-		.send(Requester, tell, go_fix(Errorer)).
+		+error_in_need_of_fixing(Errorer, Requester);
+		.print("asking ", Errorer, " for their location ");
+		.send(Errorer, tell, report_location).
+
+// only here to help with the error fixing above
++location(X, Y)[source(Errorer)]
+	:	error_in_need_of_fixing(Errorer, _)
+	<-
+		.findall(Requester, error_in_need_of_fixing(Errorer, Requester), Requesters);
+
+		if (not .empty(Requesters)) {
+			.nth(0, Requesters, Requester);
+			.print("sending ", Requester, " to fix ", Errorer);
+			.send(Requester, tell, go_fix(Errorer, X, Y));
+		}.
 
 
 

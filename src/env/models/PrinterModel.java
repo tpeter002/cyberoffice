@@ -24,7 +24,8 @@ public class PrinterModel{
     private boolean printerWorking = false;
     private boolean printerError = false;
     private Queue<String> printQueue = new LinkedList<>();
-    ArrayList<Literal> percepts = new ArrayList<>();
+    ArrayList<Literal> newpercepts = new ArrayList<>();
+    ArrayList<Literal> perceptstoremove = new ArrayList<>();
     Logger logger = Logger.getMyLogger(getClass().getName());
 
 
@@ -87,8 +88,8 @@ public class PrinterModel{
         return false;
     }
 
-    public ArrayList<Literal> getPercepts() {
-        return percepts;
+    public ArrayList<Literal> newPercepts() {
+        return newpercepts;
     }
 
 }

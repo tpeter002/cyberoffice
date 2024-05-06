@@ -11,21 +11,18 @@ import java.util.ArrayList;
 
 // Human agent environment class
 public class MainframeModel  {
-    
-    private OfficeModel model;
-    Random random = new Random(System.currentTimeMillis());
+	
+	private OfficeModel model;
+	Random random = new Random(System.currentTimeMillis());
 
-    ArrayList<Literal> percepts = new ArrayList<>();
+	ArrayList<Literal> percepts = new ArrayList<>();
 
-    public MainframeModel(OfficeModel model, int GSize){
-        this.model = model;
-    }
+	public MainframeModel(OfficeModel model, int GSize){
+		this.model = model;
+	}
 
-    public ArrayList<Literal> getPercepts() {
-        return percepts;
-    }
+	public ArrayList<Literal> getPercepts() {
+		return percepts;
+	}
 
-    public void executeAction(Structure action){
-        
-    }
 }

@@ -10,10 +10,16 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Plans */
 
-+!check(slots): not garbage(vc) & not recharge(vc)
++!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(true)
    <- next(slot);
-      .wait(1000);
+      .wait(100);
       .print("Checking next slot...");
+      !check(slots).
++!check(slots).
+
++!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(false)
+   <- !gohome(home);
+      .print("Going home because they see me rollin'...");
       !check(slots).
 +!check(slots).
 
@@ -28,7 +34,7 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
       !gohome(home);
       .print("Recharging the vacuum cleaner");
       !check(slots).
-        
+            
 +!destroy(G)
    <- !ensure_pick(G);
       .print("Dostroy the world");
@@ -49,7 +55,6 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
       .wait(1000);     
       recharge_route;
       !gohome(L).
-
 
 /* Initial beliefs and rules 
 at(room(1)).
