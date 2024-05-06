@@ -20,13 +20,18 @@ import models.MainframeModel;
 
 import java.util.ArrayList;
 
+
 // Main environment class
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
+
     public static final int GARB  = 8; // garbage code in grid model
     public static final int WALL = 4; // wall code in grid model
 
+
+
+    public static final Term load = Literal.parseLiteral("loadnextroutine");
 
     private OfficeModel model;
     private OfficeView  view;
@@ -55,8 +60,14 @@ public class OfficeEnv extends Environment {
             updatePercepts();
             informAgsEnvironmentChanged();
             return true;
-        } else if (agentName.equals("human_agent")) {
-            model.humanAgentModel.executeAction(action);
+        } else if (agentName.charAt(0)=='h') {
+            if(action.equals(load)){
+                Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
+                addPercept(agentName, routine_element);
+            }
+            else{
+                model.humanAgentModel.executeAction(agentName, action);
+            }
             return true;
         } else if (agentName.equals("mainframe")) {
             model.mainframeModel.executeAction(action);
@@ -69,6 +80,7 @@ public class OfficeEnv extends Environment {
     }
 
 
+
     public void updatePercepts() {
         clearPercepts();    // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
@@ -76,6 +88,7 @@ public class OfficeEnv extends Environment {
             addPercept(percept);
         }
     }
+
 
 
 
@@ -87,7 +100,8 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int)((GSize/4) * (GSize/4));
+        public static int n_human_agents =(int)((GSize/4) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+
 
 
         private OfficeModel() {
@@ -101,11 +115,13 @@ public class OfficeEnv extends Environment {
                 int xVacuumDoor = (int)(GSize/4);
                 int xPrinterDoor = (int)(GSize/4)*3;
 
+
                 addWall(0, yMainWall, xVacuumDoor, yMainWall);
                 addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
                 addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
                 add(OfficeEnv.GARB,3, 0);
+
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -139,12 +155,14 @@ public class OfficeEnv extends Environment {
             } else {
                 return null;
 
+
             }
         }
         //magic numbers
         public boolean isWall(int x, int y) {
             return !isFree(4, x, y);
         }
+
 
         public boolean roomIsEmpty(ROOM room) {
             switch (room) {
@@ -185,6 +203,7 @@ public class OfficeEnv extends Environment {
         }
 
         public void addGarbage(int x, int y) {
+
             add(OfficeEnv.GARB, x, y);
         }
 
@@ -204,6 +223,7 @@ public class OfficeEnv extends Environment {
             return percepts;
         }
 
+
     }
 
     class OfficeView extends GridWorldView {
@@ -218,6 +238,7 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
+
             switch (object) {
                 case OfficeEnv.GARB:
                     g.setColor(Color.RED);
