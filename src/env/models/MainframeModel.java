@@ -7,20 +7,22 @@ import java.util.Random;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
+import java.util.ArrayList;
+
 // Human agent environment class
 public class MainframeModel  {
     
     private OfficeModel model;
-    private int position;
     Random random = new Random(System.currentTimeMillis());
 
+    ArrayList<Literal> percepts = new ArrayList<>();
+
     public MainframeModel(OfficeModel model, int GSize){
-        position = 0;
         this.model = model;
-        initializePositions(GSize);
-        // Initialize the positions
     }
 
-    public void initializePositions(int GSize){
+    public ArrayList<Literal> getPercepts() {
+        return percepts;
     }
+
 }
