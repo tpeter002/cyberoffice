@@ -20,6 +20,7 @@ public class VacuumCleanerModel  {
 	private boolean isVacuumFull;
 	private int batteryLevel;
 	private OfficeModel.ROOM currRoom;
+	private boolean areHumansFriend = true;
 
 	private enum DIRECTION {
 		RIGHT,
@@ -92,7 +93,6 @@ public class VacuumCleanerModel  {
             else if (vc.y > y)
                 vc.y--;
             model.setAgPos(this.id, vc);
-			rechargeBattery();
 	}
 	private void rechargeBattery(){
 		Location vc = model.getAgPos(this.id);
@@ -119,9 +119,6 @@ public class VacuumCleanerModel  {
 		}
 		if(this.isBroken){
 			percepts.add(Literal.parseLiteral("broken"));
-		}
-		if(this.batteryLevel == 20){
-			percepts.add(Literal.parseLiteral("fully_charged"));
 		}
 		percepts.add(vcPos);
 
@@ -184,6 +181,43 @@ public class VacuumCleanerModel  {
 			}
 		}
 		model.setAgPos(this.id, vc);
+	}
+	public Location avoidHumans(Location vc) throws Exception {
+		Location mod = vc;
+		if (this.areHumansFriend) {
+			if (model.cellOccupied(vc.x, vc.y)) {
+				if (this.direction == DIRECTION.RIGHT) {
+					if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1) && !model.cellOccupied(vc.x, vc.y + 1)) {
+						// Move down
+						mod.y++;
+						model.setAgPos(this.id, mod);
+						// Continue moving right
+						mod.x++;
+						if (model.inGrid(mod.x, mod.y) && !model.isWall(mod.x, mod.y) && !model.cellOccupied(mod.x, mod.y)) {
+							model.setAgPos(this.id, mod);
+						}
+						// Move back up
+						mod.y--;
+						model.setAgPos(this.id, mod);
+					}
+				} else if (this.direction == DIRECTION.LEFT) {
+					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {
+						// Move up
+						mod.y--;
+						model.setAgPos(this.id, mod);
+						// Continue moving left
+						mod.x--;
+						if (model.inGrid(mod.x, mod.y) && !model.isWall(mod.x, mod.y) && !model.cellOccupied(mod.x, mod.y)) {
+							model.setAgPos(this.id, mod);
+						}
+						// Move back down
+						mod.y++;
+						model.setAgPos(this.id, mod);
+					}
+				}
+			}
+		}
+		return mod;
 	}
 	/*
 	public void pick(String garb) {
