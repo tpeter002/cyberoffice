@@ -100,7 +100,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/4) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =(int)((GSize/10) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
@@ -143,6 +143,7 @@ public class OfficeEnv extends Environment {
             HALL,
             PRINTER,
             VACUUM,
+            DOORWAY,
         }
 
         public ROOM whichRoom(int x, int y) {
@@ -152,7 +153,11 @@ public class OfficeEnv extends Environment {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
-            } else {
+            }
+            else if(y == (int)(GSize/4)){
+                return ROOM.DOORWAY;
+            } 
+            else {
                 return null;
 
 
@@ -192,6 +197,7 @@ public class OfficeEnv extends Environment {
                             }
                         }
                     }
+                // TODO: kell a doorway is?
                     break;
 
             }
