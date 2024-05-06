@@ -166,6 +166,7 @@ public class VacuumCleanerModel  {
 		Location vc = model.getAgPos(this.id);
 		if (this.direction == DIRECTION.RIGHT){
 			vc.x++;
+			avoidHumans(vc);
 			if ( this.GSize<=vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.LEFT;
 				vc.x--;
@@ -177,6 +178,7 @@ public class VacuumCleanerModel  {
 		}
 		else if (this.direction == DIRECTION.LEFT){
 			vc.x--;
+			avoidHumans(vc);
 			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
 				this.direction = DIRECTION.RIGHT;
 				vc.x++;
@@ -188,72 +190,37 @@ public class VacuumCleanerModel  {
 		}
 		model.setAgPos(this.id, vc);
 	}
-	public Location avoidHumans(Location vc) throws Exception {
-		Location mod = vc;
+	public void avoidHumans(Location vc) throws Exception {
 		if (this.areHumansFriend) {
 			if (model.cellOccupied(vc.x, vc.y)) {
+				System.out.println("Human detected, moving away...");
 				if (this.direction == DIRECTION.RIGHT) {
 					if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1) && !model.cellOccupied(vc.x, vc.y + 1)) {
 						// Move down
-						mod.y++;
-						model.setAgPos(this.id, mod);
-						// Continue moving right
-						mod.x++;
-						if (model.inGrid(mod.x, mod.y) && !model.isWall(mod.x, mod.y) && !model.cellOccupied(mod.x, mod.y)) {
-							model.setAgPos(this.id, mod);
-						}
-						// Move back up
-						mod.y--;
-						model.setAgPos(this.id, mod);
+						vc.y++;
+						model.setAgPos(this.id, vc);
+						
+					}
+					else if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {
+						// Move up
+						vc.y--;
+						model.setAgPos(this.id, vc);
 					}
 				} else if (this.direction == DIRECTION.LEFT) {
 					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1) && !model.cellOccupied(vc.x, vc.y - 1)) {
 						// Move up
-						mod.y--;
-						model.setAgPos(this.id, mod);
-						// Continue moving left
-						mod.x--;
-						if (model.inGrid(mod.x, mod.y) && !model.isWall(mod.x, mod.y) && !model.cellOccupied(mod.x, mod.y)) {
-							model.setAgPos(this.id, mod);
-						}
-						// Move back down
-						mod.y++;
-						model.setAgPos(this.id, mod);
+						vc.y--;
+						model.setAgPos(this.id, vc);
+					}
+					else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1) && !model.cellOccupied(vc.x, vc.y + 1)) {
+						// Move down
+						vc.y++;
+						model.setAgPos(this.id, vc);
 					}
 				}
 			}
 		}
-		return mod;
-	}
-	/*
-	public void pick(String garb) {
-		// Implement the logic for picking up garbage
-		if (this.model.hasGarbage(OfficeEnv.GARB, getAgPos(self.id))) {
-			remove(OfficeEnv.GARB, getAgPos(self.id));
-		}
-		if (random.nextDouble() < BREAKDOWN_PROBABILITY) {
-			this.isBroken = true;
-		}
-		// Check if the vacuum cleaner is full
-		// ...
-		if (isVacuumFull) {
-			//model.addPercept(1, Literal.parseLiteral("vacuum_full"));
-		}
-	}*/
-	public void move_to_room(String room) {
-		// Implement the logic for moving to a specific room
-		//if (this.model.isRoomEmpty(room)) {
-			//model.addPercept(1, Literal.parseLiteral("room_empty"));
-		//}
-		// ...
-		if (random.nextDouble() < BREAKDOWN_PROBABILITY) {
-			this.isBroken = true;
-		}
-		this.batteryLevel -= 10; // Reduce battery level for each movement
-		if (this.batteryLevel <= 20) {
-			//model.addPercept(1, Literal.parseLiteral("low_battery"));
-		}
-	}
+	}	
 	public void repair() {
 		System.out.println("Repairing vacuum cleaner...");
 		try {
