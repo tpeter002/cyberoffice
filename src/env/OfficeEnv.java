@@ -55,7 +55,7 @@ public class OfficeEnv extends Environment {
             model.printerModel.executeAction(action);
             updatePercepts();
             return true;
-        } else if (agentName.equals("vacuum_cleaner")) {
+        } else if (agentName.equals("vacuumcleaner")) {
             model.vacuumCleanerModel.executeAction(action);
             updatePercepts();
             informAgsEnvironmentChanged();

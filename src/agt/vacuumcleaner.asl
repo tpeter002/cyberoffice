@@ -2,6 +2,7 @@
 
 /* Initial beliefs */
 at(P) :- pos(P,X,Y) & pos(vc,X,Y).
+gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Initial goals */
 !check(slots).
@@ -9,7 +10,7 @@ at(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Plans */
 
-+!check(slots): not garbage(vc)
++!check(slots): not garbage(vc) & not recharge(vc)
    <- next(slot);
       .wait(1000);
       .print("Checking next slot...");
@@ -19,6 +20,15 @@ at(P) :- pos(P,X,Y) & pos(vc,X,Y).
 +garbage(vc) : not .desire(destroy(garb))
    <- !destroy(garb).
 
++recharge(vc): not .desire(recharge)
+   <- !recharge.
+
++!recharge
+   <- -+pos(home,0,0);
+      !gohome(home);
+      .print("Recharging the vacuum cleaner");
+      !check(slots).
+        
 +!destroy(G)
    <- !ensure_pick(G);
       .print("Dostroy the world");
@@ -29,14 +39,16 @@ at(P) :- pos(P,X,Y) & pos(vc,X,Y).
       !ensure_pick(G).
 +!ensure_pick(_).
 
-+!at(L) : at(L)
-   <- .print("I'm at ",L).
-/*
-+!at(L) <- ?pos(L,X,Y);
-           move_towards(X,Y);
-           .print("Moving to ", L).
-           !at(L).
-*/
++!gohome(L) : gohome(L)
+   <- .print("I'm at ",L);
+      .wait(1000);
+      rechargeBattery.
+
++!gohome(L)
+   <- ?pos(L,X,Y);
+      .wait(1000);     
+      recharge_route;
+      !gohome(L).
 
 
 /* Initial beliefs and rules 
