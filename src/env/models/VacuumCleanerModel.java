@@ -22,7 +22,6 @@ public class VacuumCleanerModel  {
 	private boolean currRoomEmpty = false;
 	private OfficeModel.ROOM currRoom;
 	private boolean areHumansFriend = true;
-	private boolean areHumansFriend = true;
 
 	private enum DIRECTION {
 		RIGHT,
@@ -35,8 +34,6 @@ public class VacuumCleanerModel  {
 	public static final Term    ns = Literal.parseLiteral("next(slot)");
 	public static final Term    pg = Literal.parseLiteral("pick(garb)");
 	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
-	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
-	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
 	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
 	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
 
@@ -98,26 +95,7 @@ public class VacuumCleanerModel  {
             e.printStackTrace();
         }
 	}
-	public void moveTowards(int x, int y){
-		Location vc = model.getAgPos(this.id);
-            if (vc.x < x)
-                vc.x++;
-            else if (vc.x > x)
-                vc.x--;
-            if (vc.y < y)
-                vc.y++;
-            else if (vc.y > y)
-                vc.y--;
-            model.setAgPos(this.id, vc);
-	}
-	private void rechargeBattery(){
-		Location vc = model.getAgPos(this.id);
-		if(vc.x == 0 && vc.y == 0){
-			this.batteryLevel = 100;
-			System.out.println("Battery recharged");
-		}
-        }
-	}
+	
 	public void moveTowards(int x, int y){
 		Location vc = model.getAgPos(this.id);
             if (vc.x < x)
@@ -167,7 +145,6 @@ public class VacuumCleanerModel  {
 		if(this.isBroken){
 			percepts.add(Literal.parseLiteral("broken"));
 		}
-        }
 		if(this.batteryLevel <= 20){
 			percepts.add(recharge);
 		}

@@ -34,7 +34,7 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
       !gohome(home);
       .print("Recharging the vacuum cleaner");
       !check(slots).
-        
+            
 +!destroy(G)
    <- !ensure_pick(G);
       .print("Dostroy the world");
@@ -55,7 +55,6 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
       .wait(1000);     
       recharge_route;
       !gohome(L).
-
 
 /* Initial beliefs and rules 
 at(room(1)).
