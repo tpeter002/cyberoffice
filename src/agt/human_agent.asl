@@ -11,32 +11,49 @@ at(P) :- pos(P,Xo,Yo).
 working.
 
 
-+!start: true <- loadnextroutine.
++!start :
+      true 
+      <- loadnextroutine.
 
-+printelj: working <- .print("sikeresen beolvastam egy dolgot AAAAAAAAAAAAAAAAAAAAAAAAAAAA"); .random(A); .wait(A*5000); loadnextroutine.
++printelj : 
+     working 
+     <- .print("sikeresen beolvastam egy dolgot AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+     .random(A);
+      .wait(A*5000);
+     loadnextroutine.
 
-+move(X,Y): working <- .print("tegyuk fel elmentem", X, Y); .random(A); .wait(A*5000); loadnextroutine.
++move(X,Y) : 
+     working 
+     <- .print("tegyuk fel elmentem", X, Y);
+      .random(A);
+       .wait(A*5000);
+     loadnextroutine.
 
++!doneprinting(X, Y) : 
+     true 
+     <- !move(X, Y).
++!move(X, Y) : 
+     not pos(P,X,Y) 
+     <- moveto(X, Y); 
+     !move(X,Y).
 
-
-+!doneprinting(X, Y): true <- !move(X, Y).
-+!move(X, Y): not pos(P,X,Y) <- moveto(X, Y); !move(X,Y).
-+!move(X,Y): pos(P,X,Y) <- wait(5000); !randommove.
++!move(X,Y) : 
+     pos(P,X,Y) 
+     <- wait(5000);
+     !randommove.
 
 //+!randommove: true <- 
 //!interact(X).
 
++!csill :
+     true <-
+     .suspend(working);
+     .wait(10000);
+     .resume(working).
 
 
-
-
-+!csill: true <-
-.suspend(working);
-.wait(10000);
-.resume(working).
-
-
-+!szemetel: true <- 
++!szemetel : 
+     true <- 
     .random(A);
     .wait(10000+A*5000);     
     .print("szemeteltem oriasit :)");

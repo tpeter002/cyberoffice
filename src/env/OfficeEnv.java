@@ -61,13 +61,8 @@ public class OfficeEnv extends Environment {
             informAgsEnvironmentChanged();
             return true;
         } else if (agentName.charAt(0)=='h') {
-            if(action.equals(load)){
-                Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
-                addPercept(agentName, routine_element);
-            }
-            else{
-                model.humanAgentModel.executeAction(agentName, action);
-            }
+            model.humanAgentModel.executeAction(agentName, action);
+            updatePercepts();
             return true;
         } else if (agentName.equals("mainframe")) {
             model.mainframeModel.executeAction(action);
