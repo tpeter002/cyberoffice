@@ -66,7 +66,7 @@ public class PrinterModel{
                 printerWorking = false;
 
                 // Randomly set printer error
-                if (Math.random() < 1.0) { // 10% chance of error
+                if (Math.random() < 0.6) { // 10% chance of error
                     printerError = true;
                     percepts.add(Literal.parseLiteral("printer_error"));
                 } else {
