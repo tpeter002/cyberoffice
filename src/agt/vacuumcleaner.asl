@@ -10,160 +10,72 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Plans */
 
-+!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(true)
+// Going right till its possible to go right, then goes down, and starts going left, REPEATS
+// Precondition: - battery not dead
+//               - no one is in the room
++!check(slots): not garbage(vc) & not recharge & curr_room_empty(true)
    <- next(slot);
       .wait(100);
       .print("Checking next slot...");
       !check(slots).
 +!check(slots).
 
-+!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(false)
+// Goes home if someone is in the room
+// Precondition: - battery not dead
+//               - human is in the room
++!check(slots): not garbage(vc) & not recharge & curr_room_empty(false)
    <- !gohome(home);
       .print("Going home because they see me rollin'...");
       !check(slots).
 +!check(slots).
 
-+garbage(vc) : not .desire(destroy(garb))
-   <- !destroy(garb).
+// If we detect that the battery is low, then we should desire to recharge it
++recharge: not .desire(home)
+   <- !home.
 
-+recharge(vc): not .desire(recharge)
-   <- !recharge.
+// If we detect that the garbage tank is full we head home
++vacuumFull(vc) : not .desire(home)
+   <- !home.
 
-+!recharge
+// Goes home to recharge the battery, then goes back to checking slots
++!home
    <- -+pos(home,0,0);
       !gohome(home);
       .print("Recharging the vacuum cleaner");
       !check(slots).
-            
+
+// If we detect a garbage, then we should desire to destroy it
++garbage(vc) : not .desire(destroy(garb))
+   <- !destroy(garb).
+
+// Destroys G garbage            
 +!destroy(G)
    <- !ensure_pick(G);
       .print("Dostroy the world");
       !check(slots).
 
+// Pick up G garbage, helper for destroy
 +!ensure_pick(G) : garbage(vc)
    <- pick(garb);
       !ensure_pick(G).
 +!ensure_pick(_).
 
+// When at home, recharge the battery and empty the garbage
 +!gohome(L) : gohome(L)
    <- .print("I'm at ",L);
       .wait(1000);
-      rechargeBattery.
+      emptyGarbage;
+      recharge.
 
+// Recursive call to go home
 +!gohome(L)
    <- ?pos(L,X,Y);
       .wait(1000);     
       recharge_route;
       !gohome(L).
 
-/* Initial beliefs and rules 
-at(room(1)).
-last_room(room(3)).
-battery_level(100).
-low_battery_threshold(20).
-charger_location(room(0)).
-garbage_bin_location(room(0)).
-*/
-
-
-/* Initial beliefs and rules 
-at(P) :- pos(P,X,Y) & pos(vc,X,Y).  // Initial position of the vacuum cleaner
-last_pos(X, Y).  // Last position visited
-battery_level(100).
-low_battery_threshold(20).
-charger_location(CX, CY).
-garbage_bin_location(BX, BY).
-current_room(R).  // Current room the vacuum cleaner is in
-
-*/
-/* Initial goals 
-
-!clean_rooms.
-*/
-/* Plans 
-
-+!clean_rooms : current_room(R) & room_empty(R) & garbage_in_room(R) & battery_level(B) & B >= low_battery_threshold(T)
-   <- !clean_room(R);
-      !move_to_next_room;
-      !clean_rooms.
-
-+!clean_rooms : current_room(,R) & room_empty(R) & garbage_in_room(R) & battery_level(B) & B < low_battery_threshold(T)
-   <- !recharge;
-      !clean_rooms.
-
-+!clean_rooms : not room_empty(_)
-   <- !wait_for_empty_room;
-      !clean_rooms.
-
-+!clean_room(R) : garbage_in_room(R)
-   <- !pick_garbage(R);
-      .print("Cleaning in room ", R);
-      !clean_room(R).
-+!clean_room(_).
-
-//TODO: CSutitol kerni infot h menjek masik szobaba
-+!move_to_next_room : at(room(R1)) & not last_room(R1)
-   <- ?next_room(R1,R2);
-      .print("Moving to room ", R2);
-      !move_to(R2).
-+!move_to_next_room.
-
-*/
-
-/*
-
-+!wait_for_empty_room(R) : not room_empty(R) & current_room(R)
-   <- .wait(1000);
-      .print("Waiting for room to be empty...", R);
-      !wait_for_empty_room.
-+!wait_for_empty_room.
-
-+!pick_garbage(R) : garbage(R) & current_room(R)
-   <- pick(garb);
-      !pick_garbage(R).
-+!pick_garbage(_).
-
-+!move_to(R) : not at(room(R))
-   <- move_to_room(R);
-      !move_to(R).
-+!move_to(_).
-
-+!move_to_next_room : at(room(R1)) & last_room(room(R1))
-   <- .print("Finished cleaning all rooms.").
-   // TODO:  move to charger room and recharge vacuum cleaner
-
-+!repair : broken
-   <- .print("Vacuum cleaner is broken. Repairing...");
-      .wait(2000);
-      -broken.
-
-+!recharge : at(room(R)) & charger_location(C) & R \== C
-   <- .print("Low battery. Moving to charger room ", C);
-      !move_to(C);
-      !recharge.
-
-+!recharge : at(room(R)) & charger_location(R)
-   <- .print("Recharging battery...");
-      .wait(5000);
-      +battery_level(100);
-      .print("Battery fully charged.").
-
-+!pick_garbage(R) : garbage(R) & not vacuum_full
-   <- pick(garb);
-      !pick_garbage(R).
-
-+!pick_garbage(R) : garbage(R) & vacuum_full
-   <- .print("Vacuum cleaner is full. Emptying...");
-      !empty_vacuum;
-      !pick_garbage(R).
-
-+!empty_vacuum : at(room(R)) & garbage_bin_location(B) & R \== B
-   <- !move_to(B);
-      !empty_vacuum.
-
-+!empty_vacuum : at(room(R)) & garbage_bin_location(R)
-   <- .print("Emptying vacuum cleaner...");
-      .wait(2000);
-      -vacuum_full.
-
-*/
+// When getting fixed by human, and goes back to work
++fixed <- 
+   .send(mainframe, tell, ready);
+   .print("I'm ready to go!");
+   !check(slots).

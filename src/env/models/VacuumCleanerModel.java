@@ -34,8 +34,7 @@ public class VacuumCleanerModel  {
 	public static final Term    ns = Literal.parseLiteral("next(slot)");
 	public static final Term    pg = Literal.parseLiteral("pick(garb)");
 	public static final Literal gvc = Literal.parseLiteral("garbage(vc)");
-	public static final Literal recharge = Literal.parseLiteral("recharge(vc)");
-	public static final Literal rechargeBatteryLiteral = Literal.parseLiteral("rechargeBattery");
+	public static final Literal recharge = Literal.parseLiteral("recharge");
 
 	Random random = new Random(System.currentTimeMillis());
 	private static final double BREAKDOWN_PROBABILITY = 0.01;
@@ -87,8 +86,8 @@ public class VacuumCleanerModel  {
 			else if (action.getFunctor().equals("recharge_route")) {
                 moveTowards(0,0);
 			}
-			else if (action.equals(rechargeBatteryLiteral)) {
-				rechargeBattery();
+			else if (action.equals(recharge)) {
+				recharge();
 				Thread.sleep(1000);
 			}
         } catch (Exception e) {
@@ -108,7 +107,7 @@ public class VacuumCleanerModel  {
                 vc.y--;
             model.setAgPos(this.id, vc);
 	}
-	private void rechargeBattery(){
+	private void recharge(){
 		Location vc = model.getAgPos(this.id);
 		if(vc.x == 0 && vc.y == 0){
 			this.batteryLevel = 100;
@@ -139,12 +138,6 @@ public class VacuumCleanerModel  {
 		if (model.hasGarbage(vcLoc.x, vcLoc.y)) {
             percepts.add(gvc);
         }
-		if(this.batteryLevel <= 20){
-			percepts.add(recharge);
-		}
-		if(this.isBroken){
-			percepts.add(Literal.parseLiteral("broken"));
-		}
 		if(this.batteryLevel <= 20){
 			percepts.add(recharge);
 		}
@@ -266,15 +259,6 @@ public class VacuumCleanerModel  {
 		}
 		this.isVacuumFull = false;
 		//model.removePercept(1, Literal.parseLiteral("vacuum_full"));
-	}
-	public void recharge() {
-		System.out.println("Recharging battery...");
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		this.batteryLevel = 100;
 	}
 	public ArrayList<Literal> getPercepts() {
         return updatePercepts();
