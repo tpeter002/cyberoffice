@@ -10,10 +10,16 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 
 /* Plans */
 
-+!check(slots): not garbage(vc) & not recharge(vc)
++!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(true)
    <- next(slot);
-      .wait(1000);
+      .wait(100);
       .print("Checking next slot...");
+      !check(slots).
++!check(slots).
+
++!check(slots): not garbage(vc) & not recharge(vc) & curr_room_empty(false)
+   <- !gohome(home);
+      .print("Going home because they see me rollin'...");
       !check(slots).
 +!check(slots).
 
