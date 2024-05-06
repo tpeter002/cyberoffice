@@ -12,6 +12,7 @@ import java.awt.Graphics;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import env.OfficeEnv.OfficeModel.ROOM;
 import models.HumanAgentModel;
 import models.PrinterModel;
 import models.VacuumCleanerModel;
@@ -24,18 +25,18 @@ import java.util.ArrayList;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 16; // garbage code in grid model
+    public static final int GARB = 16; // garbage code in grid model
     public static final int WALL = 17; // wall code in grid model
 
     private OfficeModel model;
-    private OfficeView  view;
+    private OfficeView view;
 
     static Logger logger = Logger.getLogger(OfficeEnv.class.getName());
 
     @Override
     public void init(String[] args) {
         model = new OfficeModel();
-        view  = new OfficeView(model);
+        view = new OfficeView(model);
         model.setView(view);
         updatePercepts();
     }
@@ -59,22 +60,24 @@ public class OfficeEnv extends Environment {
         } else if (agentName.equals("mainframe")) {
             model.mainframeModel.executeAction(action);
             return true;
-        } else if (agentName.equals("light")) {
-            model.lightModel.executeAction(action);
+        } else if (agentName.charAt(0) == 'l') {
+            model.lightModel.executeAction(agentName, action);
             return true;
+
         }
+
+        updatePercepts();
         return false;
     }
 
-    //@Override
+    // @Override
     public void updatePercepts() {
-        clearPercepts();    // TODO: do we need to clear percepts?
+        clearPercepts(); // TODO: do we need to clear percepts?
         ArrayList<Literal> percepts = model.getUpdatedPercepts();
         for (Literal percept : percepts) {
             addPercept(percept);
         }
     }
-
 
     public class OfficeModel extends GridWorldModel {
 
@@ -84,24 +87,24 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = (int)((GSize/10) * (GSize/10));
+        public static int n_human_agents = (int) ((GSize / 10) * (GSize / 10));
 
         private OfficeModel() {
-            //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
+            // vacuumCleanerEnv = new VacuumCleanerEnvironment(); // 1 agent
             super(GSize, GSize, n_human_agents);
 
             // initial location of agents
             try {
                 // add walls, initialize rooms
-                int yMainWall = (int)(GSize/4);
-                int xVacuumDoor = (int)(GSize/4);
-                int xPrinterDoor = (int)(GSize/4)*3;
+                int yMainWall = (int) (GSize / 4);
+                int xVacuumDoor = (int) (GSize / 4);
+                int xPrinterDoor = (int) (GSize / 4) * 3;
 
                 addWall(0, yMainWall, xVacuumDoor, yMainWall);
-                addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
-                addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
-                addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
-                add(GARB,3, 0);
+                addWall(xVacuumDoor + 2, 0, xVacuumDoor + 2, yMainWall);
+                addWall(xVacuumDoor + 3, yMainWall, xPrinterDoor, yMainWall);
+                addWall(xPrinterDoor + 2, yMainWall, GSize - 1, yMainWall);
+                add(GARB, 3, 0);
 
                 // add mainframe
                 mainframeModel = new MainframeModel(this, GSize);
@@ -112,7 +115,7 @@ public class OfficeEnv extends Environment {
                 // add vacuum cleaner
                 vacuumCleanerModel = new VacuumCleanerModel(this, GSize);
                 // add human agents
-                humanAgentModel = new HumanAgentModel(this, GSize); 
+                humanAgentModel = new HumanAgentModel(this, GSize);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -126,17 +129,18 @@ public class OfficeEnv extends Environment {
         }
 
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+            if (y < (int) (GSize / 4) && x < (int) (GSize / 4)) {
                 return ROOM.VACUUM;
-            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+            } else if (y < (int) (GSize / 4) && x >= (int) (GSize / 4)) {
                 return ROOM.PRINTER;
-            } else if (y > (int)(GSize/4)) {
+            } else if (y > (int) (GSize / 4)) {
                 return ROOM.HALL;
             } else {
                 return null;
             }
         }
-        //magic numbers
+
+        // magic numbers
         public boolean isWall(int x, int y) {
             return !isFree(4, x, y);
         }
@@ -144,8 +148,8 @@ public class OfficeEnv extends Environment {
         public boolean roomIsEmpty(ROOM room) {
             switch (room) {
                 case VACUUM:
-                    for (int i = 0; i < (int)(GSize/4); i++) {
-                        for (int j = 0; j < (int)(GSize/4); j++) {
+                    for (int i = 0; i < (int) (GSize / 4); i++) {
+                        for (int j = 0; j < (int) (GSize / 4); j++) {
                             if (cellOccupied(i, j)) {
                                 return false;
                             }
@@ -153,8 +157,8 @@ public class OfficeEnv extends Environment {
                     }
                     break;
                 case PRINTER:
-                    for (int i = (int)(GSize/4); i < GSize; i++) {
-                        for (int j = 0; j < (int)(GSize/4); j++) {
+                    for (int i = (int) (GSize / 4); i < GSize; i++) {
+                        for (int j = 0; j < (int) (GSize / 4); j++) {
                             if (cellOccupied(i, j)) {
                                 return false;
                             }
@@ -163,7 +167,7 @@ public class OfficeEnv extends Environment {
                     break;
                 case HALL:
                     for (int i = 0; i < GSize; i++) {
-                        for (int j = (int)(GSize/4); j < GSize; j++) {
+                        for (int j = (int) (GSize / 4); j < GSize; j++) {
                             if (cellOccupied(i, j)) {
                                 return false;
                             }
@@ -194,6 +198,7 @@ public class OfficeEnv extends Environment {
             ArrayList<Literal> percepts = new ArrayList<Literal>();
             // extend arraylist with percepts from every model
             percepts.addAll(vacuumCleanerModel.getPercepts());
+            percepts.addAll(lightModel.getPercepts());
             return percepts;
         }
 
@@ -216,16 +221,16 @@ public class OfficeEnv extends Environment {
                     g.setColor(Color.RED);
                     super.drawObstacle(g, x, y);
                     break;
-               case OfficeEnv.WALL:
+                case OfficeEnv.WALL:
                     g.setColor(Color.PINK);
                     super.drawObstacle(g, x, y);
-                   break;
+                    break;
             }
         }
 
         @Override
         public void drawAgent(Graphics g, int x, int y, Color c, int id) {
-            String label = "R"+(id+1);
+            String label = "R" + (id + 1);
 
             // draw printer
             if (id == 0) {
@@ -240,7 +245,7 @@ public class OfficeEnv extends Environment {
             }
 
             // draw human agents
-            if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
+            if (id > 1 && id < ((OfficeModel) model).n_human_agents) {
                 c = Color.red;
                 label = "H";
             }
