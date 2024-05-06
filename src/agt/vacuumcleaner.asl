@@ -40,7 +40,9 @@ gohome(P) :- pos(P,X,Y) & pos(vc,X,Y).
 +!ensure_pick(_).
 
 +!gohome(L) : gohome(L)
-   <- .print("I'm at ",L).
+   <- .print("I'm at ",L);
+      .wait(1000);
+      rechargeBattery.
 
 +!gohome(L)
    <- ?pos(L,X,Y);
