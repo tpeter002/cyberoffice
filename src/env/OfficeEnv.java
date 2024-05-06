@@ -87,8 +87,6 @@ public class OfficeEnv extends Environment {
         clearPercepts();
         ArrayList<Percept> percepts = model.getNewPercepts();
 
-        new Percept("mainframe", Literal.parseLiteral("empty(" + OfficeModel.ROOM.VACUUM + ")"));
-
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
