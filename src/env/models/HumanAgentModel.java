@@ -10,10 +10,12 @@ import java.io.IOException;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 
+
 import java.util.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 
 // Human agent environment class
 public class HumanAgentModel  {
@@ -21,11 +23,13 @@ public class HumanAgentModel  {
     public static final Term load = Literal.parseLiteral("loadroutine");
     private OfficeModel model;
     private ArrayList<Human> agents;
+
     private ArrayList<String[]> routines;
     private HashMap<String, Integer> load_counters;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
     
+
     Random random = new Random(System.currentTimeMillis());
 
     public HumanAgentModel(OfficeModel model, int GSize){
@@ -92,6 +96,7 @@ public class HumanAgentModel  {
         //for (Human human: agents) {
         //    percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
         //}
+
 
         return percepts;
     }
@@ -160,6 +165,7 @@ public class HumanAgentModel  {
 
     public ArrayList<String[]> getRoutines(){
         return routines;
+
     }
 
 }
