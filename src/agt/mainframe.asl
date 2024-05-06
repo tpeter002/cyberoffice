@@ -1,7 +1,5 @@
 // Agent mainframe in project cyberoffice
 
-
-
 /* GENERIC 
  * used by any agent in the right circumstance, it is detailed in each agents' own section
  */
@@ -141,7 +139,7 @@
 
 
 
-/* private helper functions */
+/* private helper "functions" */
 
 +!private_print(Printer, Requester)
 	:	not error(Printer)
@@ -157,8 +155,21 @@
 
 +!private_fix_error(Errorer, Requester)
 	<-	
-		.print("asking ", Requester, " to fix ", Errorer);
-		.send(Requester, tell, go_fix(Errorer)).
+		+error_in_need_of_fixing(Errorer, Requester);
+		.print("asking ", Errorer, " for their location ");
+		.send(Errorer, tell, report_location).
+
+// only here to help with the error fixing above
++location(X, Y)[source(Errorer)]
+	:	error_in_need_of_fixing(Errorer, _)
+	<-
+		.findall(Requester, error_in_need_of_fixing(Errorer, Requester), Requesters);
+
+		if (not .empty(Requesters)) {
+			.nth(0, Requesters, Requester);
+			.print("sending ", Requester, " to fix ", Errorer);
+			.send(Requester, tell, go_fix(Errorer, X, Y));
+		}.
 
 
 
