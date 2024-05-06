@@ -87,6 +87,13 @@ public class OfficeEnv extends Environment {
         for (Literal percept : percepts) {
             addPercept(percept);
         }
+
+        for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
+
+            if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
+                addPercept("mainframe", Literal.parseLiteral("empty(" + room + ")"));
+            }
+        }
     }
 
 

@@ -28,7 +28,7 @@
 		.findall(Human, human(Human), Humans);
 		.length(Humans, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Humans, SelectedHuman);
 		
 		!private_fix_error(Source, SelectedHuman).
@@ -53,7 +53,7 @@
 		.findall(Printer, printer(Printer), Printers);
 		.length(Printers, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
+		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Printers, SelectedPrinter);
 
 		!private_print(SelectedPrinter, Requester);
@@ -103,10 +103,12 @@
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
 		.length(Vacuums, Length);
 		.random(R);
-		RandomIndex = math.floor(R * Length) + 1;
-		.nth(RandomIndex, Vacuums, SelectedVacuum).
+		RandomIndex = math.floor(R * Length);
+		.nth(RandomIndex, Vacuums, SelectedVacuum);
 
-		.send(SelectedVacuum, tell, empty(Room)).
+		.send(SelectedVacuum, tell, empty(Room));
+
+		-empty(Room).
 
 
 
