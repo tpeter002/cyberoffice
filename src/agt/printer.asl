@@ -5,12 +5,31 @@ error(false).
 
 // Plans
 
++error(false)
+    : true
+    <- .send(mainframe, tell, printer_ready);
+        .print("Printer ready.").
+
+
+
 // print function when the printer is ready
 +print(Agent)[source(SenderAgent)]
     : printer_ready(true)
    <-  -printer_ready(true);
     +printer_ready(false);
     .print("Printing for ", Agent, "...");
+    print;
+    !print_success(Agent, SenderAgent);
+    +printer_ready(true);
+    -printer_ready(false).
+
+
+// print function after the error (printing for the human who repaired it)
++!print(Agent)[source(self)]
+    : printer_ready(true)
+   <-  -printer_ready(true);
+    +printer_ready(false);
+    .print("Printing again for ", Agent, "...");
     print;
     !print_success(Agent, SenderAgent);
     +printer_ready(true);
@@ -42,7 +61,7 @@ error(false).
 +!print_success(Agent, SenderAgent)
     : error(false)
    <- .print("Printing successful for ", Agent);
-   .send(dummymainframe, tell, printer_done(Agent)).
+   .send(mainframe, tell, done(Agent)).
 
 // plan if error occurs
 +printer_error
@@ -53,7 +72,7 @@ error(false).
 +!notify_mainframe_error(Agent, SenderAgent)
     : true
    <- .print("Notifying mainframe about error for ", Agent);
-   .send(SenderAgent, tell, printer_error(Agent)).
+   .send(SenderAgent, tell, error(Agent)).
 
 // plan to notify mainframe about printer ready
 +!notify_mainframe_ready(Agent, SenderAgent)
@@ -65,4 +84,5 @@ error(false).
     : true
    <- -error(true);
    .print("Printer repaired.");
+    !print(Agent);
    +error(false).
