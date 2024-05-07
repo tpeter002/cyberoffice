@@ -189,17 +189,35 @@ public class OfficeEnv extends Environment {
                 return null;
             }
         }
-        public Location getDoorwayPos(ROOM room, ROOM currentRoom) {
-            switch (room) {
+        public Location getDoorwayPos(ROOM dest, ROOM curr) {
+            switch (dest) {
                 case VACUUM:
-                    return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                        default:
+                            return null;
+                    }
                 case PRINTER:
-                    return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                        default:
+                            return null;
+                    }
                 case HALL:
-                    if(currentRoom.equals(ROOM.VACUUM))
-                        return new Location((int)(GSize/4)-1, (int)(GSize/4));
-                    else if(currentRoom.equals(ROOM.PRINTER))
-                        return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                    switch(curr){
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                        default:
+                            return null;
+                    }      
                 default:
                     return null;
             }
