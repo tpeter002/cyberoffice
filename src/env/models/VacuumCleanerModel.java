@@ -9,6 +9,7 @@ import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
 import env.Percept;
 
+import java.time.OffsetTime;
 import java.util.ArrayList;
 
 // Human agent environment class
@@ -20,6 +21,7 @@ public class VacuumCleanerModel {
 
 	private Location homePosition;
 	private Location whereToCleanNow;
+	private Location firstDoor;
 
 	private int garbageSpace;
 	private int batteryLevel;
@@ -27,7 +29,9 @@ public class VacuumCleanerModel {
 	private boolean requestedLocation;
 	private Location lastMove;
 	private OfficeModel.ROOM currentRoom;
+	private OfficeModel.ROOM firstRoom;
 	private OfficeModel.ROOM roomToClean;
+	int[] lastMoveArray = new int[2];
 
 	private boolean areHumansFriend = true;
 
@@ -103,7 +107,12 @@ public class VacuumCleanerModel {
 			percepts.add(new Percept(at_home));
 		}
 		if (model.getAgPos(this.id).equals(this.whereToCleanNow) && this.roomToClean != null) {
-			percepts.add(new Percept(at_room_to_clean));
+				percepts.add(new Percept(at_room_to_clean));
+				this.roomToClean = null;
+		}
+		if(model.getAgPos(this.id).equals(this.firstDoor)) {
+			System.out.println("elertem az elso ajtot");
+			this.firstDoor = null;
 		}
 
 		if (!model.roomIsEmpty(this.currentRoom)) {
@@ -193,16 +202,92 @@ public class VacuumCleanerModel {
 		Location vc = model.getAgPos(this.id);
 		Location next = vc;
 		Location door = model.getDoorwayPos(room, model.whichRoom(vc.x, vc.y));
-		this.whereToCleanNow = door;
-		if (vc.x < door.x && !model.isWall(vc.x + 1, vc.y))
-			next.x = vc.x + 1;
+		if(door == null) {
+			System.out.println("beallitottam a " + room + "es " + OfficeModel.ROOM.HALL + " ajtot"	);
+			door = model.getDoorwayPos(room, OfficeModel.ROOM.HALL);
+		}
+		
+		if((model.whichRoom(vc.x, vc.y) == OfficeModel.ROOM.VACUUM && room == OfficeModel.ROOM.PRINTER || model.whichRoom(vc.x, vc.y) == OfficeModel.ROOM.PRINTER && room == OfficeModel.ROOM.VACUUM) && this.firstDoor == null)
+		 {
+			this.firstDoor = door;
+			this.firstRoom = model.whichRoom(vc.x, vc.y);
+			System.out.println("elso ajto beallitva");
+		}
+		if(this.whereToCleanNow == null && this.firstDoor == null) {
+			System.out.println("beallitottam a where to cleannowt");
+			whereToCleanNow = door;
+			System.out.println("itt vagyok: " + vc.x + " " + vc.y + "es ide megyek: " + door.x + " " + door.y);
+		}
+		
+		//this.whereToCleanNow = door;
+		if(this.firstDoor != null) {
+			System.out.println("door beallitva firstdoorra");
+			door = firstDoor;
+		}
+		if (vc.x < door.x )
+		{
+			if(!model.isWall(vc.x + 1, vc.y))
+			{
+				next.x = vc.x + 1;
+				lastMoveArray[0] = 1;
+			}
+			else
+			{
+				if(lastMoveArray[1] == 1)
+				{
+					next.y = vc.y  +1;
+					lastMoveArray[1] = + 1;
+					megcsinalta = true;
+				}
+				else
+				{
+					next.y = vc.y - 1;
+					lastMoveArray[0] = -1;
+				}
+			}
+		}
+			
 		if (vc.x > door.x && !model.isWall(vc.x - 1, vc.y))
 			next.x = vc.x - 1;
-		if (vc.y < door.y && !model.isWall(vc.x, vc.y+1))
+
+	
+		if (vc.y < door.y && !model.isWall(vc.x, vc.y+1) && lastMoveArray[1] != -1)
+		{
 			next.y = vc.y + 1;
-		if (vc.y > door.y && !model.isWall(vc.x, vc.y-1))
+			lastMoveArray[1] = 1;	
+		}
+		
+		if (vc.y > door.y && !model.isWall(vc.x, vc.y-1) && lastMoveArray[0] != 1) 
+		{
+			lastMoveArray[1] = -1;
 			next.y = vc.y - 1;
+		}
+
 		model.setAgPos(this.id, next);
+	}
+
+	public void moveRight() {
+		Location vc = model.getAgPos(this.id);
+		vc.x++;
+		model.setAgPos(this.id, vc);
+	}
+
+	public void moveLeft() {
+		Location vc = model.getAgPos(this.id);
+		vc.x--;
+		model.setAgPos(this.id, vc);
+	}
+
+	public void moveUp() {
+		Location vc = model.getAgPos(this.id);
+		vc.y++;
+		model.setAgPos(this.id, vc);
+	}
+
+	public void moveDown() {
+		Location vc = model.getAgPos(this.id);
+		vc.y--;
+		model.setAgPos(this.id, vc);
 	}
 
 	public void moveTowards(Location loc) {
