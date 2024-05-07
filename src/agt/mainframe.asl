@@ -105,7 +105,7 @@
 		-vacuum_ready.
 
 // Sent every time to 
-+empty(Room)
++room_empty(Room)
 	:	vacuum(_)
 	<-	
 		.findall(Vacuum, vacuum(Vacuum), Vacuums);
@@ -114,7 +114,7 @@
 		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Vacuums, SelectedVacuum);
 
-		.send(SelectedVacuum, tell, empty(Room));
+		.send(SelectedVacuum, tell, room_empty(Room));
 
 		-empty(Room).
 
