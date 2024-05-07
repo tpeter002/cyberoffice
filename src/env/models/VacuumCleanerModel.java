@@ -19,6 +19,7 @@ public class VacuumCleanerModel  {
 	private int GSize;
 
 	private Location homePosition;
+	private Location whereToCleanNow;
 
 	private int garbageSpace;
 	private int batteryLevel;
@@ -26,6 +27,7 @@ public class VacuumCleanerModel  {
 	private boolean requestedLocation;
 	private Location lastMove;
 	private OfficeModel.ROOM currentRoom;
+	private OfficeModel.ROOM roomToClean;
 
 	private boolean areHumansFriend = true;
 
@@ -44,6 +46,7 @@ public class VacuumCleanerModel  {
 	public static final Literal should_go_home = Literal.parseLiteral("should_go_home");
 	public static final Literal move_home = Literal.parseLiteral("move_home");
 	public static final Literal at_home = Literal.parseLiteral("at_home");
+	public static final Literal at_room_to_clean = Literal.parseLiteral("at_room_to_clean");
 
 	public static final Literal empty_garbage = Literal.parseLiteral("empty_garbage");
 	public static final Literal recharge_battery = Literal.parseLiteral("recharge_battery");
@@ -55,7 +58,7 @@ public class VacuumCleanerModel  {
 	public static final Literal fix = Literal.parseLiteral("fix");
 	
 	Random random = new Random(System.currentTimeMillis());
-	private static final double ERROR_PROBABILITY = 0.01;
+	private static final double ERROR_PROBABILITY = 0.00;
 	
 	public VacuumCleanerModel(OfficeModel model, int GSize){
 		this.id = 1;
@@ -98,6 +101,9 @@ public class VacuumCleanerModel  {
 		if(model.getAgPos(this.id).equals(homePosition)) {
 			percepts.add(new Percept(at_home));
 		}
+		if(model.getAgPos(this.id).equals(this.whereToCleanNow) && this.roomToClean != null){
+			percepts.add(new Percept(at_room_to_clean));
+		}
 		
 		if (!model.roomIsEmpty(this.currentRoom)) {
 			percepts.add(new Percept(current_room_has_people));
@@ -110,7 +116,7 @@ public class VacuumCleanerModel  {
 		if(this.requestedLocation) {
 			percepts.add(new Percept(Literal.parseLiteral("location(" + vc.x + ", " + vc.y + ")")));
 			this.requestedLocation = false;
-		}
+		} 
 
 		return percepts;
     }
@@ -159,6 +165,12 @@ public class VacuumCleanerModel  {
 					cleanCurrentRoom();
 				}
             }
+			else if(action.getFunctor().equals("go_to")) {
+				int x = ((int)((NumberTerm)action.getTerm(0)).solve());
+				System.out.println("funktoros geci");
+				System.out.println(x);
+				goTowardSelectedRoom(OfficeModel.ROOM.values()[x]);
+			}
 			else if (action.equals(pick_garbage)) {
                 pickGarbage();
 			}
@@ -181,6 +193,20 @@ public class VacuumCleanerModel  {
         } catch (Exception e) {
             e.printStackTrace();
         }
+	}
+
+	public void goTowardSelectedRoom(OfficeModel.ROOM room){
+		System.out.println("bejutottam a go towardba");
+		this.roomToClean = room;
+		Location vc = model.getAgPos(this.id);
+		Location next = vc;
+		Location door = model.getDoorwayPos(room ,model.whichRoom(vc.x, vc.y));
+		this.whereToCleanNow = door;
+		if (vc.x < door.x) next.x = vc.x + 1;
+		if (vc.x > door.x) next.x = vc.x - 1;
+		if (vc.y < door.y) next.y = vc.y + 1;
+		if (vc.y > door.y) next.y = vc.y - 1;
+		model.setAgPos(this.id, next);
 	}
 	
 	public void moveTowards(Location loc) {

@@ -146,7 +146,9 @@ public class OfficeEnv extends Environment {
                 addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
                 addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
+
                 add(OfficeEnv.GARB,3, 0);
+                add(OfficeEnv.GARB,4, 2);
 
 
                 // add mainframe
@@ -185,6 +187,21 @@ public class OfficeEnv extends Environment {
             } 
             else {
                 return null;
+            }
+        }
+        public Location getDoorwayPos(ROOM room, ROOM currentRoom) {
+            switch (room) {
+                case VACUUM:
+                    return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                case PRINTER:
+                    return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                case HALL:
+                    if(currentRoom.equals(ROOM.VACUUM))
+                        return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    else if(currentRoom.equals(ROOM.PRINTER))
+                        return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                default:
+                    return null;
             }
         }
 
