@@ -55,6 +55,11 @@ public class OfficeEnv extends Environment {
             this.message = message;
         }
 
+        public Percept(Literal message) {
+            this.destination = null;
+            this.message = message;
+        }
+
         public boolean hasDestination() {
             return this.destination != null;
         }

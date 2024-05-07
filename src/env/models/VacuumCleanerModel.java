@@ -6,7 +6,7 @@ import java.util.Random;
 import jason.environment.grid.Location;
 import jason.stdlib.empty;
 import env.OfficeEnv.OfficeModel;
-import env.OfficeEnv;
+import env.OfficeEnv.Percept;
 
 import java.util.ArrayList;
 
@@ -77,64 +77,64 @@ public class VacuumCleanerModel  {
 		this.currentRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
 	}
 	
-	public ArrayList<Literal> newPercepts() {
-        ArrayList<Literal> percepts = new ArrayList<Literal>();
+	public ArrayList<Percept> getNewPercepts() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
 
 		updateRoom();
 
 		Location vc = model.getAgPos(this.id);
 		
 		if (model.hasGarbage(vc.x, vc.y)) {
-            percepts.add(slot_has_garbage);
+            percepts.add(new Percept(slot_has_garbage));
         }
 
 		if(this.batteryLevel <= 20 || this.garbageSpace <= 20) {
-			percepts.add(should_go_home);
+			percepts.add(new Percept(should_go_home));
 		}
 
 		if(model.getAgPos(this.id) == homePosition) {
-			percepts.add(at_home);
+			percepts.add(new Percept(at_home));
 		}
 		
 		if (model.roomIsEmpty(this.currentRoom)) {
-			percepts.add(current_room_empty);
+			percepts.add(new Percept(current_room_empty));
 		}
 
 		if(this.isBroken) {
-			percepts.add(error);
+			percepts.add(new Percept(error));
 		}
 
 		if(this.requestedLocation) {
-			percepts.add(Literal.parseLiteral("location(" + vc.x + ", " + vc.y + ")"));
+			percepts.add(new Percept(Literal.parseLiteral("location(" + vc.x + ", " + vc.y + ")")));
 			this.requestedLocation = false;
 		}
 
 		return percepts;
     }
 
-	public ArrayList<Literal> perceptsToRemove() {
-		ArrayList<Literal> percepts = new ArrayList<Literal>();
+	public ArrayList<Percept> getPerceptsToRemove() {
+		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
 		Location vc = model.getAgPos(this.id);
 
 		if (!model.hasGarbage(vc.x, vc.y)) {
-            percepts.add(slot_has_garbage);
+            percepts.add(new Percept(slot_has_garbage));
         }
 
 		if(!(this.batteryLevel <= 20 || this.garbageSpace <= 20)){
-			percepts.add(should_go_home);
+			percepts.add(new Percept(should_go_home));
 		}
 
 		if(model.getAgPos(this.id) != homePosition) {
-			percepts.add(at_home);
+			percepts.add(new Percept(at_home));
 		}
 		
 		if (!model.roomIsEmpty(this.currentRoom)) {
-			percepts.add(current_room_empty);
+			percepts.add(new Percept(current_room_empty));
 		}
 
 		if(!this.isBroken){
-			percepts.add(error);
+			percepts.add(new Percept(error));
 		}
 
 		return percepts;
