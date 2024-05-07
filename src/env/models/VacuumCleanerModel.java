@@ -230,6 +230,7 @@ public class VacuumCleanerModel  {
 				}
 			}
 		}
+		updateRoom();
 		model.setAgPos(this.id, vc);
 	}
 
