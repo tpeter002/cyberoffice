@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+import env.Percept;
 
 import java.util.logging.Logger;
 
@@ -20,10 +21,12 @@ public class HumanAgentModel {
 
     public static final Term load = Literal.parseLiteral("loadroutine");
     private OfficeModel model;
+    private int id;
     private ArrayList<Human> agents;
 
-    private ArrayList<String[]> routines;
+    private ArrayList<String[]> routines; 
     private HashMap<String, Integer> load_counters;
+    ArrayList<Percept> percepts_pre = new ArrayList<Percept>();
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
 
@@ -31,6 +34,7 @@ public class HumanAgentModel {
 
     public HumanAgentModel(OfficeModel model, int GSize) {
         agents = new ArrayList<Human>();
+        this.id = 2;
         this.model = model;
         routines = readRoutineFromFile("routine.txt");
         initializePositions(GSize);
@@ -85,8 +89,11 @@ public class HumanAgentModel {
 
     }
 
-    public ArrayList<Literal> getPercepts() {
-        ArrayList<Literal> percepts = new ArrayList<Literal>();
+    public ArrayList<Percept> getNewPercepts() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+
+        percepts.addAll(percepts_pre);
+        percepts_pre.clear();
         // for (Human human: agents) {
         // percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
         // }
@@ -109,13 +116,11 @@ public class HumanAgentModel {
     }
 
     public void executeAction(String agentName, Structure action){
-       if(action.equals(load)){
-            Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
-            addPercept(agentName, routine_element);
-            }
-            else{
-                //ide jonnek a dolgok
-            }
+
+        if(action.equals(load)){
+            Literal routine_element=getNextRoutineElement(agentName);
+            percepts_pre.add(new Percept(agentName, routine_element));
+        }
 
     }
 

@@ -6,7 +6,8 @@ import java.util.Random;
 import jason.environment.grid.Location;
 import jason.stdlib.empty;
 import env.OfficeEnv.OfficeModel;
-import env.OfficeEnv.Percept;
+import env.OfficeEnv;
+import env.Percept;
 
 import java.util.ArrayList;
 
@@ -23,6 +24,7 @@ public class VacuumCleanerModel  {
 	private int batteryLevel;
 	private boolean isBroken;
 	private boolean requestedLocation;
+	private Location lastMove;
 	private OfficeModel.ROOM currentRoom;
 
 	private boolean areHumansFriend = true;
@@ -46,7 +48,7 @@ public class VacuumCleanerModel  {
 	public static final Literal empty_garbage = Literal.parseLiteral("empty_garbage");
 	public static final Literal recharge_battery = Literal.parseLiteral("recharge_battery");
 
-	public static final Literal current_room_empty = Literal.parseLiteral("current_room_empty");
+	public static final Literal current_room_has_people = Literal.parseLiteral("current_room_has_people");
 	public static final Literal get_location = Literal.parseLiteral("get_location");
 	
 	public static final Literal error = Literal.parseLiteral("error");
@@ -63,6 +65,7 @@ public class VacuumCleanerModel  {
 		this.requestedLocation = false;
 		this.garbageSpace = 100;
 		this.batteryLevel = 100;
+		this.lastMove = new Location(0,0);
 		this.GSize = GSize;
 		this.direction = DIRECTION.RIGHT;
 		initializePositions(GSize);
@@ -77,7 +80,7 @@ public class VacuumCleanerModel  {
 		this.currentRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
 	}
 	
-	public ArrayList<Percept> getNewPercepts() {
+	public ArrayList<Percept> newPercepts() {
         ArrayList<Percept> percepts = new ArrayList<Percept>();
 
 		updateRoom();
@@ -92,12 +95,12 @@ public class VacuumCleanerModel  {
 			percepts.add(new Percept(should_go_home));
 		}
 
-		if(model.getAgPos(this.id) == homePosition) {
+		if(model.getAgPos(this.id).equals(homePosition)) {
 			percepts.add(new Percept(at_home));
 		}
 		
-		if (model.roomIsEmpty(this.currentRoom)) {
-			percepts.add(new Percept(current_room_empty));
+		if (!model.roomIsEmpty(this.currentRoom)) {
+			percepts.add(new Percept(current_room_has_people));
 		}
 
 		if(this.isBroken) {
@@ -112,7 +115,7 @@ public class VacuumCleanerModel  {
 		return percepts;
     }
 
-	public ArrayList<Percept> getPerceptsToRemove() {
+	public ArrayList<Percept> perceptsToRemove() {
 		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
 		Location vc = model.getAgPos(this.id);
@@ -125,12 +128,12 @@ public class VacuumCleanerModel  {
 			percepts.add(new Percept(should_go_home));
 		}
 
-		if(model.getAgPos(this.id) != homePosition) {
+		if(!model.getAgPos(this.id).equals(homePosition)) {
 			percepts.add(new Percept(at_home));
 		}
 		
-		if (!model.roomIsEmpty(this.currentRoom)) {
-			percepts.add(new Percept(current_room_empty));
+		if (model.roomIsEmpty(this.currentRoom)) {
+			percepts.add(new Percept(current_room_has_people));
 		}
 
 		if(!this.isBroken){
@@ -182,15 +185,42 @@ public class VacuumCleanerModel  {
 	
 	public void moveTowards(Location loc) {
 		Location vc = model.getAgPos(this.id);
-            if (vc.x < loc.x)
-                vc.x++;
-            else if (vc.x > loc.x)
-                vc.x--;
-            if (vc.y < loc.y)
-                vc.y++;
-            else if (vc.y > loc.y)
-                vc.y--;
-            model.setAgPos(this.id, vc);
+		Location next = vc;
+		//boolean inSameRoom = model.whichRoom(vc.x, vc.y) == model.whichRoom(loc.x, loc.y);
+		//boolean inDoorway = this.currentRoom == OfficeModel.ROOM.DOORWAY;
+		// if (!inSameRoom) {
+		// 	Location door = model.getDoorwayPos(model.whichRoom(loc.x, loc.y));
+		// 	loc.x = door.x;
+		// 	loc.y = door.y;
+		// }
+		// if (inDoorway) {
+		// 	loc.x = lastMove.x + vc.x;
+		// 	loc.y = lastMove.y + vc.y;
+		// }
+
+		int dx = Math.abs(loc.x-vc.x);
+		int dy = Math.abs(loc.y-vc.y);
+			
+		if (dx > dy) {
+			if (vc.x < loc.x) next.x = vc.x + 1;
+			if (vc.x > loc.x) next.x = vc.x - 1;
+		} else {
+			if (vc.y < loc.y) next.y = vc.y + 1;
+			if (vc.y > loc.y) next.y = vc.y - 1;
+		}
+
+		if (model.isWall(next.x, vc.y)) {
+			next.x = vc.x;
+		}
+		if (model.isWall(vc.x, next.y)) {
+			next.y = vc.y;
+		}
+
+		//this.lastMove.x = next.x - vc.x;
+		//this.lastMove.y = next.y - vc.y;
+		
+		model.setAgPos(this.id, next);
+		
 	}
 
 	public void pickGarbage() {
@@ -268,12 +298,10 @@ public class VacuumCleanerModel  {
 
 	private void empty_garbage(){
 		this.garbageSpace = 100;
-		System.out.println("Garbage emptied");
 	}
 
 	private void recharge_battery(){
 		this.batteryLevel = 100;
-		System.out.println("Battery recharged");
 	}
 
 	public void get_location() {
