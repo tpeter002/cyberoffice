@@ -225,8 +225,8 @@ public class VacuumCleanerModel  {
 
 	public void pickGarbage() {
 		Location vc = model.getAgPos(this.id);
-		this.garbageSpace -= 90;
-		this.batteryLevel -= 90;
+		this.garbageSpace -= 5;
+		this.batteryLevel -= 5;
 		model.removeGarbage(vc.x, vc.y);
 	}	
 
@@ -261,6 +261,10 @@ public class VacuumCleanerModel  {
 			}
 		}
 		updateRoom();
+		// randomly break
+		if (random.nextDouble() < ERROR_PROBABILITY) {
+			this.isBroken = true;
+		}
 		model.setAgPos(this.id, vc);
 	}
 
@@ -294,7 +298,7 @@ public class VacuumCleanerModel  {
 				}
 			}
 		}
-	}	
+	}
 
 	private void empty_garbage(){
 		this.garbageSpace = 100;
