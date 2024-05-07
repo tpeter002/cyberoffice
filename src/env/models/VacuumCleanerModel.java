@@ -230,6 +230,7 @@ public class VacuumCleanerModel {
 			{
 				next.x = vc.x + 1;
 				lastMoveArray[0] = 1;
+				lastMoveArray[1] = 0;
 			}
 			else
 			{
@@ -237,7 +238,6 @@ public class VacuumCleanerModel {
 				{
 					next.y = vc.y  +1;
 					lastMoveArray[1] = + 1;
-					megcsinalta = true;
 				}
 				else
 				{
@@ -248,8 +248,10 @@ public class VacuumCleanerModel {
 		}
 			
 		if (vc.x > door.x && !model.isWall(vc.x - 1, vc.y))
+		{
 			next.x = vc.x - 1;
-
+			lastMoveArray[1] = 0;
+		}
 	
 		if (vc.y < door.y && !model.isWall(vc.x, vc.y+1) && lastMoveArray[1] != -1)
 		{
@@ -257,7 +259,7 @@ public class VacuumCleanerModel {
 			lastMoveArray[1] = 1;	
 		}
 		
-		if (vc.y > door.y && !model.isWall(vc.x, vc.y-1) && lastMoveArray[0] != 1) 
+		if (vc.y > door.y && !model.isWall(vc.x, vc.y-1) && lastMoveArray[1] != 1) 
 		{
 			lastMoveArray[1] = -1;
 			next.y = vc.y - 1;
