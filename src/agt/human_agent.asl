@@ -15,13 +15,15 @@ working.
 
 +printelj: working <- .print("sikeresen beolvastam egy dolgot AAAAAAAAAAAAAAAAAAAAAAAAAAAA"); .random(A); .wait(A*5000); loadnextroutine.
 
-+move(X,Y): working <- .print("tegyuk fel elmentem", X, Y); .random(A); .wait(A*5000); loadnextroutine.
++move(X, Y): not pos(P, X, Y) <- !move(X, Y).
+
++!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .print("moveolas meghivodik visszater"); .random(A); .wait(A*5000); !move(X, Y).
 
 
 
-+!doneprinting(X, Y): true <- !move(X, Y).
-+!move(X, Y): not pos(P,X,Y) <- moveto(X, Y); !move(X,Y).
-+!move(X,Y): pos(P,X,Y) <- wait(5000); !randommove.
+//+!doneprinting(X, Y): true <- !move(X, Y).
+//+!move(X, Y): not pos(P,X,Y) <- moveto(X, Y); !move(X,Y).
+//+!move(X,Y): pos(P,X,Y) <- wait(5000); !randommove.
 
 //+!randommove: true <- 
 //!interact(X).

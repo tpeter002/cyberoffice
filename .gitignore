@@ -2,3 +2,4 @@
 build/
 .stop___MAS
 target/
+bin/

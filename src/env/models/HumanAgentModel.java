@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+import jason.environment.grid.Location;
 
 
 import java.util.logging.Logger;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 // Human agent environment class
 public class HumanAgentModel  {
     
-    public static final Term load = Literal.parseLiteral("loadroutine");
+    
     private OfficeModel model;
     private ArrayList<Human> agents;
 
@@ -117,12 +118,41 @@ public class HumanAgentModel  {
 
 
     public void executeAction(String agentName, Structure action){
-        if(action.equals(load)) {
-       }   
-       else{
-            hlogger.info("executeActionfail");
-       }
+        try{
+            if(action.getFunctor().equals("move")) {
+                moveto(agentName, action);
+            }   
+            else {
+                    hlogger.info("executeActionfail");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
 
+
+    }
+
+    public int getID(String agentName){
+        int value=Integer.parseInt(agentName.replaceAll("[^0-9]", "")) + 2;
+        return value;
+    }
+
+    
+
+    public void moveto(String agentName, Structure action) throws Exception{
+        int agentid=getID(agentName);
+        Location loc=model.getAgPos(agentid);
+        int x = (int)((NumberTerm)action.getTerm(0)).solve();
+        int y = (int)((NumberTerm)action.getTerm(1)).solve();
+            if (loc.x < x)
+                loc.x++;
+            else if (loc.x > x)
+                loc.x--;
+            if (loc.y < y)
+                loc.y++;
+            else if (loc.y > y)
+                loc.y--;
+            model.setAgPos(agentid, loc);
     }
 
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
