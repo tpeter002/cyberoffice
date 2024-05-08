@@ -82,14 +82,16 @@
 +!go_to_other_room(SelectedRoom)
    : at_room_to_clean & not error
    <- 
+      enter_room;
       .print("I arrived at new room starting to clean...");
-      .wait(100);
+      .wait(1000);
       !check.
 
 +!check
-   :  not slot_has_garbage & not should_go_home & not current_room_has_people & not error & not room_empty(_)
+   :  not slot_has_garbage & not should_go_home & not current_room_has_people & not error & (not room_empty(_) | (room_empty(_) & at_room_to_clean))
    <- 
       next_slot;
+      .print("csekkolom a slotokat..");
       .wait(100);
       !check.
 
@@ -138,7 +140,7 @@
 +room_empty(Room)[source(Mainframe)]
    <- 
       .print("Megkaptam: " , Room);
-      .wait(5000);
+      .wait(500);
       +fast_go_home;
       +should_go_home.
 

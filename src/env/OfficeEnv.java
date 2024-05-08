@@ -197,17 +197,13 @@ public class OfficeEnv extends Environment {
                             return new Location((int)(GSize/4)-1, (int)(GSize/4));
                         case PRINTER:
                             return new Location((int)(GSize/4)*3, (int)(GSize/4));
-                        default:
-                            return null;
                     }
                 case PRINTER:
                     switch(curr){
                         case HALL:
-                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                            return new Location((int)(GSize/4)*3+1, (int)(GSize/4));
                         case VACUUM:
                             return new Location((int)(GSize/4)-1, (int)(GSize/4));
-                        default:
-                            return null;
                     }
                 case HALL:
                     switch(curr){
@@ -215,8 +211,6 @@ public class OfficeEnv extends Environment {
                             return new Location((int)(GSize/4)*3, (int)(GSize/4));
                         case VACUUM:
                             return new Location((int)(GSize/4)-1, (int)(GSize/4));
-                        default:
-                            return null;
                     }      
                 default:
                     return null;

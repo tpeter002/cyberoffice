@@ -55,6 +55,7 @@ public class VacuumCleanerModel {
 
 	public static final Literal empty_garbage = Literal.parseLiteral("empty_garbage");
 	public static final Literal recharge_battery = Literal.parseLiteral("recharge_battery");
+	public static final Literal enter_room = Literal.parseLiteral("enter_room");
 
 	public static final Literal current_room_has_people = Literal.parseLiteral("current_room_has_people");
 	public static final Literal get_location = Literal.parseLiteral("get_location");
@@ -180,7 +181,13 @@ public class VacuumCleanerModel {
 			} else if (action.equals(pick_garbage)) {
 				pickGarbage();
 			} else if (action.equals(move_home)) {
-				moveTowards(homePosition);
+				if (this.currentRoom != model.whichRoom(homePosition.x, homePosition.y)) {
+					goTowardSelectedRoom(OfficeModel.ROOM.HALL);
+				} else {
+					moveTowards(homePosition);
+				}
+				//moveTowards(homePosition);
+				//goTowardSelectedRoom(homePosition);
 			} else if (action.equals(empty_garbage)) {
 				empty_garbage();
 			} else if (action.equals(recharge_battery)) {
@@ -189,6 +196,11 @@ public class VacuumCleanerModel {
 				get_location();
 			} else if (action.equals(fix)) {
 				fix();
+			} else if (action.equals(enter_room)) {
+				enter_room();
+			}
+			else {
+				System.out.println("Action not implemented: " + action);
 			}
 
 		} catch (Exception e) {
@@ -219,7 +231,6 @@ public class VacuumCleanerModel {
 			System.out.println("itt vagyok: " + vc.x + " " + vc.y + "es ide megyek: " + door.x + " " + door.y);
 		}
 		
-		//this.whereToCleanNow = door;
 		if(this.firstDoor != null) {
 			System.out.println("door beallitva firstdoorra");
 			door = firstDoor;
@@ -285,6 +296,16 @@ public class VacuumCleanerModel {
 		vc.y++;
 		model.setAgPos(this.id, vc);
 	}
+	public void enter_room(){
+		System.out.println("enter room");
+		Location vc = model.getAgPos(this.id);
+		if (model.whichRoom(vc.x, vc.y+1) == this.roomToClean) {
+			moveUp();
+		}
+		else{
+			moveDown();
+		}
+	}
 
 	public void moveDown() {
 		Location vc = model.getAgPos(this.id);
@@ -295,18 +316,6 @@ public class VacuumCleanerModel {
 	public void moveTowards(Location loc) {
 		Location vc = model.getAgPos(this.id);
 		Location next = vc;
-		// boolean inSameRoom = model.whichRoom(vc.x, vc.y) == model.whichRoom(loc.x,
-		// loc.y);
-		// boolean inDoorway = this.currentRoom == OfficeModel.ROOM.DOORWAY;
-		// if (!inSameRoom) {
-		// Location door = model.getDoorwayPos(model.whichRoom(loc.x, loc.y));
-		// loc.x = door.x;
-		// loc.y = door.y;
-		// }
-		// if (inDoorway) {
-		// loc.x = lastMove.x + vc.x;
-		// loc.y = lastMove.y + vc.y;
-		// }
 
 		int dx = Math.abs(loc.x - vc.x);
 		int dy = Math.abs(loc.y - vc.y);
@@ -329,9 +338,6 @@ public class VacuumCleanerModel {
 		if (model.isWall(vc.x, next.y)) {
 			next.y = vc.y;
 		}
-
-		// this.lastMove.x = next.x - vc.x;
-		// this.lastMove.y = next.y - vc.y;
 
 		model.setAgPos(this.id, next);
 
