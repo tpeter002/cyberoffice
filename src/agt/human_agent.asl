@@ -17,7 +17,7 @@ working.
 
 +move(X, Y): not pos(P, X, Y) <- !move(X, Y).
 
-+!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .print("moveolas meghivodik visszater"); .random(A); .wait(A*5000); !move(X, Y).
++!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .random(A); .wait(A*5000); !move(X, Y).
 
 
 
@@ -51,9 +51,9 @@ working.
 +!pause: true <- 
      .random(B);
      .wait(B*5000);     // suspend this intention (the pause) for 2 seconds
-     .print("alldigalok");
+     //.print("alldigalok");
      .suspend(working);
      .wait(B*7000);     // suspend this intention again for 1 second
      .resume(working);
-     .print("csak megyek megyek");
+     //.print("csak megyek megyek");
      !pause.

@@ -1,13 +1,12 @@
 h1
-printelj
 move(1,2)
 ;
 h2
-printelj
+move(5,5)
 ;
 h3
-move(20,0)
+move(8,8)
 ;
 h4
-move(11,6)
+move(8,0)
 ;

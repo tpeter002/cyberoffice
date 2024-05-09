@@ -29,6 +29,13 @@ public class HumanAgentModel  {
     private HashMap<String, Integer> load_counters;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
+
+    private enum DIRECTION {
+		RIGHT,
+		LEFT,
+		UP,
+		DOWN,
+	}
     
 
     Random random = new Random(System.currentTimeMillis());
@@ -78,12 +85,15 @@ public class HumanAgentModel  {
         int x;
         int y;
         int id;
+        DIRECTION direction;
+
 
 
         public Human(int id, int x, int y) {
             this.x = x;
             this.y = y;
             this.id = id;
+            this.direction=RIGHT;
         }
 
         public boolean isOnCell(int x, int y) {
@@ -119,11 +129,11 @@ public class HumanAgentModel  {
 
     public void executeAction(String agentName, Structure action){
         try{
-            if(action.getFunctor().equals("move")) {
+            if(action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
             }   
             else {
-                    hlogger.info("executeActionfail");
+                    hlogger.info("executeActionfail " + agentName);
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -137,22 +147,42 @@ public class HumanAgentModel  {
         return value;
     }
 
+    public int getHumanByID(int id){
+        for (Human h : model.agents){
+            if(h.id==id){
+                return h;
+            }
+        }
+    }
+
     
 
     public void moveto(String agentName, Structure action) throws Exception{
         int agentid=getID(agentName);
+        Human agent=getHumanByID(agentid);
         Location loc=model.getAgPos(agentid);
+        hlogger.info("moveba bejut");
         int x = (int)((NumberTerm)action.getTerm(0)).solve();
         int y = (int)((NumberTerm)action.getTerm(1)).solve();
+        int newX=loc.x;
+        int newY=loc.y;
             if (loc.x < x)
-                loc.x++;
+                newX=loc.x+1;
             else if (loc.x > x)
-                loc.x--;
-            if (loc.y < y)
-                loc.y++;
+                newX=loc.x-1;
+            if (loc.y < y) 
+                newY=loc.y+1;
             else if (loc.y > y)
-                loc.y--;
-            model.setAgPos(agentid, loc);
+                newY=loc.y-1;
+
+            if(!model.isWall(newX, newY) && !model.cellOccupied(newX, newY)){
+                loc.x=newX;
+                loc.y=newY;
+                model.setAgPos(agentid, loc);
+            }
+            else if(!model.isWall(newX, loc.y)){
+                model.setAgPos(agentid, loc);
+            }
     }
 
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
