@@ -27,10 +27,13 @@ public class HumanAgentModel  {
 
     private ArrayList<String[]> routines;
     private HashMap<String, Integer> load_counters;
+    private int n_human_agents;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
 
-    private enum DIRECTION {
+    private int GSize;
+
+    public enum DIRECTION {
 		RIGHT,
 		LEFT,
 		UP,
@@ -42,22 +45,26 @@ public class HumanAgentModel  {
 
     public HumanAgentModel(OfficeModel model, int GSize){
         agents = new ArrayList<Human>();
+        n_human_agents=((OfficeModel)model).n_human_agents;
         this.model = model;
         routines=readRoutineFromFile("routine.txt");
         initializePositions(GSize);
         load_counters=new HashMap<String, Integer>();
-        for (int i=1; i<=10; i++){ //itt n_human agents kene cant be asked
+        for (int i=1; i<=n_human_agents; i++){ 
             String hname="h"+Integer.toString(i);
             load_counters.put(hname, 1);
         }
+        this.GSize=GSize;
+        
     }
 
 
 
     public void initializePositions(int GSize){
         // Initialize the positions
+        int h_id=n_human_agents+2;
     
-        for (int i = 2; i < ((OfficeModel)model).n_human_agents; i++) {
+        for (int i = 2; i < h_id; i++) {
             int x = random.nextInt(GSize);
             int y = random.nextInt(GSize);
             while (model.hasObject(1, x, y) || model.hasObject(0, x, y) || model.hasObject(OfficeEnv.WALL, x, y)) {
@@ -65,6 +72,7 @@ public class HumanAgentModel  {
                 y = random.nextInt(GSize);
             }
             model.setAgPos(i, x, y);
+            hlogger.info(Integer.toString(i));
 
             agents.add(new Human(i, x, y));
 
@@ -85,7 +93,7 @@ public class HumanAgentModel  {
         int x;
         int y;
         int id;
-        DIRECTION direction;
+        //DIRECTION direction;
 
 
 
@@ -93,12 +101,17 @@ public class HumanAgentModel  {
             this.x = x;
             this.y = y;
             this.id = id;
-            this.direction=RIGHT;
+            //this.direction=RIGHT;
         }
 
         public boolean isOnCell(int x, int y) {
             return this.x == x && this.y == y;
         }
+/*
+        public void setDirection(DIRECTION direction) {
+            this.direction = direction;
+        }
+        */
 
     }
 
@@ -143,17 +156,31 @@ public class HumanAgentModel  {
     }
 
     public int getID(String agentName){
-        int value=Integer.parseInt(agentName.replaceAll("[^0-9]", "")) + 2;
+        int value=Integer.parseInt(agentName.replaceAll("[^0-9]", "")) + 1;
         return value;
     }
 
-    public int getHumanByID(int id){
-        for (Human h : model.agents){
+    public Human getHumanByID(int id){
+        for (Human h : agents){
             if(h.id==id){
                 return h;
             }
         }
+        hlogger.info("getbyidfail");
+        return null;
     }
+
+    public void updateLoc(int id, Location loc){
+        model.setAgPos(id, loc);
+        for (Human h : agents){
+            if(h.id==id){
+                h.x=loc.x;
+                h.y=loc.y;
+            }
+        }
+    }
+
+    
 
     
 
@@ -161,7 +188,6 @@ public class HumanAgentModel  {
         int agentid=getID(agentName);
         Human agent=getHumanByID(agentid);
         Location loc=model.getAgPos(agentid);
-        hlogger.info("moveba bejut");
         int x = (int)((NumberTerm)action.getTerm(0)).solve();
         int y = (int)((NumberTerm)action.getTerm(1)).solve();
         int newX=loc.x;
@@ -178,10 +204,32 @@ public class HumanAgentModel  {
             if(!model.isWall(newX, newY) && !model.cellOccupied(newX, newY)){
                 loc.x=newX;
                 loc.y=newY;
-                model.setAgPos(agentid, loc);
+                updateLoc(agentid, loc);
             }
-            else if(!model.isWall(newX, loc.y)){
-                model.setAgPos(agentid, loc);
+            else if(!model.isWall(newX, loc.y) && !model.cellOccupied(newX, loc.y)){
+                loc.x=newX;
+                updateLoc(agentid, loc);
+            }
+            else if(!model.isWall(loc.x, newY) && !model.cellOccupied(loc.x, newY)){
+                loc.y=newY;
+                updateLoc(agentid, loc);
+            }
+            else{
+                boolean foundHole = false;
+                for (int i = newX - 1; i <= newX + 1; i++) {
+                    for (int j = newY - 1; j <= newY + 1; j++) {
+                        if (!model.isWall(i, j) && !model.cellOccupied(i, j)) {
+                            loc.x = i;
+                            loc.y = j;
+                            updateLoc(agentid, loc);
+                            foundHole = true;
+                            break;
+                        }
+                    }
+                    if (foundHole) {
+                        break;
+                    }
+                }
             }
     }
 

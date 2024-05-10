@@ -100,13 +100,13 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/4) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =9; //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
-            super(GSize, GSize, n_human_agents);
+            super(GSize, GSize, n_human_agents+4);
 
             // initial location of agents
             try {
@@ -269,7 +269,7 @@ public class OfficeEnv extends Environment {
             }
 
             // draw human agents
-            if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
+            if (id > 1 && id < ((OfficeModel)model).n_human_agents+2) {
                 c = Color.red;
                 label = "H";
             }

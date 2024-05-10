@@ -6,8 +6,8 @@ at(P) :- pos(P,Xo,Yo).
 /* Initial goals */
 
 !start. // initial goal to rutin
-!pause. // initial goal to break
-!szemetel.
+//!pause. // initial goal to break
+//!szemetel.
 working.
 
 
@@ -15,9 +15,13 @@ working.
 
 +printelj: working <- .print("sikeresen beolvastam egy dolgot AAAAAAAAAAAAAAAAAAAAAAAAAAAA"); .random(A); .wait(A*5000); loadnextroutine.
 
-+move(X, Y): not pos(P, X, Y) <- !move(X, Y).
++move(X, Y): not pos(P, X, Y) <- -move(X, Y)[source(percept)]; !move(X, Y).
 
-+!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .random(A); .wait(A*5000); !move(X, Y).
++!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .random(A); .wait(A*1000); !move(X, Y).
+
+
+
++!move(X,Y): pos(P, X, Y) <- .print("tortenik itt vagyok sztem"); loadnextroutine.
 
 
 
