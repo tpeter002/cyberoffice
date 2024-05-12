@@ -420,6 +420,7 @@ public class VacuumCleanerModel {
 				vc.y++;
 			}
 		}
+		vc = avoidObstacle(vc);
 		updateRoom();
 		updateWhereInRoom(vc);
 		if (this.whereInRoom == WHEREINROOM.LOWERLEFTCORNER || this.whereInRoom == WHEREINROOM.LOWERRIGHTCORNER) {
@@ -449,6 +450,7 @@ public class VacuumCleanerModel {
 				vc.y--;
 			}
 		}
+		vc = avoidObstacle(vc);
 		updateRoom();
 		updateWhereInRoom(vc);
 		if (this.whereInRoom == WHEREINROOM.UPPERRIGHTCORNER || this.whereInRoom == WHEREINROOM.UPPERLEFTCORNER) {
@@ -479,39 +481,26 @@ public class VacuumCleanerModel {
 				break;
 		}
 	}
-	// TODO: update this to be more efficient
-	public void avoidHumans(Location vc) {
+	// The object code of CLEAN which is not defined in the agent program is 0.
+	// There is a possibility that we need to add this to isFree
+	public Location avoidObstacle(Location vc) {
 		if (this.areHumansFriend) {
-			if (model.cellOccupied(vc.x, vc.y)) {
-				System.out.println("Human detected, moving away...");
-				if (this.xDirection == DIRECTION.RIGHT) {
-					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
-							&& !model.cellOccupied(vc.x, vc.y - 1)) {
-						// Move up
-						vc.y--;
-						model.setAgPos(this.id, vc);
-					} else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1)
-							&& !model.cellOccupied(vc.x, vc.y + 1)) {
-						// Move down
-						vc.y++;
-						model.setAgPos(this.id, vc);
-
-					}
-				} else if (this.xDirection == DIRECTION.LEFT) {
-					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
-							&& !model.cellOccupied(vc.x, vc.y - 1)) {
-						// Move up
-						vc.y--;
-						model.setAgPos(this.id, vc);
-					} else if (model.inGrid(vc.x, vc.y + 1) && !model.isWall(vc.x, vc.y + 1)
-							&& !model.cellOccupied(vc.x, vc.y + 1)) {
-						// Move down
-						vc.y++;
-						model.setAgPos(this.id, vc);
-					}
+			if ((!(model.isFree(vc.x, vc.y)) && !(model.hasGarbage(vc.x, vc.y))) || (model.cellOccupied(vc.x, vc.y))){
+				System.out.println("Van valami");
+				if (model.isFree(vc.x, vc.y+1) && !(model.cellOccupied(vc.x, vc.y+1)))
+					vc.y++;
+				else if (model.isFree(vc.x+1, vc.y) && !(model.cellOccupied(vc.x+1, vc.y)))
+					vc.x++;
+				else if (model.isFree(vc.x, vc.y-1) && !(model.cellOccupied(vc.x, vc.y-1)))
+					vc.y--;
+				else if (model.isFree(vc.x-1, vc.y) &&  !(model.cellOccupied(vc.x-1, vc.y)))
+					vc.x--;
+				else{
+					System.out.println("Baj van");
 				}
 			}
 		}
+		return vc;
 	}
 
 	private void empty_garbage() {
