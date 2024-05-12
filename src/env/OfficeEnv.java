@@ -31,7 +31,8 @@ public class OfficeEnv extends Environment {
 
 
 
-    public static final Term load = Literal.parseLiteral("loadnextroutine");
+    public static final Term load = Literal.parseLiteral("load");
+    public static final Term loadpos = Literal.parseLiteral("loadpos");
 
     private OfficeModel model;
     private OfficeView  view;
@@ -64,6 +65,10 @@ public class OfficeEnv extends Environment {
             if(action.equals(load)){
                 Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
                 addPercept(agentName, routine_element);
+            }
+            else if(action.equals(loadpos)){
+                Literal hpos=model.humanAgentModel.getPosLiteral(agentName);
+                addPercept(agentName, hpos);
             }
             else{
                 model.humanAgentModel.executeAction(agentName, action);
@@ -100,7 +105,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =9; //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =5; //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
@@ -146,9 +151,9 @@ public class OfficeEnv extends Environment {
         }
 
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
                 return ROOM.VACUUM;
-            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+            } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;

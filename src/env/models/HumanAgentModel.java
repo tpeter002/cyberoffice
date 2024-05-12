@@ -9,61 +9,59 @@ import java.io.FileReader;
 import java.io.IOException;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+import env.OfficeEnv.OfficeModel.ROOM;
 import jason.environment.grid.Location;
-
 
 import java.util.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 // Human agent environment class
-public class HumanAgentModel  {
-    
-    
+public class HumanAgentModel {
+
     private OfficeModel model;
     private ArrayList<Human> agents;
 
     private ArrayList<String[]> routines;
     private HashMap<String, Integer> load_counters;
     private int n_human_agents;
+    private Location vacuum_hall_doorway;
+    private Location printer_hall_doorway;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
 
     private int GSize;
 
     public enum DIRECTION {
-		RIGHT,
-		LEFT,
-		UP,
-		DOWN,
-	}
-    
+        RIGHT,
+        LEFT,
+        UP,
+        DOWN,
+    }
 
     Random random = new Random(System.currentTimeMillis());
 
-    public HumanAgentModel(OfficeModel model, int GSize){
+    public HumanAgentModel(OfficeModel model, int GSize) {
         agents = new ArrayList<Human>();
-        n_human_agents=((OfficeModel)model).n_human_agents;
+        n_human_agents = ((OfficeModel) model).n_human_agents;
         this.model = model;
-        routines=readRoutineFromFile("routine.txt");
+        routines = readRoutineFromFile("routine.txt");
         initializePositions(GSize);
-        load_counters=new HashMap<String, Integer>();
-        for (int i=1; i<=n_human_agents; i++){ 
-            String hname="h"+Integer.toString(i);
-            load_counters.put(hname, 1);
+        load_counters = new HashMap<String, Integer>();
+        for (int i = 1; i <= n_human_agents; i++) {
+            String hname = "h" + Integer.toString(i);
+            load_counters.put(hname, 0);
         }
-        this.GSize=GSize;
-        
+        this.GSize = GSize;
+        vacuum_hall_doorway = new Location(6, 5);
+        printer_hall_doorway = new Location(16, 5);
     }
 
-
-
-    public void initializePositions(int GSize){
+    public void initializePositions(int GSize) {
         // Initialize the positions
-        int h_id=n_human_agents+2;
-    
+        int h_id = n_human_agents + 2;
+
         for (int i = 2; i < h_id; i++) {
             int x = random.nextInt(GSize);
             int y = random.nextInt(GSize);
@@ -80,89 +78,99 @@ public class HumanAgentModel  {
     }
 
     public boolean cellOccupied(int x, int y) {
-        for (Human human :  agents) {
+        for (Human human : agents) {
             if (human.isOnCell(x, y)) {
                 return true;
             }
         }
         return false;
-        
+
     }
 
-    private class Human{
+    private class Human {
         int x;
         int y;
         int id;
-        //DIRECTION direction;
-
-
+        // DIRECTION direction;
 
         public Human(int id, int x, int y) {
             this.x = x;
             this.y = y;
             this.id = id;
-            //this.direction=RIGHT;
+            // this.direction=RIGHT;
         }
 
         public boolean isOnCell(int x, int y) {
             return this.x == x && this.y == y;
         }
-/*
-        public void setDirection(DIRECTION direction) {
-            this.direction = direction;
-        }
-        */
+        /*
+         * public void setDirection(DIRECTION direction) {
+         * this.direction = direction;
+         * }
+         */
 
     }
 
     public ArrayList<Literal> getPercepts() {
         ArrayList<Literal> percepts = new ArrayList<Literal>();
-        //for (Human human: agents) {
-        //    percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
-        //}
-
+        // for (Human human: agents) {
+        // percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
+        // }
 
         return percepts;
     }
 
-    public Literal getNextRoutineElement(String agentName){
-        int load_counter=load_counters.get(agentName);
-        Literal result=null;
-        for (String[] agentRoutine : routines) {
-            if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
+    public Literal getNextRoutineElement(String agentName) {
+        int load_counter = load_counters.get(agentName);
+        Literal result = null;
+        if (load_counter == 0) {
+            result = getPosLiteral(agentName);
+        } else {
+            for (String[] agentRoutine : routines) {
+                if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
                     String element = agentRoutine[load_counter];
-                    result=Literal.parseLiteral(element);
+                    result = Literal.parseLiteral(element);
+                }
             }
         }
-        
-        load_counters.put(agentName, load_counter+1);
+
+        load_counters.put(agentName, load_counter + 1);
         return result;
     }
 
+    public Literal getPosLiteral(String agentName) {
+        int id = getID(agentName);
+        Location hLoc = model.getAgPos(id);
+        Literal result = Literal.parseLiteral("pos(" + hLoc.x + "," + hLoc.y + ")");
+        return result;
+    }
 
-    public void executeAction(String agentName, Structure action){
-        try{
-            if(action.getFunctor().equals("moveto")) {
+    public void executeAction(String agentName, Structure action) {
+        try {
+            if (action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
-            }   
-            else {
-                    hlogger.info("executeActionfail " + agentName);
+            } else if(action.getFunctor().equals("garbagedrop")){
+                dropGarbage(agentName);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-
     }
 
-    public int getID(String agentName){
-        int value=Integer.parseInt(agentName.replaceAll("[^0-9]", "")) + 1;
+    public void dropGarbage(String agentName){
+        Location spot=model.getAgPos(getID(agentName));
+        model.addGarbage(spot.x, spot.y);
+    }
+
+    public int getID(String agentName) {
+        int value = Integer.parseInt(agentName.replaceAll("[^0-9]", "")) + 1;
         return value;
     }
 
-    public Human getHumanByID(int id){
-        for (Human h : agents){
-            if(h.id==id){
+    public Human getHumanByID(int id) {
+        for (Human h : agents) {
+            if (h.id == id) {
                 return h;
             }
         }
@@ -170,100 +178,148 @@ public class HumanAgentModel  {
         return null;
     }
 
-    public void updateLoc(int id, Location loc){
+    public void updateLoc(int id, Location loc) {
         model.setAgPos(id, loc);
-        for (Human h : agents){
-            if(h.id==id){
-                h.x=loc.x;
-                h.y=loc.y;
+        for (Human h : agents) {
+            if (h.id == id) {
+                h.x = loc.x;
+                h.y = loc.y;
             }
         }
     }
 
-    
+    public boolean canStep(int x, int y){
+        if(model.isFree(x, y)){
+            return true;
+        }
+        else if(model.hasGarbage(x, y) && !cellOccupied(x, y)){
+            return true;
+        }
+        else{
+            return false;
+        }
 
-    
+    }
 
-    public void moveto(String agentName, Structure action) throws Exception{
-        int agentid=getID(agentName);
-        Human agent=getHumanByID(agentid);
-        Location loc=model.getAgPos(agentid);
-        int x = (int)((NumberTerm)action.getTerm(0)).solve();
-        int y = (int)((NumberTerm)action.getTerm(1)).solve();
-        int newX=loc.x;
-        int newY=loc.y;
-            if (loc.x < x)
-                newX=loc.x+1;
-            else if (loc.x > x)
-                newX=loc.x-1;
-            if (loc.y < y) 
-                newY=loc.y+1;
-            else if (loc.y > y)
-                newY=loc.y-1;
+    public void moveto(String agentName, Structure action) throws Exception {
+        int agentid = getID(agentName);
+        //Human agent = getHumanByID(agentid);
+        Location loc = model.getAgPos(agentid);
+        int x = (int) ((NumberTerm) action.getTerm(0)).solve();
+        int y = (int) ((NumberTerm) action.getTerm(1)).solve();
+        int newX = loc.x;
+        int newY = loc.y;
+        ROOM targetRoom = model.whichRoom(x, y);
+        ROOM currentRoom = model.whichRoom(loc.x, loc.y);
 
-            if(!model.isWall(newX, newY) && !model.cellOccupied(newX, newY)){
-                loc.x=newX;
-                loc.y=newY;
-                updateLoc(agentid, loc);
+        if (targetRoom != currentRoom && loc != vacuum_hall_doorway && loc != printer_hall_doorway) {
+            if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
+                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
+                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
+                x = vacuum_hall_doorway.x;
+                y = vacuum_hall_doorway.y;
+            } else if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.PRINTER)
+                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.HALL)
+                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.PRINTER)) {
+                x = printer_hall_doorway.x;
+                y = printer_hall_doorway.y;
             }
-            else if(!model.isWall(newX, loc.y) && !model.cellOccupied(newX, loc.y)){
-                loc.x=newX;
-                updateLoc(agentid, loc);
-            }
-            else if(!model.isWall(loc.x, newY) && !model.cellOccupied(loc.x, newY)){
-                loc.y=newY;
-                updateLoc(agentid, loc);
-            }
-            else{
-                boolean foundHole = false;
-                for (int i = newX - 1; i <= newX + 1; i++) {
-                    for (int j = newY - 1; j <= newY + 1; j++) {
-                        if (!model.isWall(i, j) && !model.cellOccupied(i, j)) {
-                            loc.x = i;
-                            loc.y = j;
-                            updateLoc(agentid, loc);
-                            foundHole = true;
-                            break;
-                        }
-                    }
-                    if (foundHole) {
+        }
+
+        if (loc.x < x)
+            newX = loc.x + 1;
+        else if (loc.x > x)
+            newX = loc.x - 1;
+        if (loc.y < y)
+            newY = loc.y + 1;
+        else if (loc.y > y)
+            newY = loc.y - 1;
+
+        if (canStep(newX, newY)) {
+            loc.x = newX;
+            loc.y = newY;
+            updateLoc(agentid, loc);
+        } else if (canStep(newX, loc.y)) {
+            loc.x = newX;
+            updateLoc(agentid, loc);
+        } else if (canStep(loc.x, newY)) {
+            loc.y = newY;
+            updateLoc(agentid, loc);
+        } else if (canStep(newX, loc.y+1)) {
+            loc.x = newX;
+            loc.y=loc.y+1;
+            updateLoc(agentid, loc);
+        }
+        else if (canStep(newX, loc.y-1)) {
+            loc.x = newX;
+            loc.y=loc.y-1;
+            updateLoc(agentid, loc);
+        }
+        else if (canStep(loc.x+1, newY)) {
+            loc.x = loc.x+1;
+            loc.y=newY;
+            updateLoc(agentid, loc);
+        }
+        else if (canStep(loc.x-1, newY)) {
+            loc.x = loc.x-1;
+            loc.y=newY;
+            updateLoc(agentid, loc);
+        }
+        
+        
+
+        /*
+        else {
+            boolean foundHole = false;
+            for (int i = newX - 1; i <= newX + 1; i++) {
+                for (int j = newY - 1; j <= newY + 1; j++) {
+                    if (!model.isWall(i, j) && !model.cellOccupied(i, j)) {
+                        loc.x = i;
+                        loc.y = j;
+                        updateLoc(agentid, loc);
+                        foundHole = true;
                         break;
                     }
                 }
+                if (foundHole) {
+                    break;
+                }
             }
+        }
+        */
+
     }
 
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
         ArrayList<String[]> routine = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
-            ArrayList<String> currentRoutine = new ArrayList<>(); 
+            ArrayList<String> currentRoutine = new ArrayList<>();
             while ((line = br.readLine()) != null) {
-                
-                if (!line.trim().isEmpty()) { 
-                    
-                    if(line.trim().equals(";")){ 
-                        
+
+                if (!line.trim().isEmpty()) {
+
+                    if (line.trim().equals(";")) {
+
                         if (!currentRoutine.isEmpty()) {
                             routine.add(currentRoutine.toArray(new String[0]));
                             currentRoutine.clear();
-                    
+
                         }
-                    }
-                    else{
+                    } else {
                         currentRoutine.add(line.trim());
                     }
-                } 
-                
+                }
+
             }
-            
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        for (String[] routine_per_agent : routine){
+        for (String[] routine_per_agent : routine) {
             hlogger.info(routine_per_agent[0] + " agent's routine: ");
-            for (int i=1; i<routine_per_agent.length; i++){
+            for (int i = 1; i < routine_per_agent.length; i++) {
                 hlogger.info(routine_per_agent[i]);
             }
         }
@@ -271,7 +327,7 @@ public class HumanAgentModel  {
         return routine;
     }
 
-    public ArrayList<String[]> getRoutines(){
+    public ArrayList<String[]> getRoutines() {
         return routines;
 
     }
