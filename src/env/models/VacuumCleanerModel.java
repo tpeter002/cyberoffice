@@ -31,6 +31,7 @@ public class VacuumCleanerModel {
 	private OfficeModel.ROOM currentRoom;
 	private OfficeModel.ROOM firstRoom;
 	private OfficeModel.ROOM roomToClean;
+	private WHEREINROOM whereInRoom;
 	int[] lastMoveArray = new int[2];
 
 	private boolean areHumansFriend = true;
@@ -42,7 +43,8 @@ public class VacuumCleanerModel {
 		DOWN,
 	}
 
-	private DIRECTION direction;
+	private DIRECTION xDirection;
+	private DIRECTION yDirection;
 
 	public static final Literal next_slot = Literal.parseLiteral("next_slot");
 	public static final Literal slot_has_garbage = Literal.parseLiteral("slot_has_garbage");
@@ -76,13 +78,15 @@ public class VacuumCleanerModel {
 		this.batteryLevel = 100;
 		this.lastMove = new Location(0, 0);
 		this.GSize = GSize;
-		this.direction = DIRECTION.RIGHT;
+		this.xDirection = DIRECTION.RIGHT;
 		initializePositions(GSize);
 	}
 
 	public void initializePositions(int GSize) {
 		model.setAgPos(this.id, 0, 0);
+		this.yDirection = DIRECTION.DOWN;
 		updateRoom();
+		updateWhereInRoom(model.getAgPos(this.id));
 	}
 
 	public void updateRoom() {
@@ -92,9 +96,10 @@ public class VacuumCleanerModel {
 	public ArrayList<Percept> newPercepts() {
 		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
-		updateRoom();
-
 		Location vc = model.getAgPos(this.id);
+
+		updateRoom();
+		updateWhereInRoom(vc);
 
 		if (model.hasGarbage(vc.x, vc.y)) {
 			percepts.add(new Percept(slot_has_garbage));
@@ -109,7 +114,6 @@ public class VacuumCleanerModel {
 		}
 		if (model.getAgPos(this.id).equals(this.whereToCleanNow) && this.roomToClean != null) {
 				percepts.add(new Percept(at_room_to_clean));
-				this.roomToClean = null;
 		}
 		if(model.getAgPos(this.id).equals(this.firstDoor)) {
 			System.out.println("elertem az elso ajtot");
@@ -162,16 +166,25 @@ public class VacuumCleanerModel {
 
 	public void executeAction(Structure action) {
 		try {
-
+			
 			if (action.equals(next_slot)) {
 				if (!model.roomIsEmpty(this.currentRoom)) {
 					System.out.println("Room is not empty");
 					moveTowards(homePosition);
-				} else if (this.currentRoom == OfficeModel.ROOM.DOORWAY) {
-					cleanCurrentRoom();
-					System.out.println("ajtoban vagyok");
 				} else {
-					cleanCurrentRoom();
+					System.out.println("y direction: " + this.yDirection);	
+					switch (this.yDirection){
+						case DOWN:
+							cleanCurrentRoomDown();
+							break;
+						case UP:
+							cleanCurrentRoomUp();
+							break;
+						default:
+							System.out.println("DEFAULT" + this.whereInRoom);
+							moveTowards(homePosition);
+							break;
+					}
 				}
 			} else if (action.getFunctor().equals("go_to")) {
 				int x = ((int) ((NumberTerm) action.getTerm(0)).solve());
@@ -186,8 +199,6 @@ public class VacuumCleanerModel {
 				} else {
 					moveTowards(homePosition);
 				}
-				//moveTowards(homePosition);
-				//goTowardSelectedRoom(homePosition);
 			} else if (action.equals(empty_garbage)) {
 				empty_garbage();
 			} else if (action.equals(recharge_battery)) {
@@ -278,6 +289,17 @@ public class VacuumCleanerModel {
 
 		model.setAgPos(this.id, next);
 	}
+	public enum WHEREINROOM {
+		UPPEREDGE,
+		LOWEREDGE,
+		LEFTEDGE,
+		RIGHTEDGE,
+		UPPERRIGHTCORNER,
+		UPPERLEFTCORNER,
+		LOWERRIGHTCORNER,
+		LOWERLEFTCORNER,
+		MIDDLE
+	}
 
 	public void moveRight() {
 		Location vc = model.getAgPos(this.id);
@@ -295,16 +317,6 @@ public class VacuumCleanerModel {
 		Location vc = model.getAgPos(this.id);
 		vc.y++;
 		model.setAgPos(this.id, vc);
-	}
-	public void enter_room(){
-		System.out.println("enter room");
-		Location vc = model.getAgPos(this.id);
-		if (model.whichRoom(vc.x, vc.y+1) == this.roomToClean) {
-			moveUp();
-		}
-		else{
-			moveDown();
-		}
 	}
 
 	public void moveDown() {
@@ -342,56 +354,137 @@ public class VacuumCleanerModel {
 		model.setAgPos(this.id, next);
 
 	}
-
+	public void enter_room(){
+		Location vc = model.getAgPos(this.id);
+		if (model.whichRoom(vc.x, vc.y-1) == this.roomToClean) {
+			this.yDirection = DIRECTION.UP;
+			this.roomToClean = null;
+		}
+		else if (model.whichRoom(vc.x, vc.y+1) == this.roomToClean){
+			this.yDirection = DIRECTION.DOWN;
+			this.roomToClean = null;
+		}
+	}
+	public void updateWhereInRoom(Location vc) {
+		if ((model.isWall(vc.x+1, vc.y) || !(model.inGrid(vc.x+1, vc.y))) && (model.isWall(vc.x, vc.y-1) || !(model.inGrid(vc.x, vc.y-1)))){
+			this.whereInRoom = WHEREINROOM.UPPERRIGHTCORNER;
+		}
+		else if ((model.isWall(vc.x-1, vc.y) || !(model.inGrid(vc.x-1, vc.y))) && (model.isWall(vc.x, vc.y-1) || !(model.inGrid(vc.x, vc.y-1)))){
+			this.whereInRoom = WHEREINROOM.UPPERLEFTCORNER;
+		}
+		else if ((model.isWall(vc.x+1, vc.y) || !(model.inGrid(vc.x+1, vc.y))) && (model.isWall(vc.x, vc.y+1) || !(model.inGrid(vc.x, vc.y+1)))){
+			this.whereInRoom = WHEREINROOM.LOWERRIGHTCORNER;
+		}
+		else if ((model.isWall(vc.x-1, vc.y) || !(model.inGrid(vc.x-1, vc.y))) && (model.isWall(vc.x, vc.y+1) || !(model.inGrid(vc.x, vc.y+1)))){
+			this.whereInRoom = WHEREINROOM.LOWERLEFTCORNER;
+		}
+		else if (!(model.inGrid(vc.x, vc.y-1)) || model.isWall(vc.x, vc.y-1)){
+			this.whereInRoom = WHEREINROOM.UPPEREDGE; 
+		}
+		else if (!(model.inGrid(vc.x, vc.y+1))|| model.isWall(vc.x, vc.y+1)){
+			this.whereInRoom = WHEREINROOM.LOWEREDGE;
+		}
+		else if (!(model.inGrid(vc.x+1, vc.y))|| model.isWall(vc.x+1, vc.y)){
+			this.whereInRoom = WHEREINROOM.RIGHTEDGE; 
+		}
+		else if (!(model.inGrid(vc.x-1, vc.y))|| model.isWall(vc.x-1, vc.y)){
+			this.whereInRoom = WHEREINROOM.LEFTEDGE; 
+		}
+		else{
+			this.whereInRoom = WHEREINROOM.MIDDLE; 
+		}
+		System.out.println("where in room: " + this.whereInRoom);
+	}
 	public void pickGarbage() {
 		Location vc = model.getAgPos(this.id);
 		this.garbageSpace -= 5;
 		this.batteryLevel -= 5;
 		model.removeGarbage(vc.x, vc.y);
 	}
-
-	void cleanCurrentRoom() {
+	void cleanCurrentRoomDown() {
+		System.out.println("!!! down");
 		Location vc = model.getAgPos(this.id);
-		if (this.direction == DIRECTION.RIGHT) {
+		if (this.xDirection == DIRECTION.RIGHT) {
 			vc.x++;
-			avoidHumans(vc);
-			avoidHumans(vc);
-			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y)) {
-				this.direction = DIRECTION.LEFT;
+			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+				this.xDirection = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
-				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
-					vc.y--;
-					avoidHumans(vc);
-				}
 			}
-		} else if (this.direction == DIRECTION.LEFT) {
+		} 
+		else if (this.xDirection == DIRECTION.LEFT) {
 			vc.x--;
-			avoidHumans(vc);
-			avoidHumans(vc);
-			if (0 > vc.x || model.isWall(vc.x, vc.y)) {
-				this.direction = DIRECTION.RIGHT;
+			if (0 > vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+				this.xDirection = DIRECTION.RIGHT;
 				vc.x++;
 				vc.y++;
-				if (model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
-					vc.y--;
-					avoidHumans(vc);
-				}
 			}
 		}
 		updateRoom();
+		updateWhereInRoom(vc);
+		if (this.whereInRoom == WHEREINROOM.LOWERLEFTCORNER || this.whereInRoom == WHEREINROOM.LOWERRIGHTCORNER) {
+			switchYdirection();
+		}
 		// randomly break
 		if (random.nextDouble() < ERROR_PROBABILITY) {
 			this.isBroken = true;
 		}
 		model.setAgPos(this.id, vc);
 	}
-
+	void cleanCurrentRoomUp() {
+		Location vc = model.getAgPos(this.id);
+		if (this.xDirection == DIRECTION.RIGHT) {
+			vc.x++;
+			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+				this.xDirection = DIRECTION.LEFT;
+				vc.x--;
+				vc.y--;
+			}
+		} 
+		else if (this.xDirection == DIRECTION.LEFT) {
+			vc.x--;
+			if (0 > vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+				this.xDirection = DIRECTION.RIGHT;
+				vc.x++;
+				vc.y--;
+			}
+		}
+		updateRoom();
+		updateWhereInRoom(vc);
+		if (this.whereInRoom == WHEREINROOM.UPPERRIGHTCORNER || this.whereInRoom == WHEREINROOM.UPPERLEFTCORNER) {
+			switchYdirection();
+		}
+		// randomly break
+		if (random.nextDouble() < ERROR_PROBABILITY) {
+			this.isBroken = true;
+		}
+		model.setAgPos(this.id, vc);
+	}
+	public void switchYdirection(){
+		Location vc = model.getAgPos(this.id);
+		switch (this.whereInRoom){
+			case UPPERLEFTCORNER:
+				this.yDirection = DIRECTION.DOWN;
+				break;
+			case UPPERRIGHTCORNER:
+				this.yDirection = DIRECTION.DOWN;
+				break;
+			case LOWERLEFTCORNER:
+				this.yDirection = DIRECTION.UP;
+				break;
+			case LOWERRIGHTCORNER:
+				this.yDirection = DIRECTION.UP;
+				break;
+			default:
+				break;
+		}
+	}
+	// TODO: update this to be more efficient
 	public void avoidHumans(Location vc) {
 		if (this.areHumansFriend) {
 			if (model.cellOccupied(vc.x, vc.y)) {
 				System.out.println("Human detected, moving away...");
-				if (this.direction == DIRECTION.RIGHT) {
+				if (this.xDirection == DIRECTION.RIGHT) {
 					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
 							&& !model.cellOccupied(vc.x, vc.y - 1)) {
 						// Move up
@@ -404,7 +497,7 @@ public class VacuumCleanerModel {
 						model.setAgPos(this.id, vc);
 
 					}
-				} else if (this.direction == DIRECTION.LEFT) {
+				} else if (this.xDirection == DIRECTION.LEFT) {
 					if (model.inGrid(vc.x, vc.y - 1) && !model.isWall(vc.x, vc.y - 1)
 							&& !model.cellOccupied(vc.x, vc.y - 1)) {
 						// Move up
