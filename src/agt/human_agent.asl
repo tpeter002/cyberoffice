@@ -11,6 +11,7 @@ working.
 
 
 
+
 +!loadinitialpos: true <-  load; !nextroutine.
 
 +!nextroutine: true <- load.
@@ -72,20 +73,19 @@ working.
 //+!move(X, Y): not pos(P,X,Y) <- moveto(X, Y); !move(X,Y).
 //+!move(X,Y): pos(P,X,Y) <- wait(5000); !randommove.
 
+
 //+!randommove: true <- 
 //!interact(X).
 
++!csill :
+     true <-
+     .suspend(working);
+     .wait(10000);
+     .resume(working).
 
 
-
-
-+!csill: true <-
-.suspend(working);
-.wait(10000);
-.resume(working).
-
-
-+!szemetel: true <- 
++!szemetel : 
+     true <- 
     .random(A);
     //.wait(10000+A*5000);    
     .wait(2000); 

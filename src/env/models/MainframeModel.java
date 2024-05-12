@@ -9,29 +9,20 @@ import env.OfficeEnv;
 
 import java.util.ArrayList;
 
-
+// Human agent environment class
 public class MainframeModel  {
-    
-    private OfficeModel model;
-    private int position;
-    Random random = new Random(System.currentTimeMillis());
+	
+	private OfficeModel model;
+	Random random = new Random(System.currentTimeMillis());
 
-    public MainframeModel(OfficeModel model, int GSize){
-        position = 0;
-        this.model = model;
-        initializePositions(GSize);
-        // Initialize the positions
-    }
+	ArrayList<Literal> percepts = new ArrayList<>();
 
-    public void initializePositions(int GSize){
-    }
+	public MainframeModel(OfficeModel model, int GSize){
+		this.model = model;
+	}
 
-    public ArrayList<Literal> getPercepts() {
-        ArrayList<Literal> percepts = new ArrayList<Literal>();
-        return percepts;
-    }
+	public ArrayList<Literal> getPercepts() {
+		return percepts;
+	}
 
-    public void executeAction(Structure action){
-        
-    }
 }

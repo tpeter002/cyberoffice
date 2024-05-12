@@ -9,8 +9,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+
 import env.OfficeEnv.OfficeModel.ROOM;
 import jason.environment.grid.Location;
+
+import env.Percept;
+
 
 import java.util.logging.Logger;
 
@@ -20,10 +24,13 @@ import java.util.HashMap;
 // Human agent environment class
 public class HumanAgentModel {
 
+    public static final Term load = Literal.parseLiteral("loadroutine");
+
     private OfficeModel model;
+    private int id;
     private ArrayList<Human> agents;
 
-    private ArrayList<String[]> routines;
+    private ArrayList<String[]> routines; 
     private HashMap<String, Integer> load_counters;
     private int n_human_agents;
     private Location vacuum_hall_doorway;
@@ -33,25 +40,30 @@ public class HumanAgentModel {
 
     private int GSize;
 
-    public enum DIRECTION {
-        RIGHT,
-        LEFT,
-        UP,
-        DOWN,
-    }
+    
+
+    ArrayList<Percept> percepts_pre = new ArrayList<Percept>();
+
+    
 
     Random random = new Random(System.currentTimeMillis());
 
     public HumanAgentModel(OfficeModel model, int GSize) {
         agents = new ArrayList<Human>();
+
         n_human_agents = ((OfficeModel) model).n_human_agents;
+
+        this.id = 2;
+
         this.model = model;
         routines = readRoutineFromFile("routine.txt");
         initializePositions(GSize);
         load_counters = new HashMap<String, Integer>();
+
         for (int i = 1; i <= n_human_agents; i++) {
             String hname = "h" + Integer.toString(i);
             load_counters.put(hname, 0);
+
         }
         this.GSize = GSize;
         vacuum_hall_doorway = new Location(6, 5);
@@ -60,9 +72,11 @@ public class HumanAgentModel {
 
     public void initializePositions(int GSize) {
         // Initialize the positions
+
         int h_id = n_human_agents + 2;
 
         for (int i = 2; i < h_id; i++) {
+
             int x = random.nextInt(GSize);
             int y = random.nextInt(GSize);
             while (model.hasObject(1, x, y) || model.hasObject(0, x, y) || model.hasObject(OfficeEnv.WALL, x, y)) {
@@ -91,28 +105,29 @@ public class HumanAgentModel {
         int x;
         int y;
         int id;
-        // DIRECTION direction;
+
 
         public Human(int id, int x, int y) {
             this.x = x;
             this.y = y;
             this.id = id;
-            // this.direction=RIGHT;
+            
         }
 
         public boolean isOnCell(int x, int y) {
             return this.x == x && this.y == y;
         }
-        /*
-         * public void setDirection(DIRECTION direction) {
-         * this.direction = direction;
-         * }
-         */
+        
 
     }
 
-    public ArrayList<Literal> getPercepts() {
-        ArrayList<Literal> percepts = new ArrayList<Literal>();
+
+    public ArrayList<Percept> getNewPercepts() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+
+        percepts.addAll(percepts_pre);
+        percepts_pre.clear();
+
         // for (Human human: agents) {
         // percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
         // }
@@ -123,6 +138,7 @@ public class HumanAgentModel {
     public Literal getNextRoutineElement(String agentName) {
         int load_counter = load_counters.get(agentName);
         Literal result = null;
+
         if (load_counter == 0) {
             result = getPosLiteral(agentName);
         } else {
@@ -131,12 +147,14 @@ public class HumanAgentModel {
                     String element = agentRoutine[load_counter];
                     result = Literal.parseLiteral(element);
                 }
+
             }
         }
 
         load_counters.put(agentName, load_counter + 1);
         return result;
     }
+
 
     public Literal getPosLiteral(String agentName) {
         int id = getID(agentName);
@@ -268,25 +286,17 @@ public class HumanAgentModel {
         
         
 
-        /*
-        else {
-            boolean foundHole = false;
-            for (int i = newX - 1; i <= newX + 1; i++) {
-                for (int j = newY - 1; j <= newY + 1; j++) {
-                    if (!model.isWall(i, j) && !model.cellOccupied(i, j)) {
-                        loc.x = i;
-                        loc.y = j;
-                        updateLoc(agentid, loc);
-                        foundHole = true;
-                        break;
-                    }
-                }
-                if (foundHole) {
-                    break;
-                }
-            }
+       
+
+  /*
+    public void executeAction(String agentName, Structure action){
+
+        if(action.equals(load)){
+            Literal routine_element=getNextRoutineElement(agentName);
+            percepts_pre.add(new Percept(agentName, routine_element));
         }
         */
+
 
     }
 
