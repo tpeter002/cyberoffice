@@ -32,7 +32,8 @@ public class OfficeEnv extends Environment {
 
 
 
-    public static final Term load = Literal.parseLiteral("loadnextroutine");
+    public static final Term load = Literal.parseLiteral("load");
+    public static final Term loadpos = Literal.parseLiteral("loadpos");
 
     private OfficeModel model;
     private OfficeView  view;
@@ -64,9 +65,20 @@ public class OfficeEnv extends Environment {
             informAgsEnvironmentChanged();
             return true;
         } else if (agentName.charAt(0)=='h') {
-            
-            model.humanAgentModel.executeAction(agentName, action);
+
+            if(action.equals(load)){
+                Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
+                addPercept(agentName, routine_element);
+            }
+            else if(action.equals(loadpos)){
+                Literal hpos=model.humanAgentModel.getPosLiteral(agentName);
+                addPercept(agentName, hpos);
+            }
+            else{
+                model.humanAgentModel.executeAction(agentName, action);
+            }
             updatePercepts(agentName);
+
             return true;
         } else if (agentName.equals("mainframe")) {
             //model.mainframeModel.executeAction(action);
@@ -126,13 +138,14 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/10) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =5; //fele annyi menedzselhetobb majd max felvisszuk
+
 
 
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
-            super(GSize, GSize, n_human_agents);
+            super(GSize, GSize, n_human_agents+3);
 
             // initial location of agents
             try {
@@ -173,7 +186,7 @@ public class OfficeEnv extends Environment {
         }
 
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
@@ -328,7 +341,7 @@ public class OfficeEnv extends Environment {
             }
 
             // draw human agents
-            if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
+            if (id > 1 && id < ((OfficeModel)model).n_human_agents+2) {
                 c = Color.red;
                 label = "H";
             }
