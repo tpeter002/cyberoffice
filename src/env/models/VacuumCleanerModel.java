@@ -286,6 +286,7 @@ public class VacuumCleanerModel {
 			lastMoveArray[1] = -1;
 			next.y = vc.y - 1;
 		}
+		next = avoidObstacle(next);
 
 		model.setAgPos(this.id, next);
 	}
