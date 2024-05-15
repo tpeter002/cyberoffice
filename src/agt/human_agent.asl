@@ -4,6 +4,7 @@
 working.
 //pos(0,0).
 /* Initial goals */
+
 !csill.
 !ready.
 !loadinitialpos. // initial goal to rutin
@@ -86,7 +87,9 @@ working.
     .random(A);
     //.wait(10000+A*5000);    
     .wait(2000); 
+
     //.print("szemeteltem oriasit :)");
+
     garbagedrop;
      !szemetel.
 

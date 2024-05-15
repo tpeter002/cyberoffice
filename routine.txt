@@ -1,6 +1,8 @@
 h1
 move(19,19)
+
 print
+
 move(0, 0)
 move(19,0)
 ;
@@ -24,3 +26,4 @@ move(19,19)
 move(0, 0)
 move(0, 19)
 ;
+
