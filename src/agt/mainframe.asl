@@ -1,4 +1,8 @@
 // Agent mainframe in project cyberoffice
+//BARNABAS KONTARKODIK ELNEZEST
++reminderRequest[source(Hagent)]: true <- 
+reminder(Hagent);
+.send(Hagent, tell, working).
 
 /* GENERIC 
  * used by any agent in the right circumstance, it is detailed in each agents' own section

@@ -52,6 +52,12 @@ public class OfficeEnv extends Environment {
     public boolean executeAction(String agentName, Structure action) {
 
         // TODO: literals may be needed for agent names
+        //SZORI ISMET KONTAR MUNKA
+        if(action.getFunctor().equals("reminder")){
+            String humanName= action.getTerm(0).toString();
+            Literal reminder=model.humanAgentModel.getReminder(humanName, action);
+            addPercept(humanName, reminder);
+        }
 
         if (agentName.equals("printer")) {
             
@@ -186,7 +192,7 @@ public class OfficeEnv extends Environment {
         }
 
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
+            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
