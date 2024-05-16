@@ -144,6 +144,11 @@
       +fast_go_home;
       +should_go_home.
 
++room_not_empty(Room)
+   <-
+      -room_empty(Room);
+      -room_not_empty(Room).
+
 //+is_cleaned_recently(Room)
 //   <- 
 //      .

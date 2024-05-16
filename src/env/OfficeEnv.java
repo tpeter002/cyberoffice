@@ -87,10 +87,13 @@ public class OfficeEnv extends Environment {
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
-            if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
-                percepts.add(
-                    new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")"))
-                );
+            if (room != OfficeModel.ROOM.DOORWAY) {
+                if (model.roomIsEmpty(room)) {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")")));
+                } else {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room + ")")));
+                }
+                
             }
         }
 
