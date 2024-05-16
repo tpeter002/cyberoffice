@@ -121,6 +121,16 @@
 
 		-empty(Room).
 
++room_not_empty(Room)
+	:	vacuum(_)
+	<-
+		.findall(Vacuum, vacuum(Vacuum), Vacuums);
+		for (.member(vacuum(Vacuum), Vacuums)) {
+			.send(Vacuum, tell, room_not_empty(Room));
+		};
+
+    	-room_not_empty(Room).
+
 
 
 /* LIGHT

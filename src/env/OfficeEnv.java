@@ -110,10 +110,13 @@ public class OfficeEnv extends Environment {
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
-            if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
-                percepts.add(
-                    new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")"))
-                );
+            if (room != OfficeModel.ROOM.DOORWAY) {
+                if (model.roomIsEmpty(room)) {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")")));
+                } else {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room + ")")));
+                }
+                
             }
         }
 
@@ -170,7 +173,9 @@ public class OfficeEnv extends Environment {
                 addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
                 addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
+
                 add(OfficeEnv.GARB,3, 0);
+                add(OfficeEnv.GARB,4, 2);
 
 
                 // add mainframe
@@ -209,6 +214,33 @@ public class OfficeEnv extends Environment {
             } 
             else {
                 return null;
+            }
+        }
+        public Location getDoorwayPos(ROOM dest, ROOM curr) {
+            switch (dest) {
+                case VACUUM:
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                    }
+                case PRINTER:
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)*3+1, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    }
+                case HALL:
+                    switch(curr){
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    }      
+                default:
+                    return null;
             }
         }
 
