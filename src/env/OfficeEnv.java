@@ -52,6 +52,12 @@ public class OfficeEnv extends Environment {
     public boolean executeAction(String agentName, Structure action) {
 
         // TODO: literals may be needed for agent names
+        //SZORI ISMET KONTAR MUNKA
+        if(action.getFunctor().equals("reminder")){
+            String humanName= action.getTerm(0).toString();
+            Literal reminder=model.humanAgentModel.getReminder(humanName, action);
+            addPercept(humanName, reminder);
+        }
 
         if (agentName.equals("printer")) {
             
