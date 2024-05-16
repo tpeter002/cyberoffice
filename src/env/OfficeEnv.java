@@ -19,6 +19,7 @@ import models.LightModel;
 import models.MainframeModel;
 
 import java.util.ArrayList;
+import env.Percept;
 
 
 // Main environment class
@@ -31,7 +32,8 @@ public class OfficeEnv extends Environment {
 
 
 
-    public static final Term load = Literal.parseLiteral("loadnextroutine");
+    public static final Term load = Literal.parseLiteral("load");
+    public static final Term loadpos = Literal.parseLiteral("loadpos");
 
     private OfficeModel model;
     private OfficeView  view;
@@ -43,25 +45,6 @@ public class OfficeEnv extends Environment {
         model = new OfficeModel();
         view  = new OfficeView(model);
         model.setView(view);
-        updatePercepts();
-    }
-
-    public class Percept {
-        public String destination;
-        public Literal message;
-
-        public Percept(String name, Literal message) {
-            this.destination = name;
-            this.message = message;
-        }
-
-        public boolean hasDestination() {
-            return this.destination != null;
-        }
-
-        public boolean equals(Percept other) {
-            return this.message.equals(other.message) && this.destination.equals(other.destination);
-        }
     }
 
 
@@ -71,44 +54,54 @@ public class OfficeEnv extends Environment {
         // TODO: literals may be needed for agent names
 
         if (agentName.equals("printer")) {
+            
             model.printerModel.executeAction(action);
-            updatePercepts();
+            updatePercepts(agentName);
             return true;
         } else if (agentName.equals("vacuumcleaner")) {
+            
             model.vacuumCleanerModel.executeAction(action);
-            updatePercepts();
+            updatePercepts(agentName);
             informAgsEnvironmentChanged();
             return true;
         } else if (agentName.charAt(0)=='h') {
+
             if(action.equals(load)){
                 Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
                 addPercept(agentName, routine_element);
             }
+            else if(action.equals(loadpos)){
+                Literal hpos=model.humanAgentModel.getPosLiteral(agentName);
+                addPercept(agentName, hpos);
+            }
             else{
                 model.humanAgentModel.executeAction(agentName, action);
             }
+            updatePercepts(agentName);
+
             return true;
         } else if (agentName.equals("mainframe")) {
             //model.mainframeModel.executeAction(action);
+            updatePercepts(agentName);
             return true;
         } else if (agentName.equals("light")) {
+            
             model.lightModel.executeAction(action);
+            updatePercepts(agentName);
             return true;
         }
         return false;
     }
 
-
-
-    public void updatePercepts() {
+    public void updatePercepts(String agentName) {
         clearPercepts();
-        ArrayList<Percept> percepts = model.getNewPercepts();
+        ArrayList<Percept> percepts = model.getNewPercepts(agentName);
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
                 percepts.add(
-                    new Percept("mainframe", Literal.parseLiteral("empty(" + room + ")"))
+                    new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")"))
                 );
             }
         }
@@ -118,17 +111,17 @@ public class OfficeEnv extends Environment {
             if (percept.hasDestination()) {
                 addPercept(percept.destination, percept.message);
             } else {
-                addPercept(percept.message);
+                addPercept(agentName, percept.message);
             }
         }
 
         // inform agents about percepts to remove
-        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove();
+        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
         for (Percept percept : perceptsToRemove) {
             if (percept.hasDestination()) {
                 removePercept(percept.destination, percept.message);
             } else {
-                removePercept(percept.message);
+                removePercept(agentName, percept.message);
             }
         }
 
@@ -145,19 +138,20 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =(int)((GSize/10) * (GSize/4)/2); //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =5; //fele annyi menedzselhetobb majd max felvisszuk
+
 
 
 
         private OfficeModel() {
             //vacuumCleanerEnv = new VacuumCleanerEnvironment();   // 1 agent
-            super(GSize, GSize, n_human_agents);
+            super(GSize, GSize, n_human_agents+3);
 
             // initial location of agents
             try {
                 // add walls, initialize rooms
                 int yMainWall = (int)(GSize/4);
-                int xVacuumDoor = (int)(GSize/4);
+                int xVacuumDoor = (int)((GSize/4)-2);
                 int xPrinterDoor = (int)(GSize/4)*3;
 
 
@@ -192,22 +186,21 @@ public class OfficeEnv extends Environment {
         }
 
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
+            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
                 return ROOM.VACUUM;
-            } else if (y < (int)(GSize/4) && x >= (int)(GSize/4)) {
+            } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
             }
-            else if(y == (int)(GSize/4)){
+            else if((y == (int)((GSize/4))) && ((x == (int)(GSize/4 - 1)) || (x == (int)(GSize/4)*3+1))){
                 return ROOM.DOORWAY;
             } 
             else {
                 return null;
-
-
             }
         }
+
         //magic numbers
         public boolean isWall(int x, int y) {
             return !isFree(4, x, y);
@@ -266,29 +259,39 @@ public class OfficeEnv extends Environment {
             return hasObject(OfficeEnv.GARB, x, y);
         }
 
-        public ArrayList<Percept> getNewPercepts() {
+        public ArrayList<Percept> getNewPercepts(String agentName) {
 
             ArrayList<Percept> percepts_new = new ArrayList<Percept>();
 
-            //TODO: uncomment when function implemented
-            //percepts_new.addAll(vacuumCleanerModel.newPercepts());
-            percepts_new.addAll(printerModel.newPercepts());
-            //percepts_new.addAll(humanAgentModel.newPercepts());
-            //percepts_new.addAll(lightModel.newPercepts());
-            //percepts_new.addAll(mainframeModel.newPercepts());
+            if (agentName.equals("printer")) {
+                //percepts_new.addAll(printerModel.newPercepts());
+            } else if (agentName.equals("vacuumcleaner")) {
+                percepts_new.addAll(vacuumCleanerModel.newPercepts());
+            } else if (agentName.charAt(0)=='h') {
+                //percepts_new.addAll(humanAgentModel.newPercepts());
+            } else if (agentName.equals("mainframe")) {
+                //percepts_new.addAll(mainframeModel.newPercepts());
+            } else if (agentName.equals("light")) {
+                //percepts_new.addAll(lightModel.newPercepts());
+            }
 
             return percepts_new;
         }
 
-        public ArrayList<Percept> getPerceptsToRemove() {
+        public ArrayList<Percept> getPerceptsToRemove(String agentName) {
             ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
 
-            //TODO: uncomment when function implemented
-            //percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
-            percepts_to_remove.addAll(printerModel.perceptsToRemove());
-            //percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
-            //percepts_to_remove.addAll(lightModel.perceptsToRemove());
-            //percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
+            if (agentName.equals("printer")) {
+                //percepts_to_remove.addAll(printerModel.perceptsToRemove());
+            } else if (agentName.equals("vacuumcleaner")) {
+                percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
+            } else if (agentName.charAt(0)=='h') {
+                //percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
+            } else if (agentName.equals("mainframe")) {
+                //percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
+            } else if (agentName.equals("light")) {
+                //percepts_to_remove.addAll(lightModel.perceptsToRemove());
+            }
 
             return percepts_to_remove;
         }
@@ -316,7 +319,7 @@ public class OfficeEnv extends Environment {
                case OfficeEnv.WALL:
                     g.setColor(Color.PINK);
                     super.drawObstacle(g, x, y);
-                   break;
+                    break;
             }
 
         }
@@ -338,7 +341,7 @@ public class OfficeEnv extends Environment {
             }
 
             // draw human agents
-            if (id > 1 && id < ((OfficeModel)model).n_human_agents) {
+            if (id > 1 && id < ((OfficeModel)model).n_human_agents+2) {
                 c = Color.red;
                 label = "H";
             }

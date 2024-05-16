@@ -14,12 +14,18 @@ MAS cyberoffice {
     environment: env.OfficeEnv()
 
     agents: 
-            h human_agent #10;
-            printer;
+
+            h human_agent #5;
+            printer; 
             vacuumcleaner;
             mainframe;
+<<<<<<< HEAD
             dummyperson;
             dummyperson2;
+=======
+           
+
+>>>>>>> master
 
     aslSourcePath: "src/agt";
 }
