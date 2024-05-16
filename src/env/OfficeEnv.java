@@ -264,7 +264,7 @@ public class OfficeEnv extends Environment {
             ArrayList<Percept> percepts_new = new ArrayList<Percept>();
 
             if (agentName.equals("printer")) {
-                //percepts_new.addAll(printerModel.newPercepts());
+                percepts_new.addAll(printerModel.newPercepts());
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_new.addAll(vacuumCleanerModel.newPercepts());
             } else if (agentName.charAt(0)=='h') {

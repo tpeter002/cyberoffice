@@ -86,4 +86,19 @@ error(false).
    .print("Printer repaired.");
     !print(Agent);
    +error(false);
+   gotrepaired;
     .send(mainframe, tell, printer_ready).
+
+
+// Reporting location
+    +report_location
+   <- 
+      get_location;
+      .print("Telling mainframe my location");
+      -report_location.
+
+// Sending the printer's location to the mainframe
++location(X, Y)
+   <- 
+      .send(mainframe, tell, location(X, Y));
+      -location(_,_).

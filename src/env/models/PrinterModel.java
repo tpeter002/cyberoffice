@@ -6,7 +6,7 @@ import java.util.Random;
 
 import env.OfficeEnv.OfficeModel;
 import jade.util.Logger;
-import env.OfficeEnv;
+import env.Percept;
 import java.util.Queue;
 import java.util.LinkedList;
 import java.lang.reflect.Array;
@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.ArrayList;
 
 // Human agent environment class
-public class PrinterModel{
-    
+public class PrinterModel {
+
     private OfficeModel model;
     private int position;
     Random random = new Random(System.currentTimeMillis());
@@ -24,21 +24,19 @@ public class PrinterModel{
     private boolean printerWorking = false;
     private boolean printerError = false;
     private Queue<String> printQueue = new LinkedList<>();
-    ArrayList<Literal> newpercepts = new ArrayList<>();
-    ArrayList<Literal> perceptstoremove = new ArrayList<>();
     Logger logger = Logger.getMyLogger(getClass().getName());
+    boolean requestedLocation = false;
 
-
-    public PrinterModel(OfficeModel model, int GSize){
+    public PrinterModel(OfficeModel model, int GSize) {
         position = 0;
         this.model = model;
         initializePositions(GSize);
         // Initialize the positions
     }
 
-    public void initializePositions(int GSize){
+    public void initializePositions(int GSize) {
         // Initialize the positions
-        model.setAgPos(0, GSize-1, 0);
+        model.setAgPos(0, GSize - 1, 0);
     }
 
     public boolean isPrinterReady() {
@@ -67,16 +65,15 @@ public class PrinterModel{
                 printerWorking = false;
 
                 // Randomly set printer error
-                if (Math.random() < 0.6) { // 10% chance of error
+                if (Math.random() < 1.0) { // 10% chance of error
                     printerError = true;
-                    percepts.add(Literal.parseLiteral("printer_error"));
                 } else {
                     printerError = false;
                 }
             } else {
                 printerWorking = false;
             }
-        } 
+        }
     }
 
     public boolean executeAction(Structure action) {
@@ -88,8 +85,25 @@ public class PrinterModel{
         return false;
     }
 
-    public ArrayList<Literal> newPercepts() {
+    public ArrayList<Percept> newPercepts() {
+        ArrayList<Percept> newpercepts = new ArrayList<>();
+        if (this.requestedLocation) {
+            // Need to change the corrdinates if GSize changes
+            newpercepts.add(new Percept(Literal.parseLiteral("location(" + (20-1) + ", " + (20-1) + ")")));
+            this.requestedLocation = false;
+        }
+        if(this.printerError){
+            newpercepts.add(new Percept(Literal.parseLiteral("printer_error")));
+        }
         return newpercepts;
+    }
+
+    public void gotRepaired() {
+        this.printerError = false;
+    }
+
+    public void get_location() {
+        this.requestedLocation = true;
     }
 
 }
