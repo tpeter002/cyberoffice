@@ -24,5 +24,4 @@ public class MainframeModel  {
 	public ArrayList<Literal> getPercepts() {
 		return percepts;
 	}
-
 }

@@ -79,7 +79,7 @@ working.
      -move[source(_)];
      -working;
      -target[source(_)];
-     .send(mainframe, tell, reminderRequest).
+     .send(mainframe, tell, human_chilling).
      
 
 +!szemetel : 

@@ -86,9 +86,9 @@
       .send(mainframe, tell, location(X, Y));
       -location(_,_).
 
-+fixed
++repair
    <- 
-      -fixed;
+      -repair;
       fix;
       .print("I'm ready to go once again!");
       .send(mainframe, tell, vacuum_ready);

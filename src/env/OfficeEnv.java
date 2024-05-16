@@ -51,26 +51,22 @@ public class OfficeEnv extends Environment {
     @Override
     public boolean executeAction(String agentName, Structure action) {
 
-        // TODO: literals may be needed for agent names
-        //SZORI ISMET KONTAR MUNKA
-        if(action.getFunctor().equals("reminder")){
-            String humanName= action.getTerm(0).toString();
-            Literal reminder=model.humanAgentModel.getReminder(humanName, action);
-            addPercept(humanName, reminder);
-        }
-
         if (agentName.equals("printer")) {
             
             model.printerModel.executeAction(action);
             updatePercepts(agentName);
             return true;
-        } else if (agentName.equals("vacuumcleaner")) {
+        } 
+        
+        if (agentName.equals("vacuumcleaner")) {
             
             model.vacuumCleanerModel.executeAction(action);
             updatePercepts(agentName);
             informAgsEnvironmentChanged();
             return true;
-        } else if (agentName.charAt(0)=='h') {
+        }
+        
+        if (agentName.charAt(0)=='h') {
 
             if(action.equals(load)){
                 Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
@@ -84,18 +80,27 @@ public class OfficeEnv extends Environment {
                 model.humanAgentModel.executeAction(agentName, action);
             }
             updatePercepts(agentName);
-
             return true;
-        } else if (agentName.equals("mainframe")) {
-            //model.mainframeModel.executeAction(action);
+        }
+        
+        if (agentName.equals("mainframe")) {
+
+            if(action.getFunctor().equals("reminder")) {
+                String humanName = action.getTerm(0).toString();
+                Literal reminder = model.humanAgentModel.getReminder(humanName, action);
+                addPercept(humanName, reminder);
+            }
             updatePercepts(agentName);
             return true;
-        } else if (agentName.equals("light")) {
+        }
+        
+        if (agentName.equals("light")) {
             
             model.lightModel.executeAction(action);
             updatePercepts(agentName);
             return true;
         }
+
         return false;
     }
 
