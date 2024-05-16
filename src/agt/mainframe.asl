@@ -8,6 +8,7 @@
 +done(Requester)[source(Source)]
 	<-  
 		.print("recieved 'done' from ", Source, ", forwarding to ", Requester);
+		// TODO: get coords of thing (_, X, Y)
 		.send(Requester, tell, done(Source));
 
 		-done[source(Source)].
@@ -104,7 +105,7 @@
 		-error(Vacuum);
 		-vacuum_ready.
 
-// Sent every time to 
+// Sent every time to vacuum when there's an empty room
 +room_empty(Room)
 	:	vacuum(_)
 	<-	
