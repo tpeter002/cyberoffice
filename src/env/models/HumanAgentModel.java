@@ -66,7 +66,9 @@ public class HumanAgentModel {
 
         }
         this.GSize = GSize;
-        vacuum_hall_doorway = new Location(6, 5);
+
+        vacuum_hall_doorway = new Location(4, 5);
+
         printer_hall_doorway = new Location(16, 5);
     }
 
@@ -148,12 +150,30 @@ public class HumanAgentModel {
                     result = Literal.parseLiteral(element);
                 }
 
+
             }
         }
 
         load_counters.put(agentName, load_counter + 1);
         return result;
     }
+
+    //ez igazabol getnextroutine element csak loadcounter inkrementalas nelkul(meg mas agentname megszerzes ugye), nem tom meglehetne e oldani hogy ez nalad legyen kicsit szivas lenne sztem, max officeenvbe is lehetne load counter i guess es akk te is elerned
+    public Literal getReminder(String humanName, Structure action){
+        hlogger.info(humanName);
+        int load_counter = load_counters.get(humanName);
+
+        for (String[] agentRoutine : routines) {
+            if (agentRoutine.length > load_counter && agentRoutine[0].equals(humanName)) {
+                String element = agentRoutine[load_counter];
+                return Literal.parseLiteral(element);
+
+            }
+
+        }
+        return null;
+    }
+
 
 
     public Literal getPosLiteral(String agentName) {
@@ -163,13 +183,16 @@ public class HumanAgentModel {
         return result;
     }
 
+
     public void executeAction(String agentName, Structure action) {
         try {
             if (action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
             } else if(action.getFunctor().equals("garbagedrop")){
                 dropGarbage(agentName);
-            }
+
+            } 
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -222,15 +245,20 @@ public class HumanAgentModel {
     public void moveto(String agentName, Structure action) throws Exception {
         int agentid = getID(agentName);
         //Human agent = getHumanByID(agentid);
-        Location loc = model.getAgPos(agentid);
-        int x = (int) ((NumberTerm) action.getTerm(0)).solve();
-        int y = (int) ((NumberTerm) action.getTerm(1)).solve();
-        int newX = loc.x;
+
+        Location loc = model.getAgPos(agentid); // 4, 5
+        int x = (int) ((NumberTerm) action.getTerm(0)).solve(); //19
+        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //0
+        int newX = loc.x; 
+
         int newY = loc.y;
         ROOM targetRoom = model.whichRoom(x, y);
         ROOM currentRoom = model.whichRoom(loc.x, loc.y);
 
-        if (targetRoom != currentRoom && loc != vacuum_hall_doorway && loc != printer_hall_doorway) {
+
+        
+        if (targetRoom != currentRoom) {
+
             if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
                     || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
                     || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
@@ -241,11 +269,22 @@ public class HumanAgentModel {
                     || (targetRoom == ROOM.HALL && currentRoom == ROOM.PRINTER)) {
                 x = printer_hall_doorway.x;
                 y = printer_hall_doorway.y;
+
+            }else if((currentRoom==ROOM.DOORWAY && targetRoom==ROOM.HALL)){
+                x=loc.x;
+                y=loc.y+1;
             }
+            //doorwayen at csak egyenesen lehet menni pont mint a valosagban!
+            else if((currentRoom==ROOM.DOORWAY && (targetRoom==ROOM.VACUUM || targetRoom==ROOM.PRINTER))){
+                x=loc.x;
+                y=loc.y-1;
+            }
+
         }
 
-        if (loc.x < x)
-            newX = loc.x + 1;
+        if (loc.x < x) 
+            newX = loc.x + 1; //5
+
         else if (loc.x > x)
             newX = loc.x - 1;
         if (loc.y < y)
@@ -284,7 +323,9 @@ public class HumanAgentModel {
             updateLoc(agentid, loc);
         }
         
-        
+
+    } 
+
 
        
 
@@ -298,7 +339,8 @@ public class HumanAgentModel {
         */
 
 
-    }
+
+   
 
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
         ArrayList<String[]> routine = new ArrayList<>();
