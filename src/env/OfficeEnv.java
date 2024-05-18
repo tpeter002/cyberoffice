@@ -51,20 +51,22 @@ public class OfficeEnv extends Environment {
     @Override
     public boolean executeAction(String agentName, Structure action) {
 
-        // TODO: literals may be needed for agent names
-
         if (agentName.equals("printer")) {
             
             model.printerModel.executeAction(action);
             updatePercepts(agentName);
             return true;
-        } else if (agentName.equals("vacuumcleaner")) {
+        } 
+        
+        if (agentName.equals("vacuumcleaner")) {
             
             model.vacuumCleanerModel.executeAction(action);
             updatePercepts(agentName);
             informAgsEnvironmentChanged();
             return true;
-        } else if (agentName.charAt(0)=='h') {
+        }
+        
+        if (agentName.charAt(0)=='h') {
 
             if(action.equals(load)){
                 Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
@@ -78,18 +80,27 @@ public class OfficeEnv extends Environment {
                 model.humanAgentModel.executeAction(agentName, action);
             }
             updatePercepts(agentName);
-
             return true;
-        } else if (agentName.equals("mainframe")) {
-            //model.mainframeModel.executeAction(action);
+        }
+        
+        if (agentName.equals("mainframe")) {
+
+            if(action.getFunctor().equals("reminder")) {
+                String humanName = action.getTerm(0).toString();
+                Literal reminder = model.humanAgentModel.getReminder(humanName, action);
+                addPercept(humanName, reminder);
+            }
             updatePercepts(agentName);
             return true;
-        } else if (agentName.equals("light")) {
+        }
+        
+        if (agentName.equals("light")) {
             
             model.lightModel.executeAction(action);
             updatePercepts(agentName);
             return true;
         }
+
         return false;
     }
 
@@ -99,10 +110,13 @@ public class OfficeEnv extends Environment {
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
-            if (room != OfficeModel.ROOM.DOORWAY && model.roomIsEmpty(room)) {
-                percepts.add(
-                    new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")"))
-                );
+            if (room != OfficeModel.ROOM.DOORWAY) {
+                if (model.roomIsEmpty(room)) {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
+                } else {
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
+                }
+                
             }
         }
 
@@ -159,7 +173,9 @@ public class OfficeEnv extends Environment {
                 addWall(xVacuumDoor+2, 0, xVacuumDoor+2, yMainWall);
                 addWall(xVacuumDoor+3, yMainWall, xPrinterDoor, yMainWall);
                 addWall(xPrinterDoor+2, yMainWall, GSize-1, yMainWall);
+
                 add(OfficeEnv.GARB,3, 0);
+                add(OfficeEnv.GARB,4, 2);
 
 
                 // add mainframe
@@ -184,9 +200,9 @@ public class OfficeEnv extends Environment {
             VACUUM,
             DOORWAY,
         }
-
+        // Ide nem kéne az a +1 !!!
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
+            if (y < (int)(GSize/4) && x <= (int)(GSize/4)) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
@@ -198,6 +214,33 @@ public class OfficeEnv extends Environment {
             } 
             else {
                 return null;
+            }
+        }
+        public Location getDoorwayPos(ROOM dest, ROOM curr) {
+            switch (dest) {
+                case VACUUM:
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                    }
+                case PRINTER:
+                    switch(curr){
+                        case HALL:
+                            return new Location((int)(GSize/4)*3+1, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    }
+                case HALL:
+                    switch(curr){
+                        case PRINTER:
+                            return new Location((int)(GSize/4)*3, (int)(GSize/4));
+                        case VACUUM:
+                            return new Location((int)(GSize/4)-1, (int)(GSize/4));
+                    }      
+                default:
+                    return null;
             }
         }
 
