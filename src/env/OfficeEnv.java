@@ -112,9 +112,9 @@ public class OfficeEnv extends Environment {
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             if (room != OfficeModel.ROOM.DOORWAY) {
                 if (model.roomIsEmpty(room)) {
-                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room + ")")));
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
                 } else {
-                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room + ")")));
+                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
                 }
                 
             }
@@ -200,9 +200,9 @@ public class OfficeEnv extends Environment {
             VACUUM,
             DOORWAY,
         }
-
+        // Ide nem kéne az a +1 !!!
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x <= (int)(GSize/4)+1) {
+            if (y < (int)(GSize/4) && x <= (int)(GSize/4)) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
