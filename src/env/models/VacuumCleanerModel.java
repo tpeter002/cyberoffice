@@ -116,7 +116,6 @@ public class VacuumCleanerModel {
 				percepts.add(new Percept(at_room_to_clean));
 		}
 		if(model.getAgPos(this.id).equals(this.firstDoor)) {
-			System.out.println("elertem az elso ajtot");
 			this.firstDoor = null;
 		}
 
@@ -172,7 +171,6 @@ public class VacuumCleanerModel {
 					System.out.println("Room is not empty");
 					moveTowards(homePosition);
 				} else {
-					System.out.println("y direction: " + this.yDirection);	
 					switch (this.yDirection){
 						case DOWN:
 							cleanCurrentRoomDown();
@@ -188,8 +186,6 @@ public class VacuumCleanerModel {
 				}
 			} else if (action.getFunctor().equals("go_to")) {
 				int x = ((int) ((NumberTerm) action.getTerm(0)).solve());
-				System.out.println("funktoros geci");
-				System.out.println(x);
 				goTowardSelectedRoom(OfficeModel.ROOM.values()[x]);
 			} else if (action.equals(pick_garbage)) {
 				pickGarbage();
@@ -220,13 +216,11 @@ public class VacuumCleanerModel {
 	}
 
 	public void goTowardSelectedRoom(OfficeModel.ROOM room) {
-		System.out.println("bejutottam a go towardba");
 		this.roomToClean = room;
 		Location vc = model.getAgPos(this.id);
 		Location next = vc;
 		Location door = model.getDoorwayPos(room, model.whichRoom(vc.x, vc.y));
 		if(door == null) {
-			System.out.println("beallitottam a " + room + "es " + OfficeModel.ROOM.HALL + " ajtot"	);
 			door = model.getDoorwayPos(room, OfficeModel.ROOM.HALL);
 		}
 		
@@ -234,16 +228,12 @@ public class VacuumCleanerModel {
 		 {
 			this.firstDoor = door;
 			this.firstRoom = model.whichRoom(vc.x, vc.y);
-			System.out.println("elso ajto beallitva");
 		}
 		if(this.whereToCleanNow == null && this.firstDoor == null) {
-			System.out.println("beallitottam a where to cleannowt");
 			whereToCleanNow = door;
-			System.out.println("itt vagyok: " + vc.x + " " + vc.y + "es ide megyek: " + door.x + " " + door.y);
 		}
 		
 		if(this.firstDoor != null) {
-			System.out.println("door beallitva firstdoorra");
 			door = firstDoor;
 		}
 		if (vc.x < door.x )
@@ -394,7 +384,6 @@ public class VacuumCleanerModel {
 		else{
 			this.whereInRoom = WHEREINROOM.MIDDLE; 
 		}
-		System.out.println("where in room: " + this.whereInRoom);
 	}
 	public void pickGarbage() {
 		Location vc = model.getAgPos(this.id);
@@ -403,7 +392,6 @@ public class VacuumCleanerModel {
 		model.removeGarbage(vc.x, vc.y);
 	}
 	void cleanCurrentRoomDown() {
-		System.out.println("!!! down");
 		Location vc = model.getAgPos(this.id);
 		if (this.xDirection == DIRECTION.RIGHT) {
 			vc.x++;
@@ -487,7 +475,6 @@ public class VacuumCleanerModel {
 	public Location avoidObstacle(Location vc) {
 		if (this.areHumansFriend) {
 			if ((!(model.isFree(vc.x, vc.y)) && !(model.hasGarbage(vc.x, vc.y))) || (model.cellOccupied(vc.x, vc.y))){
-				System.out.println("Van valami");
 				if (model.isFree(vc.x, vc.y+1) && !(model.cellOccupied(vc.x, vc.y+1)))
 					vc.y++;
 				else if (model.isFree(vc.x+1, vc.y) && !(model.cellOccupied(vc.x+1, vc.y)))
@@ -497,7 +484,7 @@ public class VacuumCleanerModel {
 				else if (model.isFree(vc.x-1, vc.y) &&  !(model.cellOccupied(vc.x-1, vc.y)))
 					vc.x--;
 				else{
-					System.out.println("Baj van");
+					System.out.println("Error avoiding obstacle, someone might get hurt.");
 				}
 			}
 		}
