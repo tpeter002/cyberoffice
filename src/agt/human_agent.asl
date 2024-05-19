@@ -11,6 +11,7 @@ working.
 //!pause. // initial goal to break
 !szemetel.
 //go_fix(printer, 19, 0).
+//done(printer, 19, 0).
 
 
 +!ready: true <- .send(mainframe, tell, human_ready).
@@ -19,6 +20,8 @@ working.
 +!nextroutine: true <- load.
 
 +go_fix(Errorer, Xe, Ye) : true <-  !move.
+
++done(Source, Xd, Yd): true <- !move.
 
 /* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
     .suspend(move);
@@ -49,21 +52,6 @@ load.
 
 //+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
 
- //A rutin célját elérte
-+!move : not go_fix(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
-    .print("I have reached the target position (", Xt, ",", Yt, ")");
-    -target(Xt, Yt)[source(_)];
-    load.
-
-//A rutin céljához megy
-+!move : not go_fix(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- //ez itt szar
-    //?pos(Xc, Yc);
-    moveto(Xt, Yt);
-    loadpos;
-    .random(A);
-    .wait(A * 1000);
-    !move.
-
 
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
@@ -77,8 +65,43 @@ load.
     moveto(Xe, Ye);
     loadpos;
     .random(A);
-    .wait(A * 1000);
+    .wait(2000 + A * 5000);
     !move.
+
+//A nyomtató célját elérte
++!move : not go_fix(_,_,_) & done(Source, Xd, Yd) & (pos(Xd, Yd) | adjacent(Xd, Yd)) <-
+    .print("!!!!!!!!!!!!!!!!!!I have reached the printing position (", Xd, ",", Yd, ")");
+    -done(Source, Xd, Yd)[source(_)];
+    !move.
+
+//A nyomtató céljához megy
++!move : not go_fix(_,_,_) & working & done(Source, Xd, Yd) & not pos(Xd, Yd) & not adjacent(Xd, Yd) <- 
+    //?pos(Xc, Yc);
+    .print("megyek a nyomtato fele");
+    moveto(Xd, Yd);
+    loadpos;
+    .random(A);
+    .wait(2000 + A * 5000);
+    !move.
+
+
+ //A rutin célját elérte
++!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
+    .print("I have reached the target position (", Xt, ",", Yt, ")");
+    -target(Xt, Yt)[source(_)];
+    load.
+
+//A rutin céljához megy
++!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- 
+    //?pos(Xc, Yc);
+    moveto(Xt, Yt);
+    loadpos;
+    .random(A);
+    .wait(2000 + A * 5000);
+    !move.
+
+
+
 
 +!move : go_fix(_,_,_) <- .print("nemerdekel").
 
@@ -101,9 +124,9 @@ load.
     +adjacent(X, AdjYa);
     +adjacent(X, AdjYb).
 
-+pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-
+/* +pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-
     .print("stabil vagyok").
-    
+    */ 
 
 +!csill :
      true <-
