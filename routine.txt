@@ -1,13 +1,29 @@
 h1
-printelj
-move(1,2)
+move(19,19)
+
+print
+
+move(0, 0)
+move(19,0)
 ;
 h2
-printelj
+move(19,19)
+move(0, 0)
+move(0, 19)
 ;
 h3
-move(20,0)
+move(19,19)
+move(0, 0)
+move(0, 19)
 ;
 h4
-move(11,6)
+move(19,19)
+move(0, 0)
+move(0, 19)
 ;
+h5
+move(19,19)
+move(0, 0)
+move(0, 19)
+;
+
