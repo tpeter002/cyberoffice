@@ -9,19 +9,14 @@ import jason.environment.grid.Location;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.io.Console;
-import java.util.Random;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import env.OfficeEnv.OfficeModel.ROOM;
 import models.HumanAgentModel;
 import models.PrinterModel;
 import models.VacuumCleanerModel;
 import models.LightModel;
 import models.MainframeModel;
-
-import java.util.ArrayList;
-import env.Percept;
 
 // Main environment class
 public class OfficeEnv extends Environment {
@@ -89,9 +84,8 @@ public class OfficeEnv extends Environment {
             return true;
         }
 
-        if (agentName.equals("light")) {
-
-            model.lightModel.executeAction(action);
+        if (agentName.charAt(0) == 'l') {
+            model.lightModel.executeAction(agentName, action); // Pass agentName and action
             updatePercepts(agentName);
             return true;
         }
@@ -266,9 +260,7 @@ public class OfficeEnv extends Environment {
                             }
                         }
                     }
-                    // TODO: kell a doorway is?
                     break;
-
             }
             return true;
         }
@@ -304,7 +296,6 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("light")) {
                 // percepts_new.addAll(lightModel.newPercepts());
             }
-
             return percepts_new;
         }
 
@@ -322,10 +313,8 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("light")) {
                 // percepts_to_remove.addAll(lightModel.perceptsToRemove());
             }
-
             return percepts_to_remove;
         }
-
     }
 
     class OfficeView extends GridWorldView {
