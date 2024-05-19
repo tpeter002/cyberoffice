@@ -44,6 +44,7 @@
 
 +human_chilling[source(Human)]
 	<- 
+		-human_chilling[source(_)];
 		reminder(Human);
 		.send(Human, tell, working).
 

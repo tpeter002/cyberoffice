@@ -18,9 +18,9 @@ working.
 
 +!nextroutine: true <- load.
 
-+go_fix(Errorer, Xe, Ye) : true <- !fixtarget.
++go_fix(Errorer, Xe, Ye) : true <-  !move.
 
-+!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
+/* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
     .suspend(move);
     //?pos(Xc, Yc);
     moveto(Xe, Ye);
@@ -30,21 +30,32 @@ working.
     !fixtarget.
 
 +!fixtarget: go_fix(Errorer, Xe, Ye) & pos(Xe, Ye) | adjacent(Xe, Ye) <-
-    .print("elertem fixeles pozit");
+    .print("elertem fixeles pozit: ", Xe,", ", Ye);
     -go_fix(Errorer, Xe, Ye)[source(_)];
-    !move;
-    .send(Errorer, tell, repair).
-
+    loadpos;
+    !move.
+    //.send(Errorer, tell, repair).
+ */
 +print: working <- 
 .send(mainframe, tell, print);
 .print("EZENNEL EZT A NYOMDAT LEFOGLALOM");
--print[source(_)].
+-print[source(_)];
+load.
 
 +move(X, Y) : working & not target(X, Y) <-
     -move(X, Y)[source(_)];
     +target(X, Y);
     !move.
 
+//+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
+
+ //A rutin célját elérte
++!move : not go_fix(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
+    .print("I have reached the target position (", Xt, ",", Yt, ")");
+    -target(Xt, Yt)[source(_)];
+    load.
+
+//A rutin céljához megy
 +!move : not go_fix(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- //ez itt szar
     //?pos(Xc, Yc);
     moveto(Xt, Yt);
@@ -53,22 +64,45 @@ working.
     .wait(A * 1000);
     !move.
 
-+!move : not go_fix(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
-    .print("I have reached the target position (", Xt, ",", Yt, ")");
-    -target(Xt, Yt)[source(_)];
-    load.
+
+//elerte javitast
++!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
+    .print("elertem fixeles pozit: ", Xe,", ", Ye);
+    -go_fix(Errorer, Xe, Ye)[source(_)];
+    !move.
+
+//javitani megy
++!move: go_fix(Errorer,Xe,Ye) & working & not pos(Xe, Ye) & not adjacent(Xe, Ye) <-
+    //?pos(Xc, Yc);
+    moveto(Xe, Ye);
+    loadpos;
+    .random(A);
+    .wait(A * 1000);
+    !move.
+
++!move : go_fix(_,_,_) <- .print("nemerdekel").
+
++!move: not go_fix(_,_,_) & not target(_,_) <- .print("nincs celom"); .wait(1000); !move.
 
 
 +pos(X, Y) : pos(Xc, Yc) & not (X == Xc & Y == Yc) <-
     -pos(Xc, Yc)[source(_)];
-    -adjacent(Xc+1, Yc)[source(_)];
+/*     -adjacent(Xc+1, Yc)[source(_)];
     -adjacent(Xc-1, Yc)[source(_)];
     -adjacent(Xc, Yc+1)[source(_)];
-    -adjacent(Xc, Yc-1)[source(_)];
-    +adjacent(X+1, Y);
-    +adjacent(X-1, Y);
-    +adjacent(X, Y+1);
-    +adjacent(X, Y-1).
+    -adjacent(Xc, Yc-1)[source(_)]; */
+    .abolish(adjacent(_,_));
+    .min([X+1, 19], AdjXa);
+    .max([X-1, 0], AdjXb);
+    .min([Y+1, 19], AdjYa);
+    .max([Y-1, 0], AdjYb);
+    +adjacent(AdjXa, Y);
+    +adjacent(AdjXb, Y);
+    +adjacent(X, AdjYa);
+    +adjacent(X, AdjYb).
+
++pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-
+    .print("stabil vagyok").
     
 
 +!csill :
@@ -82,14 +116,13 @@ working.
      .send(mainframe, tell, human_chilling).
      
 
+     
+
 +!szemetel : 
      true <- 
     .random(A);
-    //.wait(10000+A*5000);    
-    .wait(2000); 
-
+    .wait(10000+A*5000);    
     //.print("szemeteltem oriasit :)");
-
     garbagedrop;
      !szemetel.
 
