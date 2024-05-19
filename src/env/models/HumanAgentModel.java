@@ -99,6 +99,9 @@ public class HumanAgentModel {
                 return true;
             }
         }
+        Location vacuumpos=model.getAgPos(1);
+        if(vacuumpos.x==x || vacuumpos.y==y)
+            return true;
         return false;
 
     }
@@ -161,7 +164,7 @@ public class HumanAgentModel {
     //ez igazabol getnextroutine element csak loadcounter inkrementalas nelkul(meg mas agentname megszerzes ugye), nem tom meglehetne e oldani hogy ez nalad legyen kicsit szivas lenne sztem, max officeenvbe is lehetne load counter i guess es akk te is elerned
     public Literal getReminder(String humanName, Structure action){
         hlogger.info(humanName);
-        int load_counter = load_counters.get(humanName);
+        int load_counter = load_counters.get(humanName) - 1;
 
         for (String[] agentRoutine : routines) {
             if (agentRoutine.length > load_counter && agentRoutine[0].equals(humanName)) {
@@ -271,6 +274,7 @@ public class HumanAgentModel {
                 y = printer_hall_doorway.y;
 
             }else if((currentRoom==ROOM.DOORWAY && targetRoom==ROOM.HALL)){
+                hlogger.info("!!!!!!!!!!!!!doorwayt erzekel"+Integer.toString(loc.x)+", "+Integer.toString(loc.y));
                 x=loc.x;
                 y=loc.y+1;
             }
