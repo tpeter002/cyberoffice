@@ -26,10 +26,8 @@ import env.Percept;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-
     public static final int GARB  = 8; // garbage code in grid model
     public static final int WALL = 4; // wall code in grid model
-
 
 
     public static final Term load = Literal.parseLiteral("load");
@@ -148,7 +146,6 @@ public class OfficeEnv extends Environment {
 
 
 
-
     public class OfficeModel extends GridWorldModel {
 
         private HumanAgentModel humanAgentModel;
@@ -158,7 +155,6 @@ public class OfficeEnv extends Environment {
         private MainframeModel mainframeModel;
 
         public static int n_human_agents =4; //fele annyi menedzselhetobb majd max felvisszuk
-
 
 
 
@@ -295,7 +291,6 @@ public class OfficeEnv extends Environment {
         }
 
         public void addGarbage(int x, int y) {
-
             add(OfficeEnv.GARB, x, y);
         }
 
@@ -358,18 +353,12 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-
             switch (object) {
                 case OfficeEnv.GARB:
-                    g.setColor(Color.RED);
-                    super.drawObstacle(g, x, y);
-                    break;
-               case OfficeEnv.WALL:
-                    g.setColor(Color.PINK);
-                    super.drawObstacle(g, x, y);
+                    g.setColor(new Color(153, 102, 0));
+                    g.fillOval(x * cellSizeW + cellSizeW / 4, y * cellSizeH + cellSizeH / 4, cellSizeW / 2, cellSizeH / 2);
                     break;
             }
-
         }
 
         @Override
@@ -397,6 +386,5 @@ public class OfficeEnv extends Environment {
             super.drawString(g, x, y, defaultFont, label);
             repaint();
         }
-
     }
 }

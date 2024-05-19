@@ -21,7 +21,9 @@ working.
 
 +go_fix(Errorer, Xe, Ye) : true <-  !move.
 
+
 +done(Source, Xd, Yd): true <- !move.
+
 
 /* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
     .suspend(move);
@@ -53,6 +55,7 @@ load.
 //+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
 
 
+
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
     .print("elertem fixeles pozit: ", Xe,", ", Ye);
@@ -61,6 +64,7 @@ load.
 
 //javitani megy
 +!move: go_fix(Errorer,Xe,Ye) & working & not pos(Xe, Ye) & not adjacent(Xe, Ye) <-
+
     //?pos(Xc, Yc);
     moveto(Xe, Ye);
     loadpos;
@@ -73,6 +77,7 @@ load.
     .print("!!!!!!!!!!!!!!!!!!I have reached the printing position (", Xd, ",", Yd, ")");
     -done(Source, Xd, Yd)[source(_)];
     !move.
+
 
 //A nyomtató céljához megy
 +!move : not go_fix(_,_,_) & working & done(Source, Xd, Yd) & not pos(Xd, Yd) & not adjacent(Xd, Yd) <- 
@@ -90,6 +95,7 @@ load.
     .print("I have reached the target position (", Xt, ",", Yt, ")");
     -target(Xt, Yt)[source(_)];
     load.
+
 
 //A rutin céljához megy
 +!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- 
@@ -124,9 +130,11 @@ load.
     +adjacent(X, AdjYa);
     +adjacent(X, AdjYb).
 
+
 /* +pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-
     .print("stabil vagyok").
     */ 
+
 
 +!csill :
      true <-
