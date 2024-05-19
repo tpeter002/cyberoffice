@@ -198,7 +198,7 @@ public class OfficeEnv extends Environment {
         }
         // Ide nem kéne az a +1 !!!
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x <= (int)(GSize/4)) {
+            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
