@@ -348,7 +348,6 @@ public class OfficeEnv extends Environment {
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
-            System.out.println(object);
             switch (object) {
                 case OfficeEnv.GARB:
                     g.setColor(new Color(153, 102, 0));
