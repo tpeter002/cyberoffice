@@ -70,40 +70,8 @@ working.
     +adjacent(X, Y+1);
     +adjacent(X, Y-1).
     
+    //+pos(X, Y).
 
-+!csill :
-     true <-
-     .random(Felejtesifaktor);
-     .wait(Felejtesifaktor*10000+5000);
-     .print("fu nagyon be csilleztem elfelejtettem mit kene csinalni :((");
-     -move[source(_)];
-     -working;
-     -target[source(_)];
-     .send(mainframe, tell, reminderRequest).
-     
-
-+!szemetel : 
-     true <- 
-    .random(A);
-    //.wait(10000+A*5000);    
-    .wait(2000); 
-
-    //.print("szemeteltem oriasit :)");
-
-    garbagedrop;
-     !szemetel.
-
-
-//ez az hogy megall neha barhol
-+!pause: true <- 
-     .random(B);
-     .wait(B*10000);    
-     .print("alldigalok");
-     .suspend(move);
-     .wait(B*10000);     
-     .resume(move);
-     .print("csak megyek megyek");
-     !pause.
 
 
      /*    

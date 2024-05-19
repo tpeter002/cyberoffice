@@ -34,7 +34,7 @@
       !go_home.
 
 +!go_home
-   :  at_home & not error
+   :  at_home & not error & not room_empty(_)
    <- 
       empty_garbage;
       recharge_battery;
@@ -47,10 +47,51 @@
       -fast_go_home;
       !check.
 
++!go_home
+   :  at_home & not error & room_empty(_)
+   <- 
+      empty_garbage;
+      recharge_battery;
+      .print("Recharging battery...");
+      .wait(2500);
+      .print("Emptying garbage...");
+      .wait(2500);
+      .print("Cleaning again!");
+      -should_go_home;
+      -fast_go_home;
+      .print("ROOM EMPTY FUNTCION MIATT VAGYOK ITTHON");
+      .findall(Room, room_empty(Room), Rooms);
+		.length(Rooms, Length);
+		.random(R);
+		RandomIndex = math.floor(R * Length);
+		.nth(RandomIndex, Rooms, SelectedRoom);
+      +should_clean_other_room(SelectedRoom).
+
++should_clean_other_room(SelectedRoom)
+   <- 
+      !go_to_other_room(SelectedRoom).
+
++!go_to_other_room(SelectedRoom)
+   : not at_room_to_clean & not error
+   <- 
+      .print("Going to clean other room...");
+      .wait(100);
+      go_to(SelectedRoom);
+      !go_to_other_room(SelectedRoom).
+
++!go_to_other_room(SelectedRoom)
+   : at_room_to_clean & not error
+   <- 
+      enter_room;
+      .print("I arrived at new room starting to clean...");
+      .wait(1000);
+      !check.
+
 +!check
-   :  not slot_has_garbage & not should_go_home & not current_room_has_people & not error
+   :  not slot_has_garbage & not should_go_home & not current_room_has_people & not error & (not room_empty(_) | (room_empty(_) & at_room_to_clean))
    <- 
       next_slot;
+      .print("csekkolom a slotokat..");
       .wait(100);
       !check.
 
@@ -86,12 +127,28 @@
       .send(mainframe, tell, location(X, Y));
       -location(_,_).
 
-+fixed
++repair
    <- 
-      -fixed;
+      -repair;
       fix;
       .print("I'm ready to go once again!");
       .send(mainframe, tell, vacuum_ready);
       +should_go_home.
 
 // TODO: error sometimes
+
++room_empty(Room)[source(Mainframe)]
+   <- 
+      .print("Megkaptam: " , Room);
+      .wait(500);
+      +fast_go_home;
+      +should_go_home.
+
++room_not_empty(Room)
+   <-
+      -room_empty(Room);
+      -room_not_empty(Room).
+
+//+is_cleaned_recently(Room)
+//   <- 
+//      .
