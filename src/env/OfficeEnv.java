@@ -20,6 +20,7 @@ import models.MainframeModel;
 
 import java.util.ArrayList;
 import env.Percept;
+import env.BackgroundMusic;
 
 
 // Main environment class
@@ -36,12 +37,15 @@ public class OfficeEnv extends Environment {
     private OfficeModel model;
     private OfficeView  view;
 
+    private BackgroundMusic backgroundMusic;
     static Logger logger = Logger.getLogger(OfficeEnv.class.getName());
 
     @Override
     public void init(String[] args) {
         model = new OfficeModel();
         view  = new OfficeView(model);
+        backgroundMusic = new BackgroundMusic("song.wav");
+        backgroundMusic.play();
         model.setView(view);
     }
 
@@ -105,16 +109,18 @@ public class OfficeEnv extends Environment {
     public void updatePercepts(String agentName) {
         clearPercepts();
         ArrayList<Percept> percepts = model.getNewPercepts(agentName);
+        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             if (room != OfficeModel.ROOM.DOORWAY) {
                 if (model.roomIsEmpty(room)) {
                     percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
+                    perceptsToRemove.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
                 } else {
                     percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
+                    perceptsToRemove.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
                 }
-                
             }
         }
 
@@ -128,7 +134,7 @@ public class OfficeEnv extends Environment {
         }
 
         // inform agents about percepts to remove
-        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
+        
         for (Percept percept : perceptsToRemove) {
             if (percept.hasDestination()) {
                 removePercept(percept.destination, percept.message);
@@ -137,6 +143,12 @@ public class OfficeEnv extends Environment {
             }
         }
 
+    }
+
+    @Override
+    public void stop() {
+        backgroundMusic.stop();
+        super.stop();
     }
 
 
@@ -149,7 +161,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =5; //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents = 5; //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
@@ -198,20 +210,21 @@ public class OfficeEnv extends Environment {
         }
         // Ide nem kéne az a +1 !!!
         public ROOM whichRoom(int x, int y) {
-            if (y < (int)(GSize/4) && x <= (int)(GSize/4)) {
+            if (y < (int)(GSize/4) && x < (int)(GSize/4)) {
                 return ROOM.VACUUM;
             } else if (y < (int)(GSize/4) && x > (int)(GSize/4)) {
                 return ROOM.PRINTER;
             } else if (y > (int)(GSize/4)) {
                 return ROOM.HALL;
             }
-            else if((y == (int)((GSize/4))) && ((x == (int)(GSize/4 - 1)) || (x == (int)(GSize/4)*3+1))){
+            else if ((y == (int)((GSize/4))) && ((x == (int)(GSize/4 - 1)) || (x == (int)(GSize/4)*3+1))){
                 return ROOM.DOORWAY;
             } 
             else {
                 return null;
             }
         }
+
         public Location getDoorwayPos(ROOM dest, ROOM curr) {
             switch (dest) {
                 case VACUUM:
@@ -258,7 +271,7 @@ public class OfficeEnv extends Environment {
                     }
                     break;
                 case PRINTER:
-                    for (int i = (int)(GSize/4); i < GSize; i++) {
+                    for (int i = (int)(GSize/4) + 1; i < GSize; i++) {
                         for (int j = 0; j < (int)(GSize/4); j++) {
                             if (cellOccupied(i, j)) {
                                 return false;
@@ -268,7 +281,7 @@ public class OfficeEnv extends Environment {
                     break;
                 case HALL:
                     for (int i = 0; i < GSize; i++) {
-                        for (int j = (int)(GSize/4); j < GSize; j++) {
+                        for (int j = (int)(GSize/4) + 1; j < GSize; j++) {
                             if (cellOccupied(i, j)) {
                                 return false;
                             }
