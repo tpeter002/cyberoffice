@@ -130,20 +130,6 @@ public class OfficeEnv extends Environment {
 
     }
 
-    public class Percept {
-        public String destination;
-        public Literal message;
-
-        public Percept(String name, Literal message) {
-            this.destination = name;
-            this.message = message;
-        }
-
-        public void noDestination() {
-            destination = null;
-        }
-    }
-
     public class OfficeModel extends GridWorldModel {
 
         private HumanAgentModel humanAgentModel;
@@ -275,7 +261,7 @@ public class OfficeEnv extends Environment {
             // percepts_new.addAll(vacuumCleanerModel.newPercepts());
             // percepts_new.addAll(printerModel.newPercepts());
             // percepts_new.addAll(humanAgentModel.newPercepts());
-            // percepts_new.addAll(lightModel.newPercepts());
+            percepts_new.addAll(lightModel.newPercepts());
             // percepts_new.addAll(mainframeModel.newPercepts());
 
             return percepts_new;
@@ -288,7 +274,7 @@ public class OfficeEnv extends Environment {
             // percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
             // percepts_to_remove.addAll(printerModel.perceptsToRemove());
             // percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
-            // percepts_to_remove.addAll(lightModel.perceptsToRemove());
+            percepts_to_remove.addAll(lightModel.perceptsToRemove());
             // percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
 
             return percepts_to_remove;

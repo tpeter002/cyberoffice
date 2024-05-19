@@ -6,9 +6,10 @@ import java.util.Random;
 
 import env.OfficeEnv.OfficeModel;
 import env.OfficeEnv;
+import env.OfficeEnv.Percept;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import java.lang.reflect.Array;
 import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +28,8 @@ public class LightModel {
 
     // we store the states in an array
     private ArrayList<Light> lights = new ArrayList<Light>();
-    private Map<Light, ArrayList<Percept>> perceptsMap = new HashMap<Light, ArrayList<Percept>>();
+    private ArrayList<Percept> newLightsPercepts = new ArrayList<Percept>();
+    private ArrayList<Percept> removeLightsPercepts = new ArrayList<Percept>();
 
     /*
      * All models get the OfficeModel object, which stores
@@ -48,7 +50,6 @@ public class LightModel {
         for (int i = 0; i < lights.size(); i++) {
             Light light = lights.get(i);
             light.set_id(i);
-            perceptsMap.put(light, light.getPercept());
             if (i == 0) {
                 // model.setAgPos(i, 0, 1);
                 light.setLocation(0, 1);
@@ -92,12 +93,22 @@ public class LightModel {
         return;
     }
 
-    public ArrayList<Percept> getPercepts(Light light) {
-        return perceptsMap.get(light);
+    public ArrayList<Percept> newPercepts() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+        for (int i = 0; i < lights.size(); i++) {
+            Light light = lights.get(i);
+            percepts.addAll(light.newPercept());
+        }
+        return percepts;
     }
 
-    public HashMap<Light, ArrayList<Percept>> getPerceptsMap() {
-        return perceptsMap;
+    public ArrayList<Percept> perceptsToRemove() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+        for (int i = 0; i < lights.size(); i++) {
+            Light light = lights.get(i);
+            percepts.addAll(light.perceptsToRemove(light.newPercept()));
+        }
+        return percepts;
     }
 
     public ArrayList<Percept> getPercepts(String agentName) {
@@ -116,7 +127,7 @@ public class LightModel {
             return null;
         }
 
-        return perceptsMap.get(light);
+        return light.newPercept();
     }
 
     private class Light {
@@ -131,7 +142,8 @@ public class LightModel {
         boolean isOn;
         int untilBreakDown;
         private boolean isBroken;
-        private ArrayList<Percept> percepts = new ArrayList<Percept>();
+        private ArrayList<Percept> newPercepts = new ArrayList<Percept>();
+        private ArrayList<Percept> removePercepts = new ArrayList<Percept>();
 
         public static final Term turnOn = Literal.parseLiteral("turn_light_on");
         public static final Term turnOff = Literal.parseLiteral("turn_light_off");
@@ -144,7 +156,8 @@ public class LightModel {
             this.isOn = false;
             this.untilBreakDown = 10;
             this.isBroken = false;
-            this.percepts = new ArrayList<Percept>();
+            this.newPercepts = new ArrayList<Percept>();
+            this.removePercepts = new ArrayList<Percept>();
         }
 
         public void turnOn() {
@@ -153,26 +166,34 @@ public class LightModel {
                 this.isBroken = true;
                 this.isOn = false;
                 System.err.println("Light in room " + this.room + " is broken");
-                percepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_broken")));
+                newPercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_broken")));
+                removePercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_on")));
             } else {
                 this.isOn = true;
-                percepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_on")));
+                newPercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_on")));
+                removePercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_off")));
             }
         }
 
         public void turnOff() {
             this.isOn = false;
-            percepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_off")));
+            newPercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_off")));
+            removePercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_on")));
         }
 
         public void repair() {
             this.isBroken = false;
             this.untilBreakDown = 10;
-            percepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_repaired")));
+            newPercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_repaired")));
+            removePercepts.add(new Percept("l" + String.valueOf(_id), Literal.parseLiteral("light_broken")));
         }
 
-        public ArrayList<Percept> getPercept() {
-            return percepts;
+        public ArrayList<Percept> newPercept() {
+            return newPercepts;
+        }
+
+        public ArrayList<Percept> perceptsToRemove(ArrayList<Percept> percepts) {
+            return removePercepts;
         }
 
         public void executeAction(Structure action) {
@@ -183,7 +204,7 @@ public class LightModel {
             } else if (action.equals(repair)) {
                 this.repair();
             } else if (action.equals(getLocation)) {
-                percepts.add(new Percept("l" + String.valueOf(_id),
+                newPercepts.add(new Percept("l" + String.valueOf(_id),
                         Literal.parseLiteral("location(" + this.x + "," + this.y + ")")));
             }
         }

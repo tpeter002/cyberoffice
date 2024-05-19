@@ -18,6 +18,7 @@ MAS cyberoffice {
             printer;
             vacuumcleaner;
             mainframe;
+            l lights #3;
 
     aslSourcePath: "src/agt";
 }
