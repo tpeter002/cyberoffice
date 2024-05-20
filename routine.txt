@@ -3,6 +3,10 @@ move(19,19)
 move(19, 2)
 print
 move(19,19)
+print
+move(19,19)
+print
+move(19,19)
 move(0, 3)
 move(2, 11)
 ;
