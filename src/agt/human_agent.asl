@@ -25,6 +25,10 @@ working.
 +done(Source, Xd, Yd): true <- !move.
 
 
+
++done(Source, Xd, Yd): true <- !move.
+
+
 /* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
     .suspend(move);
     //?pos(Xc, Yc);
