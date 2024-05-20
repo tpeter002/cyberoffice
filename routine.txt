@@ -1,26 +1,37 @@
 h1
 move(19,19)
 move(19, 2)
-move(19,18)
+print
+move(19,19)
+move(0, 3)
+move(2, 11)
 ;
 h2
 move(0,19)
 move(0,1)
+print
 move(0, 10)
 move(19, 2)
+print
 move(19,18)
 ;
 h3
 move(0,19)
 move(11, 11)
+print
+move(6, 7)
+move(9, 8)
 ;
 h4
 move(0,19)
 print
 move(16, 14)
-;
-h5
 move(0,19)
+print
 move(8, 8)
+move(19,19)
+move(19, 2)
+print
+move(19,19)
 ;
 
