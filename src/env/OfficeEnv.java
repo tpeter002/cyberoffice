@@ -70,6 +70,23 @@ public class OfficeEnv extends Environment {
         
         if (agentName.charAt(0)=='h') {
 
+
+           /*  if(action.equals(load)){
+                Literal older_element=model.humanAgentModel.getReminder(agentName);
+                Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
+                if (older_element!= null)
+                    removePercept(agentName, older_element);
+                addPercept(agentName, routine_element);
+            }
+            else if(action.equals(loadpos)){
+                Literal hpos=model.humanAgentModel.getPosLiteral(agentName);
+                addPercept(agentName, hpos);
+            }
+            else{
+                model.humanAgentModel.executeAction(agentName, action);
+            } */
+
+
             model.humanAgentModel.executeAction(agentName, action);
             updatePercepts(agentName);
             return true;
@@ -150,6 +167,7 @@ public class OfficeEnv extends Environment {
         private VacuumCleanerModel vacuumCleanerModel;
         private LightModel lightModel;
         private MainframeModel mainframeModel;
+
 
 
         public static int n_human_agents =4; //fele annyi menedzselhetobb majd max felvisszuk
