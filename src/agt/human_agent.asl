@@ -19,7 +19,7 @@ working.
 
 +!nextroutine: true <- load.
 
-+go_fix(Errorer, Xe, Ye) : true <-  !move.
++go_fix(Errorer, Xe, Ye) : true <-  .print("kaptam go fixet"); !move.
 
 
 +done(Source, Xd, Yd): true <- !move.
@@ -59,6 +59,7 @@ load.
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
     .print("elertem fixeles pozit: ", Xe,", ", Ye);
+    .send(Errorer, tell, repair);
     -go_fix(Errorer, Xe, Ye)[source(_)];
     !move.
 
