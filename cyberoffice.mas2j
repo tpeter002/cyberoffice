@@ -15,7 +15,7 @@ MAS cyberoffice {
 
     agents: 
 
-            h human_agent #5;
+            h human_agent #4;
             printer; 
             vacuumcleaner;
             mainframe;

@@ -66,8 +66,11 @@ public class OfficeEnv extends Environment {
         
         if (agentName.charAt(0)=='h') {
 
-            if(action.equals(load)){
+           /*  if(action.equals(load)){
+                Literal older_element=model.humanAgentModel.getReminder(agentName);
                 Literal routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
+                if (older_element!= null)
+                    removePercept(agentName, older_element);
                 addPercept(agentName, routine_element);
             }
             else if(action.equals(loadpos)){
@@ -76,7 +79,9 @@ public class OfficeEnv extends Environment {
             }
             else{
                 model.humanAgentModel.executeAction(agentName, action);
-            }
+            } */
+
+            model.humanAgentModel.executeAction(agentName, action);
             updatePercepts(agentName);
             return true;
         }
@@ -85,7 +90,7 @@ public class OfficeEnv extends Environment {
 
             if(action.getFunctor().equals("reminder")) {
                 String humanName = action.getTerm(0).toString();
-                Literal reminder = model.humanAgentModel.getReminder(humanName, action);
+                Literal reminder = model.humanAgentModel.getReminder(humanName);
                 addPercept(humanName, reminder);
             }
             updatePercepts(agentName);
@@ -149,7 +154,7 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents =5; //fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents =4; //fele annyi menedzselhetobb majd max felvisszuk
 
 
 
@@ -306,7 +311,7 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_new.addAll(vacuumCleanerModel.newPercepts());
             } else if (agentName.charAt(0)=='h') {
-                //percepts_new.addAll(humanAgentModel.newPercepts());
+                percepts_new.addAll(humanAgentModel.newPercepts());
             } else if (agentName.equals("mainframe")) {
                 //percepts_new.addAll(mainframeModel.newPercepts());
             } else if (agentName.equals("light")) {
@@ -324,7 +329,7 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
             } else if (agentName.charAt(0)=='h') {
-                //percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
+                percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
             } else if (agentName.equals("mainframe")) {
                 //percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
             } else if (agentName.equals("light")) {
