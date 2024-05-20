@@ -35,6 +35,7 @@ public class VacuumCleanerModel {
 		DOWN,
 	}
 	private DIRECTION xDirection;
+	private int yOffset = 0;
 
 	public static final Literal next_slot = Literal.parseLiteral("next_slot");
 	public static final Literal slot_has_garbage = Literal.parseLiteral("slot_has_garbage");
@@ -93,11 +94,13 @@ public class VacuumCleanerModel {
 		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
 		Location vc = model.getAgPos(this.id);
-		if ( this.oldRoom != this.currentRoom)
+		if (this.oldRoom != this.currentRoom){
 			percepts.add(new Percept(Literal.parseLiteral("at_room(" + this.oldRoom.ordinal()+ ")")));
+			percepts.add(new Percept(Literal.parseLiteral("at_room_start(" + this.oldRoom.ordinal()+ ")")));
+			percepts.add(new Percept(Literal.parseLiteral("at_room_end(" + this.oldRoom.ordinal()+ ")")));
+		}
 		if (this.currentRoom != OfficeModel.ROOM.DOORWAY){
 			if(model.getRoomStartPos(this.currentRoom).x != vc.x && model.getRoomStartPos(this.currentRoom).y != vc.y){
-				System.out.println("removing at_room_start");
 				percepts.add(new Percept(Literal.parseLiteral("at_room_start("+this.currentRoom.ordinal()+")")));
 			}
 			if(model.getRoomEndPos(this.currentRoom).x != vc.x && model.getRoomEndPos(this.currentRoom).y != vc.y){
@@ -122,21 +125,17 @@ public class VacuumCleanerModel {
                 cleanCurrentRoom();
             }
             else if (action.getFunctor().equals("go_to")){
-				System.out.println("meghivodott a GO TO ");
                 int x = ((int) ((NumberTerm) action.getTerm(0)).solve());
 				OfficeModel.ROOM dest = OfficeModel.ROOM.values()[x];
 				if (this.currentRoom == OfficeModel.ROOM.DOORWAY){
-					System.out.println("in doorway atm " + dest);
 					moveTowards(model.getRoomStartPos(dest));
 				}
 				else{
-					System.out.println("megyunk a doorwaybe " + dest);
 					moveTowards(model.getDoorwayPos(this.currentRoom, dest));
 				}
             }
             else if (action.getFunctor().equals("go_to_start")) {
                 int x = ((int) ((NumberTerm) action.getTerm(0)).solve());
-				System.out.println("Going to start of room " + x);
                 moveTowards(model.getRoomStartPos(OfficeModel.ROOM.values()[x]));
             }
             else if (action.equals(pick_garbage)) {
@@ -184,29 +183,38 @@ public class VacuumCleanerModel {
     public Location avoidObstacle(Location vc) {
 		if (this.areHumansFriend) {
 			if ((!(model.isFree(vc.x, vc.y)) && !(model.hasGarbage(vc.x, vc.y)))){
-				if (model.isFree(vc.x, vc.y+1) && !(model.cellOccupied(vc.x, vc.y+1)))
+				System.out.println("Obstacle detected at " + vc.x + ", " + vc.y);
+				if (model.isFree(vc.x, vc.y+1) && !(model.cellOccupied(vc.x, vc.y+1))){
+					this.yOffset += 1;
 					vc.y++;
+				}
 				else if (model.isFree(vc.x+1, vc.y) && !(model.cellOccupied(vc.x+1, vc.y)))
 					vc.x++;
-				else if (model.isFree(vc.x, vc.y-1) && !(model.cellOccupied(vc.x, vc.y-1)))
+				else if (model.isFree(vc.x, vc.y-1) && !(model.cellOccupied(vc.x, vc.y-1))){
 					vc.y--;
+					this.yOffset -= 1;
+				}
 				else if (model.isFree(vc.x-1, vc.y) &&  !(model.cellOccupied(vc.x-1, vc.y)))
 					vc.x--;
 				else if (model.isFree(vc.x+1, vc.y+1) &&  !(model.cellOccupied(vc.x+1, vc.y+1))){
 					vc.x++;
 					vc.y++;
+					this.yOffset += 1;
 				}
 				else if (model.isFree(vc.x-1, vc.y-1) &&  !(model.cellOccupied(vc.x-1, vc.y-1))){
 					vc.x--;
 					vc.y--;
+					this.yOffset -= 1;
 				}
 				else if (model.isFree(vc.x+1, vc.y-1) &&  !(model.cellOccupied(vc.x+1, vc.y-1))){
 					vc.x++;
 					vc.y--;
+					this.yOffset -= 1;
 				}
 				else if (model.isFree(vc.x-1, vc.y+1) &&  !(model.cellOccupied(vc.x-1, vc.y+1))){
 					vc.x--;
 					vc.y++;
+					this.yOffset += 1;
 				}
 				else{
                     this.isBroken = true; // break instantly if no way to avoid obstacle
@@ -248,9 +256,13 @@ public class VacuumCleanerModel {
 	}
     public void cleanCurrentRoom() {
 		Location vc = model.getAgPos(this.id);
+		if (yOffset != 0){
+			switchXDirection();
+			this.yOffset = 0;
+		}
 		if (this.xDirection == DIRECTION.RIGHT) {
 			vc.x++;
-			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+			if (this.GSize <= vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))|| (model.whichRoom(vc.x, vc.y) != this.currentRoom)) {
 				this.xDirection = DIRECTION.LEFT;
 				vc.x--;
 				vc.y++;
@@ -258,7 +270,7 @@ public class VacuumCleanerModel {
 		} 
 		else if (this.xDirection == DIRECTION.LEFT) {
 			vc.x--;
-			if (0 > vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))) {
+			if (0 > vc.x || model.isWall(vc.x, vc.y) || !(model.inGrid(vc.x, vc.y))|| (model.whichRoom(vc.x, vc.y) != this.currentRoom)) {
 				this.xDirection = DIRECTION.RIGHT;
 				vc.x++;
 				vc.y++;
@@ -266,5 +278,13 @@ public class VacuumCleanerModel {
 		}
 		vc = avoidObstacle(vc);
 		model.setAgPos(this.id, vc);
+	}
+	private void switchXDirection() {
+		if (this.xDirection == DIRECTION.RIGHT) {
+			this.xDirection = DIRECTION.LEFT;
+		} 
+		else {
+			this.xDirection = DIRECTION.RIGHT;
+		}
 	}
 }

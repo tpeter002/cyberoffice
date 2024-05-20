@@ -4,6 +4,8 @@ searching_for_empty_room.
 at_room(2).
 at_room_start(2).
 
+first_belief.
+
 // When starting send a message to the mainframe
 +!start
    <-
@@ -32,6 +34,8 @@ at_room_start(2).
     : not error & at_room_end(Room)
    <-  // elmegyünk másik szobába
       .print("elértem a szoba végét megyek máshova");
+      -room_empty(_)[source(Mainframe)];
+      .send(mainframe, tell, vacuum_done);
       +searching_for_empty_room.
 
 /* people in the room while checking */
@@ -63,7 +67,6 @@ at_room_start(2).
    : searching_for_empty_room // if i dont have any other percept of a room being empty
    <- -searching_for_empty_room;
       .print("Megkaptam: " , Room);
-      //save_to_empty_rooms(Room); // java code
       .findall(Room, room_empty(Room), Rooms);
       .length(Rooms, Length);
       .random(R);
@@ -71,16 +74,22 @@ at_room_start(2).
       .nth(RandomIndex, Rooms, SelectedRoom);
       +should_clean_room(SelectedRoom).
 
++room_not_empty(Room)[source(Mainframe)] 
+   <- -room_empty(Room);
+      .print("Töröltem mert nem üres: " , Room).
+
 +should_clean_room(SelectedRoom)
    : not at_room(SelectedRoom)
    <- .print("SHOULD CLEAN OTHER ROOM_: ", SelectedRoom);
       -should_clean_room(SelectedRoom);
+      !first_round;
       !go_to_other_room(SelectedRoom).
 
 +should_clean_room(SelectedRoom)
    : at_room(SelectedRoom)
    <- .print("SHOULD CLEAN THIS FUCKING ROOM_: ", SelectedRoom);
       -should_clean_room(SelectedRoom);
+      !first_round;
       !check(SelectedRoom).
 
 +!go_to_other_room(SelectedRoom)
@@ -102,6 +111,20 @@ at_room_start(2).
    <-   .print("Itt vagyok a másik szoba startjában és nincs itt senki, akkor nyomom");
         .wait(1000);
         +should_clean_room(SelectedRoom).
+
+
++!first_round
+   : first_belief
+   <- 
+      -first_belief;
+      -at_room(2);
+      -at_room_start(2);
+      .print("cleareltem a beliefjeim").
+
++!first_round
+   : not first_belief
+   <- 
+      .print("").
 
 /* Error */
 +error
