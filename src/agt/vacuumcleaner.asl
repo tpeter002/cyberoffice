@@ -1,116 +1,107 @@
-// Agent vacuumcleaner in project 
-
-/* Initial beliefs */
-//at(P) :- pos(P,X,Y) & pos(vc,X,Y).
-//home(P) :- pos(P,X,Y) & pos(vc,X,Y).
-
 /* Initial goals */
 !start.
+searching_for_empty_room.
+at_room(2).
+at_room_start(2).
 
-/* Plans */
-
+// When starting send a message to the mainframe
 +!start
    <-
       .print("I'm ready to go!");
-      .send(mainframe, tell, vacuum_ready);
-      !check.
+      .send(mainframe, tell, vacuum_ready).
 
-+should_go_home
-   <- 
-      !go_home.
-
-+!go_home
-   :  not at_home & not error & not fast_go_home
-   <- 
-      move_home;
-      .wait(1000);
-      !go_home.
-
-+!go_home
-   :  not at_home & not error & fast_go_home
-   <- 
-      move_home;
-      .wait(100);
-      !go_home.
-
-+!go_home
-   :  at_home & not error & not room_empty(_)
-   <- 
-      empty_garbage;
-      recharge_battery;
-      .print("Recharging battery...");
-      .wait(2500);
-      .print("Emptying garbage...");
-      .wait(2500);
-      .print("Cleaning again!");
-      -should_go_home;
-      -fast_go_home;
-      !check.
-
-+!go_home
-   :  at_home & not error & room_empty(_)
-   <- 
-      empty_garbage;
-      recharge_battery;
-      .print("Recharging battery...");
-      .wait(2500);
-      .print("Emptying garbage...");
-      .wait(2500);
-      .print("Cleaning again!");
-      -should_go_home;
-      -fast_go_home;
-      .print("ROOM EMPTY FUNTCION MIATT VAGYOK ITTHON");
-      .findall(Room, room_empty(Room), Rooms);
-		.length(Rooms, Length);
-		.random(R);
-		RandomIndex = math.floor(R * Length);
-		.nth(RandomIndex, Rooms, SelectedRoom);
-      +should_clean_other_room(SelectedRoom).
-
-+should_clean_other_room(SelectedRoom)
-   <- 
-      !go_to_other_room(SelectedRoom).
-
-+!go_to_other_room(SelectedRoom)
-   : not at_room_to_clean & not error
-   <- 
-      .print("Going to clean other room...");
-      .wait(100);
-      go_to(SelectedRoom);
-      !go_to_other_room(SelectedRoom).
-
-+!go_to_other_room(SelectedRoom)
-   : at_room_to_clean & not error
-   <- 
-      enter_room;
-      .print("I arrived at new room starting to clean...");
-      .wait(1000);
-      !check.
-
-+!check
-   :  not slot_has_garbage & not should_go_home & not current_room_has_people & not error & (not room_empty(_) | (room_empty(_) & at_room_to_clean))
++!check(Room)
+    : not error & not slot_has_garbage & not at_room_end(Room) & not people_in_current_room
    <- 
       next_slot;
-      .print("csekkolom a slotokat..");
+      .print("chekkolom a slotokat faszaság");
       .wait(100);
-      !check.
+      !check(Room).
 
-+!check
-   :  not slot_has_garbage & not should_go_home & current_room_has_people & not error
-   <- 
-      .print("Going home because they see me rollin'...");
-      +fast_go_home;
-      +should_go_home.
-
-+!check
-   :  slot_has_garbage & not should_go_home & not current_room_has_people & not error
++!check(Room)
+    : not error & slot_has_garbage & not at_room_end(Room) & not people_in_current_room
    <- 
       pick_garbage;
-      .print("Removed garbage");
+      .print("hopp egy szemét, felveszem");
       .wait(500);
-      !check.
-      
-+!check.
+      !check(Room).
+
+// LETS GO TO OTHER ROOM
+// ide kéne egy while amíg nincs üres szoba
++!check(Room)
+    : not error & at_room_end(Room)
+   <-  // elmegyünk másik szobába
+      .print("elértem a szoba végét megyek máshova");
+      +searching_for_empty_room.
+
+/* people in the room while checking */
++!check(Room)
+    : not error & people_in_current_room & not at_room_start(Room)
+   <- 
+      go_to_start(Room);
+      .print("ember van a szobában visszamegyek a start pozira várakozni");
+      .wait(100);
+      !check(Room).
+
++!check(Room)
+    : not error & people_in_current_room & at_room_start(Room)
+   <- 
+      .print("ember van a szobában várok");
+      .wait(1000);
+      !check(Room).
+
+/* error while checking */
++!check(Room)
+    : error
+   <- 
+      .print("elromlottam ,varom az embert hogy megjavitson");
+      .wait(1000);
+      !check(Room).
+
+// Maybe I should ask the mainframe for an empty room not him informing me of an empty room
++room_empty(Room)[source(Mainframe)]
+   : searching_for_empty_room // if i dont have any other percept of a room being empty
+   <- -searching_for_empty_room;
+      .print("Megkaptam: " , Room);
+      //save_to_empty_rooms(Room); // java code
+      .findall(Room, room_empty(Room), Rooms);
+      .length(Rooms, Length);
+      .random(R);
+      RandomIndex = math.floor(R * Length);
+      .nth(RandomIndex, Rooms, SelectedRoom);
+      +should_clean_room(SelectedRoom).
+
++should_clean_room(SelectedRoom)
+   : not at_room(SelectedRoom)
+   <- .print("SHOULD CLEAN OTHER ROOM_: ", SelectedRoom);
+      -should_clean_room(SelectedRoom);
+      !go_to_other_room(SelectedRoom).
+
++should_clean_room(SelectedRoom)
+   : at_room(SelectedRoom)
+   <- .print("SHOULD CLEAN THIS FUCKING ROOM_: ", SelectedRoom);
+      -should_clean_room(SelectedRoom);
+      !check(SelectedRoom).
+
++!go_to_other_room(SelectedRoom)
+    : not error & not at_room(SelectedRoom)
+   <-    go_to(SelectedRoom);
+        .print("Megyek a másik szobába takkerolni");
+        .wait(100);
+        !go_to_other_room(SelectedRoom).
+
++!go_to_other_room(SelectedRoom)
+    : not error & at_room(SelectedRoom) & not at_room_start(SelectedRoom)
+   <-   go_to_start(SelectedRoom);
+        .print("Megyek a szobában a kezdő pozira");
+        .wait(100);
+        !go_to_other_room(SelectedRoom).
+
++!go_to_other_room(SelectedRoom)
+    : not error & at_room(SelectedRoom) & at_room_start(SelectedRoom)
+   <-   .print("Itt vagyok a másik szoba startjában és nincs itt senki, akkor nyomom");
+        .wait(1000);
+        +should_clean_room(SelectedRoom).
 
 /* Error */
 +error
@@ -119,7 +110,7 @@
 
 +report_location
    <- 
-      get_location;
+      get_location; // java code
       -report_location.
 
 +location(X, Y)
@@ -130,25 +121,6 @@
 +repair
    <- 
       -repair;
-      fix;
+      fix; // java code
       .print("I'm ready to go once again!");
-      .send(mainframe, tell, vacuum_ready);
-      +should_go_home.
-
-// TODO: error sometimes
-
-+room_empty(Room)[source(Mainframe)]
-   <- 
-      .print("Megkaptam: " , Room);
-      .wait(500);
-      +fast_go_home;
-      +should_go_home.
-
-+room_not_empty(Room)
-   <-
-      -room_empty(Room);
-      -room_not_empty(Room).
-
-//+is_cleaned_recently(Room)
-//   <- 
-//      .
+      .send(mainframe, tell, vacuum_ready).
