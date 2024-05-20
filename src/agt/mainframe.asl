@@ -183,7 +183,9 @@
 			.nth(0, Requesters, Requester);
 			.print("sending ", Requester, " to fix ", Errorer);
 			.send(Requester, tell, go_fix(Errorer, X, Y));
-		}.
+		};
+
+		-location(X, Y)[source(Errorer)].
 
 // report location after done signal so requester can eg pick up the print
 +location(X, Y)[source(Source)]
@@ -194,4 +196,5 @@
 			.nth(0, Requesters, Requester);
 			.send(Requester, tell, done(Source, X, Y));
 		};
-		-done(Requester)[source(Source)].
+		-done(Requester)[source(Source)];
+		-location(X, Y)[source(Errorer)].
