@@ -119,7 +119,7 @@
 
 		.send(SelectedVacuum, tell, room_empty(Room));
 
-		-empty(Room).
+		-room_empty(Room).
 
 // Sent every time to vacuum when a room is not empty
 +room_not_empty(Room)
