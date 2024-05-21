@@ -74,7 +74,7 @@ load.
     moveto(Xe, Ye);
     loadpos;
     .random(A);
-    .wait(2000 + A * 5000);
+    .wait(500 + A * 1000);
     !move.
 
 //A nyomtató célját elérte
@@ -91,7 +91,7 @@ load.
     moveto(Xd, Yd);
     loadpos;
     .random(A);
-    .wait(2000 + A * 5000);
+    .wait(500 + A * 1000);
     !move.
 
 
@@ -108,7 +108,7 @@ load.
     moveto(Xt, Yt);
     loadpos;
     .random(A);
-    .wait(2000 + A * 5000);
+    .wait(500 + A * 1000);
     !move.
 
 
@@ -156,8 +156,8 @@ load.
 
 +!szemetel : 
      true <- 
-    .random(A);
-    .wait(10000+A*5000);    
+    .random(B);
+    .wait(10000+B*5000);    
     //.print("szemeteltem oriasit :)");
     garbagedrop;
      !szemetel.

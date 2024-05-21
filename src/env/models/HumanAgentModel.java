@@ -225,7 +225,8 @@ public class HumanAgentModel {
 
     public void dropGarbage(String agentName){
         Location spot=model.getAgPos(getID(agentName));
-        model.addGarbage(spot.x, spot.y);
+        if(model.whichRoom(spot.x, spot.y)!=ROOM.DOORWAY)
+            model.addGarbage(spot.x, spot.y);
     }
 
     public int getID(String agentName) {
@@ -286,9 +287,12 @@ public class HumanAgentModel {
 
 
         
-        if (targetRoom != currentRoom) {
+        if (targetRoom != currentRoom && targetRoom!=ROOM.DOORWAY && currentRoom!=ROOM.DOORWAY) {
+            Location doorway=model.getDoorwayPos(currentRoom, targetRoom);
+            x=doorway.x;
+            y=doorway.y;
 
-            if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
+            /* if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
                     || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
                     || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
                 x = vacuum_hall_doorway.x;
@@ -308,7 +312,7 @@ public class HumanAgentModel {
             else if((currentRoom==ROOM.DOORWAY && (targetRoom==ROOM.VACUUM || targetRoom==ROOM.PRINTER))){
                 x=loc.x;
                 y=loc.y-1;
-            }
+            } */
 
         }
 
