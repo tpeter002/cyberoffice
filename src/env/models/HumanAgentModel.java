@@ -213,14 +213,23 @@ public class HumanAgentModel {
             }
             else if (action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
-            } else if(action.equals(garbagedrop)){
-                dropGarbage(agentName);
             } 
-
+            else if(action.equals(garbagedrop)){
+                dropGarbage(agentName);
+            } else if(action.getFunctor().equals("clear")){
+                addToRemovePercept(agentName, action);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public void addToRemovePercept(String agentName, Structure action){
+        String perceptToClear = action.getTerm(0).toString();
+        //hlogger.info("Ezt elpusztitom percept: "+perceptToClear);
+        Literal perceptToClearLit=Literal.parseLiteral(perceptToClear);
+        Percept removed=new Percept(agentName, perceptToClearLit);
+        percepts_to_remove.add(removed);
     }
 
     public void dropGarbage(String agentName){
@@ -280,13 +289,11 @@ public class HumanAgentModel {
         int x = (int) ((NumberTerm) action.getTerm(0)).solve(); //19
         int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //0
         int newX = loc.x; 
-
         int newY = loc.y;
+
         ROOM targetRoom = model.whichRoom(x, y);
         ROOM currentRoom = model.whichRoom(loc.x, loc.y);
 
-
-        
         if (targetRoom != currentRoom && targetRoom!=ROOM.DOORWAY && currentRoom!=ROOM.DOORWAY) {
             Location doorway=model.getDoorwayPos(currentRoom, targetRoom);
             x=doorway.x;
@@ -317,8 +324,7 @@ public class HumanAgentModel {
         }
 
         if (loc.x < x) 
-            newX = loc.x + 1; //5
-
+            newX = loc.x + 1; 
         else if (loc.x > x)
             newX = loc.x - 1;
         if (loc.y < y)
@@ -328,32 +334,26 @@ public class HumanAgentModel {
 
         if (canStep(newX, newY)) {
             loc.x = newX;
-            loc.y = newY;
-            
+            loc.y = newY; 
         } else if (canStep(newX, loc.y)) {
             loc.x = newX;
         } else if (canStep(loc.x, newY)) {
-            loc.y = newY;
-            
+            loc.y = newY;      
         } else if (canStep(newX, loc.y+1)) {
             loc.x = newX;
             loc.y=loc.y+1;
-            
         }
         else if (canStep(newX, loc.y-1)) {
             loc.x = newX;
             loc.y=loc.y-1;
-            
         }
         else if (canStep(loc.x+1, newY)) {
             loc.x = loc.x+1;
-            loc.y=newY;
-            
+            loc.y=newY;  
         }
         else if (canStep(loc.x-1, newY)) {
             loc.x = loc.x-1;
             loc.y=newY;
-            
         }
         updateLoc(agentid, loc);
         
