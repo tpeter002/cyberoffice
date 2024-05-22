@@ -19,22 +19,25 @@
       +initialized.
 
 +!operating : true 
-  <-  .print("Lights Agent is operating...");
-      operate;
+  <-  operate;
       .wait(1000);
       !operating.
 
-+light_broken 
-  <-  .print("Light is broken in room: ");
++light_on : true
+  <-  .print("Turning on lights---------------------------------------------------------yeee mukodik az ASL");
+      .send(mainframe, tell, lights_on).
+
++light_off : true
+  <-  .print("Turning off lights---------------------------------------------------------yeee mukodik az ASL");
+      .send(mainframe, tell, lights_off).
+
++light_broken : true
+  <-  .print("Light is broken---------------------------------------------------------yeee mukodik az ASL");
       .send(mainframe, tell, error).
 
-+light_repaired 
-  <-  .print("Light is repaired in room: ");
++light_repaired : true
+  <-  .print("Light is repaired ---------------------------------------------------------yeee mukodik az ASL");
       .send(mainframe, tell, light_ready).
-
-+person_in_room 
-  <-  .print("Person detected in room");
-      turn_light_on.
 
 +location(X,Y) 
   <-  .send(mainframe, tell, location(X,Y));
@@ -43,33 +46,3 @@
 
 +report_location 
   <-  get_location.
-
-
-//empty room be és fel kapcsolas pls
-+empty_room 
-  <-  .print("No Person detected in room: ");
-      turn_light_off.
-
-
-
-
-
-//+person_in_room 
-//  <-  .print("Person detected in room");
-//      !turn_on_lights().
-//
-//-person_in_room 
-//  <-  .print("No Person detected in room: ");
-//      !turn_off_lights.
-//
-//+!turn_on_lights : not is_light_on
-//  <-  turn_light_on;
-//      .print("Turning on lights in ").
-//      
-//      .send(mainframe, tell, lights_on(location)).
-//
-//+!turn_off_lights : is_light_on
-//  <-  turn_light_off;
-//      .print("Turning off lights in ").
-//      .send(mainframe, tell, lights_off(location)).
-
