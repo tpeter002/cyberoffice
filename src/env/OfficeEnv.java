@@ -18,6 +18,10 @@ import models.VacuumCleanerModel;
 import models.LightModel;
 import models.MainframeModel;
 
+import java.util.ArrayList;
+import env.Percept;
+import env.BackgroundMusic;
+
 // Main environment class
 public class OfficeEnv extends Environment {
 
@@ -31,12 +35,15 @@ public class OfficeEnv extends Environment {
     private OfficeModel model;
     private OfficeView view;
 
+    private BackgroundMusic backgroundMusic;
     static Logger logger = Logger.getLogger(OfficeEnv.class.getName());
 
     @Override
     public void init(String[] args) {
         model = new OfficeModel();
         view = new OfficeView(model);
+        backgroundMusic = new BackgroundMusic("song.wav");
+        backgroundMusic.play();
         model.setView(view);
     }
 
@@ -60,15 +67,23 @@ public class OfficeEnv extends Environment {
 
         if (agentName.charAt(0) == 'h') {
 
-            if (action.equals(load)) {
-                Literal routine_element = model.humanAgentModel.getNextRoutineElement(agentName);
-                addPercept(agentName, routine_element);
-            } else if (action.equals(loadpos)) {
-                Literal hpos = model.humanAgentModel.getPosLiteral(agentName);
-                addPercept(agentName, hpos);
-            } else {
-                model.humanAgentModel.executeAction(agentName, action);
-            }
+            /*
+             * if(action.equals(load)){
+             * Literal older_element=model.humanAgentModel.getReminder(agentName);
+             * Literal
+             * routine_element=model.humanAgentModel.getNextRoutineElement(agentName);
+             * if (older_element!= null)
+             * removePercept(agentName, older_element);
+             * addPercept(agentName, routine_element);
+             * } else if (action.equals(loadpos)) {
+             * Literal hpos = model.humanAgentModel.getPosLiteral(agentName);
+             * addPercept(agentName, hpos);
+             * } else {
+             * model.humanAgentModel.executeAction(agentName, action);
+             * }
+             */
+
+            model.humanAgentModel.executeAction(agentName, action);
             updatePercepts(agentName);
             return true;
         }
@@ -77,7 +92,7 @@ public class OfficeEnv extends Environment {
 
             if (action.getFunctor().equals("reminder")) {
                 String humanName = action.getTerm(0).toString();
-                Literal reminder = model.humanAgentModel.getReminder(humanName, action);
+                Literal reminder = model.humanAgentModel.getReminder(humanName);
                 addPercept(humanName, reminder);
             }
             updatePercepts(agentName);
@@ -98,17 +113,21 @@ public class OfficeEnv extends Environment {
     public void updatePercepts(String agentName) {
         clearPercepts();
         ArrayList<Percept> percepts = model.getNewPercepts(agentName);
+        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             if (room != OfficeModel.ROOM.DOORWAY) {
                 if (model.roomIsEmpty(room)) {
                     percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
+                    perceptsToRemove.add(
+                            new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
                 } else {
                     percepts.add(
                             new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
+                    perceptsToRemove
+                            .add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
                 }
-
             }
         }
 
@@ -122,7 +141,7 @@ public class OfficeEnv extends Environment {
         }
 
         // inform agents about percepts to remove
-        ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
+
         for (Percept percept : perceptsToRemove) {
             if (percept.hasDestination()) {
                 removePercept(percept.destination, percept.message);
@@ -133,6 +152,12 @@ public class OfficeEnv extends Environment {
 
     }
 
+    @Override
+    public void stop() {
+        backgroundMusic.stop();
+        super.stop();
+    }
+
     public class OfficeModel extends GridWorldModel {
 
         private HumanAgentModel humanAgentModel;
@@ -141,7 +166,12 @@ public class OfficeEnv extends Environment {
         private LightModel lightModel;
         private MainframeModel mainframeModel;
 
-        public static int n_human_agents = 5; // fele annyi menedzselhetobb majd max felvisszuk
+        public static int n_human_agents = 4; // fele annyi menedzselhetobb majd max felvisszuk
+
+        public int yMainWall = (int) (GSize / 4);
+        public int xVacuumDoor = (int) ((GSize / 4) - 2);
+        public int xPrinterDoor = (int) (GSize / 4) * 3 + 1;
+        public int xMainWall = xVacuumDoor + 2;
 
         private OfficeModel() {
             // vacuumCleanerEnv = new VacuumCleanerEnvironment(); // 1 agent
@@ -150,14 +180,15 @@ public class OfficeEnv extends Environment {
             // initial location of agents
             try {
                 // add walls, initialize rooms
-                int yMainWall = (int) (GSize / 4);
-                int xVacuumDoor = (int) ((GSize / 4) - 2);
-                int xPrinterDoor = (int) (GSize / 4) * 3;
 
-                addWall(0, yMainWall, xVacuumDoor, yMainWall);
-                addWall(xVacuumDoor + 2, 0, xVacuumDoor + 2, yMainWall);
-                addWall(xVacuumDoor + 3, yMainWall, xPrinterDoor, yMainWall);
-                addWall(xPrinterDoor + 2, yMainWall, GSize - 1, yMainWall);
+                // HORIZONTAL WALLS
+                addWall(0, yMainWall, xVacuumDoor - 1, yMainWall);
+                addWall(xVacuumDoor + 1, yMainWall, xPrinterDoor - 1, yMainWall);
+                addWall(xPrinterDoor + 1, yMainWall, GSize - 1, yMainWall);
+
+                // VERTICAL WALL(S)
+                addWall(xMainWall, 0, xMainWall, 0);
+                addWall(xMainWall, 2, xMainWall, yMainWall);
 
                 add(OfficeEnv.GARB, 3, 0);
                 add(OfficeEnv.GARB, 4, 2);
@@ -187,77 +218,112 @@ public class OfficeEnv extends Environment {
 
         // Ide nem kéne az a +1 !!!
         public ROOM whichRoom(int x, int y) {
-            if (y < (int) (GSize / 4) && x < (int) (GSize / 4)) {
+            if (y < yMainWall && x < xMainWall) {
                 return ROOM.VACUUM;
-            } else if (y < (int) (GSize / 4) && x > (int) (GSize / 4)) {
+            } else if (y < yMainWall && x > xMainWall) {
                 return ROOM.PRINTER;
-            } else if (y > (int) (GSize / 4)) {
+            } else if (y > yMainWall) {
                 return ROOM.HALL;
-            } else if ((y == (int) ((GSize / 4)))
-                    && ((x == (int) (GSize / 4 - 1)) || (x == (int) (GSize / 4) * 3 + 1))) {
+            } else if ((y == yMainWall) && ((x == xVacuumDoor) || (x == xPrinterDoor))) {
+                return ROOM.DOORWAY;
+            } else if ((x == xMainWall) && (y == 1)) {
                 return ROOM.DOORWAY;
             } else {
                 return null;
             }
         }
 
-        public Location getDoorwayPos(ROOM dest, ROOM curr) {
-            switch (dest) {
+        // Doorway locations
+        public Location VACUUM_HALL_DOOR = new Location(xVacuumDoor, yMainWall);
+        public Location PRINTER_HALL_DOOR = new Location(xPrinterDoor, yMainWall);
+        public Location VACUUM_PRINTER_DOOR = new Location(xMainWall, 1);
+
+        // Start/End locations
+        public Location VACUUM_START = new Location(0, 0);
+        public Location VACUUM_END = new Location(xMainWall - 1, yMainWall - 1);
+        public Location PRINTER_START = new Location(xMainWall + 1, 0);
+        public Location PRINTER_END = new Location(GSize - 1, yMainWall - 1);
+        public Location HALL_START = new Location(0, yMainWall + 1);
+        public Location HALL_END = new Location(GSize - 1, GSize - 1);
+
+        public Location getDoorwayPos(ROOM curr, ROOM dest) {
+            switch (curr) {
                 case VACUUM:
-                    switch (curr) {
+                    switch (dest) {
                         case HALL:
-                            return new Location((int) (GSize / 4) - 1, (int) (GSize / 4));
+                            return VACUUM_HALL_DOOR;
                         case PRINTER:
-                            return new Location((int) (GSize / 4) * 3, (int) (GSize / 4));
+                            return VACUUM_PRINTER_DOOR;
                     }
                 case PRINTER:
-                    switch (curr) {
+                    switch (dest) {
                         case HALL:
-                            return new Location((int) (GSize / 4) * 3 + 1, (int) (GSize / 4));
+                            return PRINTER_HALL_DOOR;
                         case VACUUM:
-                            return new Location((int) (GSize / 4) - 1, (int) (GSize / 4));
+                            return VACUUM_PRINTER_DOOR;
                     }
                 case HALL:
-                    switch (curr) {
+                    switch (dest) {
                         case PRINTER:
-                            return new Location((int) (GSize / 4) * 3, (int) (GSize / 4));
+                            return PRINTER_HALL_DOOR;
                         case VACUUM:
-                            return new Location((int) (GSize / 4) - 1, (int) (GSize / 4));
+                            return VACUUM_HALL_DOOR;
                     }
                 default:
                     return null;
             }
         }
 
-        // magic numbers
-        public boolean isWall(int x, int y) {
-            return !isFree(4, x, y);
+        public Location getRoomStartPos(ROOM curr) {
+            switch (curr) {
+                case VACUUM:
+                    return VACUUM_START;
+                case PRINTER:
+                    return PRINTER_START;
+                case HALL:
+                    return HALL_START;
+                default:
+                    return null;
+            }
+        }
+
+        public Location getRoomEndPos(ROOM curr) {
+            switch (curr) {
+                case VACUUM:
+                    return VACUUM_END;
+                case PRINTER:
+                    return PRINTER_END;
+                case HALL:
+                    return HALL_END;
+                default:
+                    return null;
+            }
         }
 
         public boolean roomIsEmpty(ROOM room) {
             switch (room) {
                 case VACUUM:
-                    for (int i = 0; i < (int) (GSize / 4); i++) {
-                        for (int j = 0; j < (int) (GSize / 4); j++) {
-                            if (cellOccupied(i, j)) {
+                    for (int x = 0; x < xMainWall; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            if (cellOccupied(x, y)) {
                                 return false;
                             }
                         }
                     }
                     break;
                 case PRINTER:
-                    for (int i = (int) (GSize / 4) + 1; i < GSize; i++) {
-                        for (int j = 0; j < (int) (GSize / 4); j++) {
-                            if (cellOccupied(i, j)) {
+                    for (int x = xMainWall + 1; x < GSize; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            if (cellOccupied(x, y)) {
                                 return false;
                             }
                         }
                     }
                     break;
                 case HALL:
-                    for (int i = 0; i < GSize; i++) {
-                        for (int j = (int) (GSize / 4); j < GSize; j++) {
-                            if (cellOccupied(i, j)) {
+                    for (int x = 0; x < GSize; x++) {
+                        for (int y = yMainWall + 1; y < GSize; y++) {
+                            if (cellOccupied(x, y)) {
                                 return false;
                             }
                         }
@@ -265,6 +331,12 @@ public class OfficeEnv extends Environment {
                     break;
             }
             return true;
+        }
+
+        // magic numbers
+        public boolean isWall(int x, int y) {
+            // 4 is the code of the wall
+            return !isFree(4, x, y);
         }
 
         public boolean cellOccupied(int x, int y) {
@@ -292,7 +364,7 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_new.addAll(vacuumCleanerModel.newPercepts());
             } else if (agentName.charAt(0) == 'h') {
-                // percepts_new.addAll(humanAgentModel.newPercepts());
+                percepts_new.addAll(humanAgentModel.newPercepts());
             } else if (agentName.equals("mainframe")) {
                 // percepts_new.addAll(mainframeModel.newPercepts());
             } else if (agentName.charAt(0) == 'l') {
@@ -310,7 +382,7 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
             } else if (agentName.charAt(0) == 'h') {
-                // percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
+                percepts_to_remove.addAll(humanAgentModel.perceptsToRemove());
             } else if (agentName.equals("mainframe")) {
                 // percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
             } else if (agentName.charAt(0) == 'l') {

@@ -24,7 +24,9 @@ import java.util.HashMap;
 // Human agent environment class
 public class HumanAgentModel {
 
-    public static final Term load = Literal.parseLiteral("loadroutine");
+    public static final Term load = Literal.parseLiteral("load");
+    public static final Term loadpos = Literal.parseLiteral("loadpos");
+    public static final Term garbagedrop = Literal.parseLiteral("garbagedrop");
 
     private OfficeModel model;
     private int id;
@@ -43,6 +45,7 @@ public class HumanAgentModel {
     
 
     ArrayList<Percept> percepts_pre = new ArrayList<Percept>();
+    ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
 
     
 
@@ -86,7 +89,7 @@ public class HumanAgentModel {
                 y = random.nextInt(GSize);
             }
             model.setAgPos(i, x, y);
-            hlogger.info(Integer.toString(i));
+            
 
             agents.add(new Human(i, x, y));
 
@@ -99,9 +102,8 @@ public class HumanAgentModel {
                 return true;
             }
         }
-        Location vacuumpos=model.getAgPos(1);
-        if(vacuumpos.x==x || vacuumpos.y==y)
-            return true;
+  
+
         return false;
 
     }
@@ -127,16 +129,17 @@ public class HumanAgentModel {
     }
 
 
-    public ArrayList<Percept> getNewPercepts() {
+    public ArrayList<Percept> newPercepts() {
         ArrayList<Percept> percepts = new ArrayList<Percept>();
-
         percepts.addAll(percepts_pre);
         percepts_pre.clear();
+        return percepts;
+    }
 
-        // for (Human human: agents) {
-        // percepts.add("human(" + human.id + "" + human.x + "," + human.y + ")");
-        // }
-
+    public ArrayList<Percept> perceptsToRemove() {
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+        percepts.addAll(percepts_to_remove);
+        percepts_to_remove.clear();
         return percepts;
     }
 
@@ -150,6 +153,7 @@ public class HumanAgentModel {
             for (String[] agentRoutine : routines) {
                 if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
                     String element = agentRoutine[load_counter];
+                    //hlogger.info(agentName+"-nek parancs: "+ element);
                     result = Literal.parseLiteral(element);
                 }
 
@@ -162,18 +166,19 @@ public class HumanAgentModel {
     }
 
     //ez igazabol getnextroutine element csak loadcounter inkrementalas nelkul(meg mas agentname megszerzes ugye), nem tom meglehetne e oldani hogy ez nalad legyen kicsit szivas lenne sztem, max officeenvbe is lehetne load counter i guess es akk te is elerned
-    public Literal getReminder(String humanName, Structure action){
-        hlogger.info(humanName);
+
+    public Literal getReminder(String humanName){
+        
         int load_counter = load_counters.get(humanName) - 1;
+        if(load_counter>0){
 
         for (String[] agentRoutine : routines) {
             if (agentRoutine.length > load_counter && agentRoutine[0].equals(humanName)) {
                 String element = agentRoutine[load_counter];
                 return Literal.parseLiteral(element);
-
             }
-
         }
+    }
         return null;
     }
 
@@ -186,14 +191,30 @@ public class HumanAgentModel {
         return result;
     }
 
+    
+
 
     public void executeAction(String agentName, Structure action) {
         try {
-            if (action.getFunctor().equals("moveto")) {
+            if(action.equals(load)){
+                Literal older_element=getReminder(agentName);
+                Literal routine_element=getNextRoutineElement(agentName);
+                if (older_element!= null){
+                    Percept removed=new Percept(agentName, older_element);
+                    percepts_to_remove.add(removed);
+                }
+                Percept new_element=new Percept(agentName, routine_element); 
+                percepts_pre.add(new_element);
+            }
+            else if(action.equals(loadpos)){
+                Literal hpos=getPosLiteral(agentName);
+                Percept new_loc=new Percept(agentName, hpos);
+                percepts_pre.add(new_loc);
+            }
+            else if (action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
-            } else if(action.getFunctor().equals("garbagedrop")){
+            } else if(action.equals(garbagedrop)){
                 dropGarbage(agentName);
-
             } 
 
         } catch (Exception e) {
@@ -204,7 +225,8 @@ public class HumanAgentModel {
 
     public void dropGarbage(String agentName){
         Location spot=model.getAgPos(getID(agentName));
-        model.addGarbage(spot.x, spot.y);
+        if(model.whichRoom(spot.x, spot.y)!=ROOM.DOORWAY)
+            model.addGarbage(spot.x, spot.y);
     }
 
     public int getID(String agentName) {
@@ -233,12 +255,17 @@ public class HumanAgentModel {
     }
 
     public boolean canStep(int x, int y){
+        Location vacuumpos=model.getAgPos(1);
+        if(vacuumpos.x==x && vacuumpos.y==y)
+            return false;
+
         if(model.isFree(x, y)){
             return true;
         }
         else if(model.hasGarbage(x, y) && !cellOccupied(x, y)){
             return true;
         }
+
         else{
             return false;
         }
@@ -260,9 +287,12 @@ public class HumanAgentModel {
 
 
         
-        if (targetRoom != currentRoom) {
+        if (targetRoom != currentRoom && targetRoom!=ROOM.DOORWAY && currentRoom!=ROOM.DOORWAY) {
+            Location doorway=model.getDoorwayPos(currentRoom, targetRoom);
+            x=doorway.x;
+            y=doorway.y;
 
-            if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
+            /* if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
                     || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
                     || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
                 x = vacuum_hall_doorway.x;
@@ -282,7 +312,7 @@ public class HumanAgentModel {
             else if((currentRoom==ROOM.DOORWAY && (targetRoom==ROOM.VACUUM || targetRoom==ROOM.PRINTER))){
                 x=loc.x;
                 y=loc.y-1;
-            }
+            } */
 
         }
 
@@ -299,33 +329,33 @@ public class HumanAgentModel {
         if (canStep(newX, newY)) {
             loc.x = newX;
             loc.y = newY;
-            updateLoc(agentid, loc);
+            
         } else if (canStep(newX, loc.y)) {
             loc.x = newX;
-            updateLoc(agentid, loc);
         } else if (canStep(loc.x, newY)) {
             loc.y = newY;
-            updateLoc(agentid, loc);
+            
         } else if (canStep(newX, loc.y+1)) {
             loc.x = newX;
             loc.y=loc.y+1;
-            updateLoc(agentid, loc);
+            
         }
         else if (canStep(newX, loc.y-1)) {
             loc.x = newX;
             loc.y=loc.y-1;
-            updateLoc(agentid, loc);
+            
         }
         else if (canStep(loc.x+1, newY)) {
             loc.x = loc.x+1;
             loc.y=newY;
-            updateLoc(agentid, loc);
+            
         }
         else if (canStep(loc.x-1, newY)) {
             loc.x = loc.x-1;
             loc.y=newY;
-            updateLoc(agentid, loc);
+            
         }
+        updateLoc(agentid, loc);
         
 
     } 
