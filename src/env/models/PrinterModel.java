@@ -65,16 +65,12 @@ public class PrinterModel {
                 }
                 printerWorking = false;
 
-                // Randomly set printer error
-                if(!waserroralready)
-                {
-                if (Math.random() < 1.0) { // 10% chance of error
+                if (Math.random() < 0.1) { // 10% chance of error
                     printerError = true;
                     waserroralready=true;
                 } else {
                     printerError = false;
                 }
-            }
             } else {
                 printerWorking = false;
             }

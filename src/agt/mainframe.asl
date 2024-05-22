@@ -8,7 +8,7 @@
 +done(Requester)[source(Source)]
 	<-  
 		.print("recieved 'done' from ", Source, ", forwarding to ", Requester);
-		.send(Source, tell, report_location);
+		.send(Source, tell, report_location).
 		// this will continue via +location(_,_)
 
 // Report an error that happened during a request from a requester
