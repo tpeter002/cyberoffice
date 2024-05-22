@@ -35,7 +35,7 @@ first_belief.
    <-  // elmegyünk másik szobába
       .print("elértem a szoba végét megyek máshova");
       -room_empty(_)[source(Mainframe)];
-      .send(mainframe, tell, vacuum_done);
+      .send(mainframe, tell, vacuum_finished_room(Room));
       +searching_for_empty_room.
 
 /* people in the room while checking */
@@ -52,13 +52,14 @@ first_belief.
    <- 
       .print("ember van a szobában várok");
       .wait(1000);
+      check_room_empty;
       !check(Room).
 
 /* error while checking */
 +!check(Room)
     : error
    <- 
-      .print("elromlottam ,varom az embert hogy megjavitson");
+      .print("elromlottam, varom az embert hogy megjavitson");
       .wait(1000);
       !check(Room).
 
@@ -67,16 +68,7 @@ first_belief.
    : searching_for_empty_room // if i dont have any other percept of a room being empty
    <- -searching_for_empty_room;
       .print("Megkaptam: " , Room);
-      .findall(Room, room_empty(Room), Rooms);
-      .length(Rooms, Length);
-      .random(R);
-      RandomIndex = math.floor(R * Length);
-      .nth(RandomIndex, Rooms, SelectedRoom);
-      +should_clean_room(SelectedRoom).
-
-+room_not_empty(Room)[source(Mainframe)] 
-   <- -room_empty(Room);
-      .print("Töröltem mert nem üres: " , Room).
+      +should_clean_room(Room).
 
 +should_clean_room(SelectedRoom)
    : not at_room(SelectedRoom)
