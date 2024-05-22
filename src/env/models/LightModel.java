@@ -24,7 +24,7 @@ public class LightModel {
         lights.add(new Light(OfficeModel.ROOM.PRINTER));
 
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
-            roomStates.put(room, false);
+            roomStates.put(room, true);
         }
 
         for (int i = 0; i < lights.size(); i++) {
@@ -41,26 +41,31 @@ public class LightModel {
     }
 
     private void pollRoomStates() {
-        System.out.println("Polling room states");
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             boolean currentState = model.roomIsEmpty(room);
             boolean previousState = roomStates.get(room);
-            System.out.println("Room: " + room + " Current: " + currentState + " Previous: " + previousState);
+            // System.out.println("Room: " + room + " Current: " + currentState + "
+            // Previous: " + previousState);
 
-            if (previousState && !currentState) {
+            if (!currentState && previousState) {
                 for (Light light : lights) {
                     if (light.getRoom() == room) {
+                        System.out.println(
+                                "pooling room states:" + light.getRoom()
+                                        + "Person detected in room: ---------------------------------- turnOn() called");
                         light.turnOn();
+
                     }
                 }
-                System.out.println("Person detected in room: " + room);
-            } else if (!previousState && currentState) {
+            } else if (currentState && !previousState) {
                 for (Light light : lights) {
                     if (light.getRoom() == room) {
                         light.turnOff();
+                        System.out.println(
+                                "pooling room states:" + light.getRoom()
+                                        + " Person left the Room:---------------------------------- turnOff() called");
                     }
                 }
-                System.out.println("No Person detected in room: " + room);
             }
 
             roomStates.put(room, currentState);
@@ -79,6 +84,8 @@ public class LightModel {
             System.err.println("Light not found");
             return;
         }
+        System.out
+                .println("executeAction:" + action + "  " + agentName + " in room: " + light.getRoom());
         light.executeAction(action);
     }
 
@@ -87,7 +94,6 @@ public class LightModel {
     }
 
     public ArrayList<Percept> newPercepts() {
-        System.out.println("New perceptsáááááááááááááááááááááááááááááááááááááááááááá");
         pollRoomStates();
         ArrayList<Percept> percepts = new ArrayList<>();
         for (int i = 0; i < lights.size(); i++) {
@@ -138,13 +144,14 @@ public class LightModel {
         public void turnOn() {
             this.untilBreakDown--;
             if (this.untilBreakDown <= 0) {
+                System.out.println("------------------------------------------Until Breakdown: " + this.untilBreakDown);
                 this.isBroken = true;
                 this.isOn = false;
-                System.err.println("Light in room " + this.room + " is broken");
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_broken")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
             } else {
                 this.isOn = true;
+                System.out.println("Light in room " + this.room + " is on");
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
             }
@@ -152,6 +159,7 @@ public class LightModel {
 
         public void turnOff() {
             this.isOn = false;
+            System.out.println("Light in room " + this.room + " is off");
             newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
             removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
         }
@@ -159,6 +167,7 @@ public class LightModel {
         public void repair() {
             this.isBroken = false;
             this.untilBreakDown = 10;
+            System.out.println("Light in room " + this.room + " is repaired");
             newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_repaired")));
             removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_broken")));
         }
@@ -172,6 +181,11 @@ public class LightModel {
         }
 
         public void executeAction(Structure action) {
+            System.out.println("[l" + this._id + "] Light in room " + this.room + " is On: " + this.isOn);
+            if (isBroken) {
+                System.out.println("Light in room " + this.room + " is broken");
+                return;
+            }
             if (action.equals(turnOn)) {
                 this.turnOn();
             } else if (action.equals(turnOff)) {
@@ -181,8 +195,21 @@ public class LightModel {
             } else if (action.equals(getLocation)) {
                 newPercepts
                         .add(new Percept("l" + _id, Literal.parseLiteral("location(" + this.x + "," + this.y + ")")));
-            }
+            } // else if (action.equals(operate)) {
+              // pollRoomStates();
+              // }
         }
+
+        // public void pollRoomStates() {
+        // System.out.println("Polling room states");
+        // boolean currentState = model.roomIsEmpty(room);
+        // if (isPersonInRoom && !currentState) {
+        // turnOn();
+        // } else if (!isPersonInRoom && currentState) {
+        // turnOff();
+        // }
+        // isPersonInRoom = currentState;
+        // }
 
         public void set_id(int id) {
             this._id = id;

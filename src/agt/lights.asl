@@ -19,7 +19,7 @@
       +initialized.
 
 +!operating : true 
-  <-  .print("Lights Agent already initialized.");
+  <-  .print("Lights Agent is operating...");
       operate;
       .wait(1000);
       !operating.

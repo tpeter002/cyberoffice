@@ -100,8 +100,6 @@ public class OfficeEnv extends Environment {
         }
 
         if (agentName.charAt(0) == 'l') {
-            System.out
-                    .println("LightModel---------------------------------------------------------Operate light model");
             model.lightModel.executeAction(agentName, action); // Pass agentName and action
             updatePercepts(agentName);
             return true;
@@ -375,8 +373,6 @@ public class OfficeEnv extends Environment {
 
         public ArrayList<Percept> getPerceptsToRemove(String agentName) {
             ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
-            System.out.println("IDE bezzeg eljutunk---------------------------------------------------------");
-            System.out.println("agentName---------------------------------------------------------" + agentName);
             if (agentName.equals("printer")) {
                 // percepts_to_remove.addAll(printerModel.perceptsToRemove());
             } else if (agentName.equals("vacuumcleaner")) {
@@ -386,7 +382,6 @@ public class OfficeEnv extends Environment {
             } else if (agentName.equals("mainframe")) {
                 // percepts_to_remove.addAll(mainframeModel.perceptsToRemove());
             } else if (agentName.charAt(0) == 'l') {
-                System.out.println("LightModel---------------------------------------------------------");
                 percepts_to_remove.addAll(lightModel.perceptsToRemove());
             }
             return percepts_to_remove;
