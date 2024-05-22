@@ -39,10 +39,12 @@
   <-  .print("Light is repaired ---------------------------------------------------------yeee mukodik az ASL");
       .send(mainframe, tell, light_ready).
 
-+location(X,Y) 
-  <-  .send(mainframe, tell, location(X,Y));
-      //.print("Location is: " + X + " " + Y);
-      -location(_,_).
++location(X, Y) 
+  <-  .send(mainframe, tell, location(X, Y));
+      .print("Location has been sent to mainframe---------------------------------------------------------yeee mukodik az ASL");
+      -location(_, _).
 
 +report_location 
-  <-  get_location.
+  <-  get_location;
+      .print("Location is reported---------------------------------------------------------yeee mukodik az ASL");
+      -report_location.
