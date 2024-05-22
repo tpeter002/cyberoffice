@@ -22,11 +22,7 @@ working.
 +go_fix(Errorer, Xe, Ye) : true <-  .print("kaptam go fixet"); !move.
 
 
-+done(Source, Xd, Yd): true <- !move.
-
-
-
-+done(Source, Xd, Yd): true <- !move.
++done(Source, Xd, Yd): true <- .print("kaptam hogy done"); !move.
 
 
 /* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
@@ -56,6 +52,13 @@ load.
     +target(X, Y);
     !move.
 
++stay: true <-
+.suspend(move);
+.print("ittmaradok dolgozok");
+.wait(10000);
+load;
+.resume(move).
+
 //+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
 
 
@@ -63,6 +66,7 @@ load.
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
     .print("elertem fixeles pozit: ", Xe,", ", Ye);
+    clear(go_fix(Errorer,Xe,Ye)[source(_)]);
     .send(Errorer, tell, repair);
     -go_fix(Errorer, Xe, Ye)[source(_)];
     !move.
@@ -80,6 +84,7 @@ load.
 //A nyomtató célját elérte
 +!move : not go_fix(_,_,_) & done(Source, Xd, Yd) & (pos(Xd, Yd) | adjacent(Xd, Yd)) <-
     .print("!!!!!!!!!!!!!!!!!!I have reached the printing position (", Xd, ",", Yd, ")");
+    clear(done(Source, Xd, Yd)[source(_)]);
     -done(Source, Xd, Yd)[source(_)];
     !move.
 
@@ -116,7 +121,9 @@ load.
 
 +!move : go_fix(_,_,_) <- .print("nemerdekel").
 
-+!move: not go_fix(_,_,_) & not target(_,_) <- .print("nincs celom"); .wait(1000); !move.
++!move: not go_fix(_,_,_) & not target(_,_) <- 
+.print("Kész vagyok a rutinommal :)").
+
 
 
 +pos(X, Y) : pos(Xc, Yc) & not (X == Xc & Y == Yc) <-
@@ -126,6 +133,7 @@ load.
     -adjacent(Xc, Yc+1)[source(_)];
     -adjacent(Xc, Yc-1)[source(_)]; */
     .abolish(adjacent(_,_));
+   // clear(pos(Xc, Yc)[source(_)]);
     .min([X+1, 19], AdjXa);
     .max([X-1, 0], AdjXb);
     .min([Y+1, 19], AdjYa);
