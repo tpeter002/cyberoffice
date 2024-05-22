@@ -83,6 +83,7 @@ error(false).
 +repair[source(Agent)]
     : true
    <- -error(true);
+    .print("Javítanak:)");
    .print("Printer repaired.");
     !print(Agent);
    +error(false);
@@ -91,14 +92,14 @@ error(false).
 
 
 // Reporting location
-    +report_location
++report_location
    <- 
-      get_location;
-      .print("Telling mainframe my location");
+       get_location;
       -report_location.
 
 // Sending the printer's location to the mainframe
 +location(X, Y)
    <- 
       .send(mainframe, tell, location(X, Y));
+      .print("Location sent to mainframe: ", X, ", ", Y);
       -location(_,_).

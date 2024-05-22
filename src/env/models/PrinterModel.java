@@ -82,6 +82,9 @@ public class PrinterModel {
             print(); // Start printing the next document in the queue
             return true;
         }
+        else if (action.getFunctor().equals("get_location")){
+            get_location();
+        }
         return false;
     }
 
@@ -89,7 +92,7 @@ public class PrinterModel {
         ArrayList<Percept> newpercepts = new ArrayList<>();
         if (this.requestedLocation) {
             // Need to change the corrdinates if GSize changes
-            newpercepts.add(new Percept(Literal.parseLiteral("location(" + (20-1) + ", " + (20-1) + ")")));
+            newpercepts.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
             this.requestedLocation = false;
         }
         if(this.printerError){
