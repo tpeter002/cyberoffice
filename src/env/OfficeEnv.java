@@ -123,9 +123,7 @@ public class OfficeEnv extends Environment {
             if (room != OfficeModel.ROOM.DOORWAY) {
                 if (model.roomIsEmpty(room)) {
                     percepts.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
-                    perceptsToRemove.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
                 } else {
-                    percepts.add(new Percept("mainframe", Literal.parseLiteral("room_not_empty(" + room.ordinal() + ")")));
                     perceptsToRemove.add(new Percept("mainframe", Literal.parseLiteral("room_empty(" + room.ordinal() + ")")));
                 }
             }
