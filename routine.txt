@@ -3,12 +3,16 @@ move(19,19)
 move(19, 2)
 print
 move(19,19)
+print
+move(19,19)
+print
+move(19,19)
 move(0, 3)
 move(2, 11)
 ;
 h2
-move(0,19)
 move(0,1)
+move(18, 0)
 print
 move(0, 10)
 move(19, 2)
