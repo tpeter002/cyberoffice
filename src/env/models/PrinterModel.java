@@ -26,6 +26,7 @@ public class PrinterModel {
     private Queue<String> printQueue = new LinkedList<>();
     Logger logger = Logger.getMyLogger(getClass().getName());
     boolean requestedLocation = false;
+    boolean waserroralready = false;
 
     public PrinterModel(OfficeModel model, int GSize) {
         position = 0;
@@ -65,11 +66,15 @@ public class PrinterModel {
                 printerWorking = false;
 
                 // Randomly set printer error
+                if(!waserroralready)
+                {
                 if (Math.random() < 1.0) { // 10% chance of error
                     printerError = true;
+                    waserroralready=true;
                 } else {
                     printerError = false;
                 }
+            }
             } else {
                 printerWorking = false;
             }
@@ -85,6 +90,9 @@ public class PrinterModel {
         else if (action.getFunctor().equals("get_location")){
             get_location();
         }
+        else if (action.getFunctor().equals("gotrepaired")){
+            gotRepaired();
+        }
         return false;
     }
 
@@ -93,12 +101,27 @@ public class PrinterModel {
         if (this.requestedLocation) {
             // Need to change the corrdinates if GSize changes
             newpercepts.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
+            System.out.println("Location sent with percept");
             this.requestedLocation = false;
         }
         if(this.printerError){
             newpercepts.add(new Percept(Literal.parseLiteral("printer_error")));
         }
         return newpercepts;
+    }
+    public ArrayList<Percept> perceptsToRemove()
+    {
+        ArrayList<Percept> perceptsToRemove = new ArrayList<>();
+        if(!this.requestedLocation)
+        {
+            perceptsToRemove.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
+        }
+        if(!this.printerError)
+        {
+            perceptsToRemove.add(new Percept(Literal.parseLiteral("printer_error")));
+        }
+        return perceptsToRemove;
+    
     }
 
     public void gotRepaired() {
@@ -107,6 +130,7 @@ public class PrinterModel {
 
     public void get_location() {
         this.requestedLocation = true;
+        System.out.println("Requested location");
     }
 
 }

@@ -8,7 +8,7 @@
 +done(Requester)[source(Source)]
 	<-  
 		.print("recieved 'done' from ", Source, ", forwarding to ", Requester);
-		.send(Source, tell, report_location).
+		.send(Source, tell, report_location);
 		// this will continue via +location(_,_)
 
 // Report an error that happened during a request from a requester
@@ -37,7 +37,7 @@
 		.send(Errorer, tell, report_location).
 
 +location(X, Y)[source(Source)]
-	:	error_in_need_of_fixing(Source, _)
+	:	error_in_need_of_fixing(Source, _) & not done(_)[source(Source)]
 	<-
 		.findall(Requester, error_in_need_of_fixing(Source, Requester), Requesters);
 
