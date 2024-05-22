@@ -57,6 +57,7 @@
 		.random(R);
 		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Printers, SelectedPrinter);
+		
 		!private_print(SelectedPrinter, Requester);
 		-print[source(Requester)].
 
@@ -190,6 +191,7 @@
 	:	done(_)[source(Source)]
 	<-
 		.findall(Requester, done(Requester)[source(Source)], Requesters);
+		.print("sending location  of ", Source, "to ", Requesters);
 		if (not .empty(Requesters)) {
 			.nth(0, Requesters, Requester);
 			.send(Requester, tell, done(Source, X, Y));
