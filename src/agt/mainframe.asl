@@ -1,11 +1,5 @@
 // Agent mainframe in project cyberoffice
 
-//!find_agents.
-
-//+!find_agents
-//	<-
-//		.broadcast(tell, report_to_mainframe).
-
 /* GENERIC 
  * used by any agent in the right circumstance, it is detailed in each agents' own section
  */
