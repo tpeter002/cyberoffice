@@ -1,5 +1,6 @@
 
 !initialize.
+!operating.
 
 //light_ready -> message to mainframe that light is ready (Csuti kéri) + hol van
 //light_ready -> message to mainframe that light has been repaired (Csuti kéri)
@@ -17,6 +18,12 @@
       .send(mainframe, tell, light_ready);
       +initialized.
 
++!operating : true 
+  <-  .print("Lights Agent already initialized.");
+      operate;
+      .wait(1000);
+      !operating.
+
 +light_broken 
   <-  .print("Light is broken in room: ");
       .send(mainframe, tell, error).
@@ -31,7 +38,7 @@
 
 +location(X,Y) 
   <-  .send(mainframe, tell, location(X,Y));
-      .print("Location is: " + X + " " + Y);
+      //.print("Location is: " + X + " " + Y);
       -location(_,_).
 
 +report_location 

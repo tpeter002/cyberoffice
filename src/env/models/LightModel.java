@@ -15,13 +15,17 @@ public class LightModel {
 
     private OfficeModel model;
     private ArrayList<Light> lights = new ArrayList<>();
+    private Map<OfficeModel.ROOM, Boolean> roomStates = new HashMap<>();
 
-    public LightModel(OfficeModel model, OfficeEnv env, int GSize) {
+    public LightModel(OfficeModel model, int GSize) {
         this.model = model;
-        this.env = env;
         lights.add(new Light(OfficeModel.ROOM.VACUUM));
         lights.add(new Light(OfficeModel.ROOM.HALL));
         lights.add(new Light(OfficeModel.ROOM.PRINTER));
+
+        for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
+            roomStates.put(room, false);
+        }
 
         for (int i = 0; i < lights.size(); i++) {
             Light light = lights.get(i);
@@ -37,6 +41,7 @@ public class LightModel {
     }
 
     private void pollRoomStates() {
+        System.out.println("Polling room states");
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
             boolean currentState = model.roomIsEmpty(room);
             boolean previousState = roomStates.get(room);
@@ -75,7 +80,6 @@ public class LightModel {
             return;
         }
         light.executeAction(action);
-        updatePercepts(agentName);
     }
 
     public Light getLight(int i) {
@@ -83,6 +87,7 @@ public class LightModel {
     }
 
     public ArrayList<Percept> newPercepts() {
+        System.out.println("New perceptsáááááááááááááááááááááááááááááááááááááááááááá");
         pollRoomStates();
         ArrayList<Percept> percepts = new ArrayList<>();
         for (int i = 0; i < lights.size(); i++) {
@@ -116,6 +121,7 @@ public class LightModel {
 
         public static final Term turnOn = Literal.parseLiteral("turn_light_on");
         public static final Term turnOff = Literal.parseLiteral("turn_light_off");
+        public static final Term operate = Literal.parseLiteral("operate");
         public static final Term repair = Literal.parseLiteral("repair_light");
         public static final Term broken = Literal.parseLiteral("light_broken");
         public static final Term getLocation = Literal.parseLiteral("get_location");
