@@ -19,7 +19,7 @@ error(false).
     +printer_ready(false);
     .print("Printing for ", Agent, "...");
     print;
-    !print_success(Agent, SenderAgent);
+    !print_success(Agent);
     +printer_ready(true);
     -printer_ready(false).
 
@@ -31,7 +31,7 @@ error(false).
     +printer_ready(false);
     .print("Printing again for ", Agent, "...");
     print;
-    !print_success(Agent, SenderAgent);
+    !print_success(Agent);
     +printer_ready(true);
     -printer_ready(false).
 
@@ -55,14 +55,14 @@ error(false).
 
 
 // When error occurs
-+!print_success(Agent, SenderAgent)
++!print_success(Agent)
     : error(true)
    <- .print("Printing failed for ", Agent);
-      !notify_mainframe_error(Agent, SenderAgent).
+      !notify_mainframe_error(Agent).
 
 
 // When printing is successful
-+!print_success(Agent, SenderAgent)
++!print_success(Agent)
     : error(false)
    <- .print("Printing successful for ", Agent);
    .send(mainframe, tell, done(Agent)).
@@ -73,10 +73,10 @@ error(false).
    <- +error(true).
 
 // Notifying the mainframe about the error
-+!notify_mainframe_error(Agent, SenderAgent)
++!notify_mainframe_error(Agent)
     : true
    <- .print("Notifying mainframe about error for ", Agent);
-   .send(SenderAgent, tell, error(Agent)).
+   .send(mainframe, tell, error(Agent)).
 
 
 // Repairing the printer
