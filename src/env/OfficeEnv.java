@@ -25,10 +25,11 @@ import env.BackgroundMusic;
 // Main environment class
 public class OfficeEnv extends Environment {
 
-    public static final int GSize = 20; // grid size
+    public static final int GSize = 21; // grid size
     public static final int GARB  = 16; // garbage code in grid model
     public static final int WALL = 4; // wall code in grid model
     public static final int LACK_OF_LIGHT = 8;
+    public static final int AGENT = 2;
 
     public static final Term load = Literal.parseLiteral("load");
     public static final Term loadpos = Literal.parseLiteral("loadpos");
@@ -296,6 +297,18 @@ public class OfficeEnv extends Environment {
             }
         }
 
+        @Override
+        public boolean isFree(int x, int y) {
+            return super.isFree(x, y) || (
+                hasObject(LACK_OF_LIGHT, x, y) && (
+                    !hasObject(AGENT, x, y) 
+                    && !hasObject(WALL, x, y)
+                    && !hasObject(GARB, x, y)
+                )
+            );
+        }
+
+
         public boolean roomIsEmpty(ROOM room) {
             switch (room) {
                 case VACUUM:
@@ -326,7 +339,6 @@ public class OfficeEnv extends Environment {
                     }
                     break;
             }
-            turnOffLight(room);
             return true;
         }
 
@@ -356,23 +368,60 @@ public class OfficeEnv extends Environment {
             return data[x][y];
         }
 
+        public boolean isLightBrokenInLocation(int x, int y) {
+            ROOM room = whichRoom(x, y);
+            return lightModel.isLightBrokenInRoom(room);
+        }
+
         public void turnOffLight(ROOM room) {
-            for (int x = 0; x < GSize; x++) {
-                for (int y = 0; y < GSize; y++) {
-                    if (whichRoom(x, y) == room) {
-                        add(LACK_OF_LIGHT, x, y);
+            switch (room) {
+                case VACUUM:
+                    for (int x = 0; x < xMainWall; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
                     }
-                }
+                    break;
+                case PRINTER:
+                    for (int x = xMainWall + 1; x < GSize; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int x = 0; x < GSize; x++) {
+                        for (int y = yMainWall + 1; y < GSize; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
             }
         }
 
         public void turnOnLight(ROOM room) {
-            for (int x = 0; x < GSize; x++) {
-                for (int y = 0; y < GSize; y++) {
-                    if (whichRoom(x, y) == room) {
-                        remove(LACK_OF_LIGHT, x, y);
+            switch (room) {
+                case VACUUM:
+                    for (int x = 0; x < xMainWall; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
                     }
-                }
+                    break;
+                case PRINTER:
+                    for (int x = xMainWall + 1; x < GSize; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int x = 0; x < GSize; x++) {
+                        for (int y = yMainWall + 1; y < GSize; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
             }
         }
 
@@ -428,8 +477,16 @@ public class OfficeEnv extends Environment {
         public void draw(Graphics g, int x, int y, int object) {
             switch (object) {
                 case OfficeEnv.LACK_OF_LIGHT:
-                    g.setColor(Color.LIGHT_GRAY);
+                    // if broken
+                    if (omodel.isLightBrokenInLocation(x, y)) {
+                        g.setColor(Color.ORANGE);
+                    } else {
+                        g.setColor(Color.LIGHT_GRAY);
+                    }
+                    
                     g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+                    //g.setColor(Color.BLACK);
+                    //g.drawRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
                     break;
                 case OfficeEnv.GARB:
                     g.setColor(new Color(153, 102, 0));
@@ -462,7 +519,7 @@ public class OfficeEnv extends Environment {
                 label = "H";
             }
             super.drawAgent(g, x, y, c, id);
-            super.drawString(g, x, y, defaultFont, label);
+            //super.drawString(g, x, y, defaultFont, label);
             repaint();
         }
     }

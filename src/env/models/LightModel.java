@@ -66,6 +66,15 @@ public class LightModel {
         return lights.get(i);
     }
 
+    public boolean isLightBrokenInRoom(OfficeModel.ROOM room) {
+        for (Light light : lights) {
+            if (light.getRoom().equals(room)) {
+                return light.isBroken;
+            }
+        }
+        return false;
+    }
+
     public ArrayList<Percept> newPercepts() {
         ArrayList<Percept> percepts = new ArrayList<>();
         for (int i = 0; i < lights.size(); i++) {
@@ -109,6 +118,8 @@ public class LightModel {
         public static final Term broken = Literal.parseLiteral("light_broken");
         public static final Term getLocation = Literal.parseLiteral("get_location");
 
+        public boolean initialized = false;
+
         public Light(OfficeModel.ROOM room) {
             this.room = room;
             this.isOn = false;
@@ -118,6 +129,7 @@ public class LightModel {
             this.removePercepts = new ArrayList<>();
             this.prevoiusState = true;
             this.newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
+
         }
 
         public void poolRoomState() {
@@ -127,6 +139,18 @@ public class LightModel {
             } else if (currentState && !prevoiusState) {
                 turnOff();
             }
+
+            if (!initialized) {
+                if (isOn) {
+                    model.turnOnLight(room);
+                } else {
+                    model.turnOffLight(room);
+                }
+                initialized = true;
+            }
+
+
+
             prevoiusState = currentState;
         }
 
@@ -141,6 +165,7 @@ public class LightModel {
                 // this.room + "Person detected in room: ----------------------------------
                 // turnOn() called but failed, light is broken");
             } else {
+                model.turnOnLight(room);
                 // System.out.println("[l" + this._id + "] " + "pooling room states:" +
                 // this.room + "Person detected in room: ----------------------------------
                 // turnOn() called");
@@ -151,6 +176,7 @@ public class LightModel {
         }
 
         public void turnOff() {
+            model.turnOffLight(room);
             // System.out.println("[l" + this._id + "] " + "pooling room states:" +
             // this.room + " Person left the Room:----------------------------------
             // turnOff() called");

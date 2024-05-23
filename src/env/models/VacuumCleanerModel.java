@@ -167,6 +167,9 @@ public class VacuumCleanerModel {
 		if (this.currentRoom != newRoom) {
 			this.oldRoom = this.currentRoom;
 		}
+		if (this.currentRoom == OfficeModel.ROOM.DOORWAY) {
+			yOffset = 0;
+		}
 		this.currentRoom = newRoom;
 	}
 
@@ -190,30 +193,29 @@ public class VacuumCleanerModel {
 	public Location avoidObstacle(Location vc) {
 		if (this.areHumansFriend) {
 			if ((!(model.isFree(vc.x, vc.y)) && !(model.hasGarbage(vc.x, vc.y)))) {
-				System.out.println("Obstacle detected at " + vc.x + ", " + vc.y);
-				if (model.isFree(vc.x, vc.y + 1) && !(model.cellOccupied(vc.x, vc.y + 1))) {
+				if (model.isFree(vc.x, vc.y + 1)) {
 					this.yOffset += 1;
 					vc.y++;
-				} else if (model.isFree(vc.x + 1, vc.y) && !(model.cellOccupied(vc.x + 1, vc.y)))
+				} else if (model.isFree(vc.x + 1, vc.y))
 					vc.x++;
-				else if (model.isFree(vc.x, vc.y - 1) && !(model.cellOccupied(vc.x, vc.y - 1))) {
+				else if (model.isFree(vc.x, vc.y - 1)) {
 					vc.y--;
 					this.yOffset -= 1;
-				} else if (model.isFree(vc.x - 1, vc.y) && !(model.cellOccupied(vc.x - 1, vc.y)))
+				} else if (model.isFree(vc.x - 1, vc.y))
 					vc.x--;
-				else if (model.isFree(vc.x + 1, vc.y + 1) && !(model.cellOccupied(vc.x + 1, vc.y + 1))) {
+				else if (model.isFree(vc.x + 1, vc.y + 1)) {
 					vc.x++;
 					vc.y++;
 					this.yOffset += 1;
-				} else if (model.isFree(vc.x - 1, vc.y - 1) && !(model.cellOccupied(vc.x - 1, vc.y - 1))) {
+				} else if (model.isFree(vc.x - 1, vc.y - 1)) {
 					vc.x--;
 					vc.y--;
 					this.yOffset -= 1;
-				} else if (model.isFree(vc.x + 1, vc.y - 1) && !(model.cellOccupied(vc.x + 1, vc.y - 1))) {
+				} else if (model.isFree(vc.x + 1, vc.y - 1)) {
 					vc.x++;
 					vc.y--;
 					this.yOffset -= 1;
-				} else if (model.isFree(vc.x - 1, vc.y + 1) && !(model.cellOccupied(vc.x - 1, vc.y + 1))) {
+				} else if (model.isFree(vc.x - 1, vc.y + 1)) {
 					vc.x--;
 					vc.y++;
 					this.yOffset += 1;
@@ -227,13 +229,14 @@ public class VacuumCleanerModel {
 	}
 
 	public void moveTowards(Location loc) {
+
 		Location vc = model.getAgPos(this.id);
 		Location next = vc;
 
 		int dx = Math.abs(loc.x - vc.x);
 		int dy = Math.abs(loc.y - vc.y);
 
-		if (dx > dy) {
+		if (dx >= dy) {
 			if (vc.x < loc.x)
 				next.x = vc.x + 1;
 			if (vc.x > loc.x)
