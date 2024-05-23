@@ -1,6 +1,8 @@
 package models;
 
 import jason.asSyntax.*;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,11 +57,8 @@ public class LightModel {
         } else if (agentName.equals("l3")) {
             light = this.getLight(2);
         } else {
-            System.err.println("Light not found");
             return;
         }
-        // System.out.println("executeAction:" + action + " " + agentName + " in room: "
-        // + light.getRoom());
         light.executeAction(action);
     }
 
@@ -71,7 +70,8 @@ public class LightModel {
         ArrayList<Percept> percepts = new ArrayList<>();
         for (int i = 0; i < lights.size(); i++) {
             Light light = lights.get(i);
-            for (Percept p : light.newPercept()) {
+            ArrayList<Percept> lightPercepts = new ArrayList<>(light.newPercept());
+            for (Percept p : lightPercepts) {
                 percepts.add(new Percept("l" + light._id, p.message));
             }
             light.newPercepts.clear();
@@ -83,7 +83,8 @@ public class LightModel {
         ArrayList<Percept> percepts = new ArrayList<>();
         for (int i = 0; i < lights.size(); i++) {
             Light light = lights.get(i);
-            for (Percept p : light.perceptsToRemove()) {
+            ArrayList<Percept> lightPercepts = new ArrayList<>(light.perceptsToRemove());
+            for (Percept p : lightPercepts) {
                 percepts.add(new Percept("l" + light._id, p.message));
             }
             light.removePercepts.clear();
@@ -136,11 +137,13 @@ public class LightModel {
                 this.isOn = false;
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_broken")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
-                System.out.println("[l" + this._id + "] " + "pooling room states:" + this.room
-                        + "Person detected in room: ---------------------------------- turnOn() called but failed, light is broken");
+                // System.out.println("[l" + this._id + "] " + "pooling room states:" +
+                // this.room + "Person detected in room: ----------------------------------
+                // turnOn() called but failed, light is broken");
             } else {
-                System.out.println("[l" + this._id + "] " + "pooling room states:" + this.room
-                        + "Person detected in room: ---------------------------------- turnOn() called");
+                // System.out.println("[l" + this._id + "] " + "pooling room states:" +
+                // this.room + "Person detected in room: ----------------------------------
+                // turnOn() called");
                 this.isOn = true;
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
@@ -148,8 +151,9 @@ public class LightModel {
         }
 
         public void turnOff() {
-            System.out.println("[l" + this._id + "] " + "pooling room states:" + this.room
-                    + " Person left the Room:---------------------------------- turnOff() called");
+            // System.out.println("[l" + this._id + "] " + "pooling room states:" +
+            // this.room + " Person left the Room:----------------------------------
+            // turnOff() called");
             this.isOn = false;
             newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
             removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
@@ -157,10 +161,12 @@ public class LightModel {
 
         public void repair() {
             this.isBroken = false;
+            this.prevoiusState = true;
             this.untilBreakDown = 10;
-            System.out.println("Light in room " + this.room + " is repaired");
             newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_repaired")));
+            newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
             removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_broken")));
+
         }
 
         public ArrayList<Percept> newPercept() {
@@ -172,8 +178,6 @@ public class LightModel {
         }
 
         public void executeAction(Structure action) {
-            System.out.println("áááááááááááááá" + action);
-
             if (action.equals(repair)) {
                 this.repair();
             } else if (action.equals(getLocation)) {

@@ -24,27 +24,28 @@
       !operating.
 
 +light_on : true
-  <-  .print("Turning on lights---------------------------------------------------------yeee mukodik az ASL");
+  <-  .print("Turning on light");
       .send(mainframe, tell, lights_on).
 
 +light_off : true
-  <-  .print("Turning off lights---------------------------------------------------------yeee mukodik az ASL");
+  <-  .print("Turning off light");
       .send(mainframe, tell, lights_off).
 
 +light_broken : true
-  <-  .print("Light is broken---------------------------------------------------------yeee mukodik az ASL");
+  <-  .print("Light is broken");
       .send(mainframe, tell, error).
 
-+light_repaired : true
-  <-  .print("Light is repaired ---------------------------------------------------------yeee mukodik az ASL");
++repair : true
+  <-  .print("Light is repaired");
+      repair_light;
       .send(mainframe, tell, light_ready).
 
 +location(X, Y) 
   <-  .send(mainframe, tell, location(X, Y));
-      .print("Location has been sent to mainframe---------------------------------------------------------yeee mukodik az ASL");
+      .print("Location has been sent to mainframe");
       -location(_, _).
 
 +report_location 
   <-  get_location;
-      .print("Location is reported---------------------------------------------------------yeee mukodik az ASL");
+      .print("Location is reported");
       -report_location.
