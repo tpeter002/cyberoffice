@@ -16,7 +16,7 @@ first_belief.
     : not error & not slot_has_garbage & not at_room_end(Room) & not people_in_current_room
    <- 
       next_slot;
-      .print("chekkolom a slotokat faszaság");
+      //.print("chekkolom a slotokat faszaság");
       .wait(100);
       !check(Room).
 
