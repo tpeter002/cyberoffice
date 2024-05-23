@@ -45,8 +45,8 @@
 			.nth(0, Requesters, Requester);
 			.print("sending ", Requester, " to fix ", Source);
 			.send(Requester, tell, go_fix(Source, X, Y));
-			-error(Requester)[source(Source)]
-			-error[source(Source)]
+			-error(Requester)[source(Source)];
+			-error[source(Source)];
 		}
 		-location(X, Y)[source(Source)].
 

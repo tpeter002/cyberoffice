@@ -25,9 +25,11 @@ import env.BackgroundMusic;
 // Main environment class
 public class OfficeEnv extends Environment {
 
-    public static final int GSize = 20; // grid size
-    public static final int GARB = 8; // garbage code in grid model
+    public static final int GSize = 21; // grid size
+    public static final int GARB  = 16; // garbage code in grid model
     public static final int WALL = 4; // wall code in grid model
+    public static final int LACK_OF_LIGHT = 8;
+    public static final int AGENT = 2;
 
     public static final Term load = Literal.parseLiteral("load");
     public static final Term loadpos = Literal.parseLiteral("loadpos");
@@ -216,6 +218,7 @@ public class OfficeEnv extends Environment {
                 // add human agents
                 humanAgentModel = new HumanAgentModel(this, GSize);
 
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -312,6 +315,18 @@ public class OfficeEnv extends Environment {
             }
         }
 
+        @Override
+        public boolean isFree(int x, int y) {
+            return super.isFree(x, y) || (
+                hasObject(LACK_OF_LIGHT, x, y) && (
+                    !hasObject(AGENT, x, y) 
+                    && !hasObject(WALL, x, y)
+                    && !hasObject(GARB, x, y)
+                )
+            );
+        }
+
+
         public boolean roomIsEmpty(ROOM room) {
             switch (room) {
                 case VACUUM:
@@ -347,13 +362,13 @@ public class OfficeEnv extends Environment {
 
         // magic numbers
         public boolean isWall(int x, int y) {
-            // 4 is the code of the wall
-            return !isFree(4, x, y);
+            return !isFree(OfficeEnv.WALL, x, y); 
         }
 
         public boolean cellOccupied(int x, int y) {
             return humanAgentModel.cellOccupied(x, y);
         }
+
 
         public void addGarbage(int x, int y) {
             add(OfficeEnv.GARB, x, y);
@@ -365,6 +380,67 @@ public class OfficeEnv extends Environment {
 
         public boolean hasGarbage(int x, int y) {
             return hasObject(OfficeEnv.GARB, x, y);
+        }
+
+        public int getData(int x, int y) {
+            return data[x][y];
+        }
+
+        public boolean isLightBrokenInLocation(int x, int y) {
+            ROOM room = whichRoom(x, y);
+            return lightModel.isLightBrokenInRoom(room);
+        }
+
+        public void turnOffLight(ROOM room) {
+            switch (room) {
+                case VACUUM:
+                    for (int x = 0; x < xMainWall; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case PRINTER:
+                    for (int x = xMainWall + 1; x < GSize; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int x = 0; x < GSize; x++) {
+                        for (int y = yMainWall + 1; y < GSize; y++) {
+                            add(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        public void turnOnLight(ROOM room) {
+            switch (room) {
+                case VACUUM:
+                    for (int x = 0; x < xMainWall; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case PRINTER:
+                    for (int x = xMainWall + 1; x < GSize; x++) {
+                        for (int y = 0; y < yMainWall; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+                case HALL:
+                    for (int x = 0; x < GSize; x++) {
+                        for (int y = yMainWall + 1; y < GSize; y++) {
+                            remove(LACK_OF_LIGHT, x, y);
+                        }
+                    }
+                    break;
+            }
         }
 
         public ArrayList<Percept> getNewPercepts(String agentName) {
@@ -404,17 +480,32 @@ public class OfficeEnv extends Environment {
 
     class OfficeView extends GridWorldView {
 
+        OfficeModel omodel;
+
         public OfficeView(OfficeModel model) {
             super(model, "Office World", 600);
+            omodel = model;
             defaultFont = new Font("Arial", Font.BOLD, 18); // change default font
             setVisible(true);
-            repaint();
         }
+
 
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
             switch (object) {
+                case OfficeEnv.LACK_OF_LIGHT:
+                    // if broken
+                    if (omodel.isLightBrokenInLocation(x, y)) {
+                        g.setColor(Color.ORANGE);
+                    } else {
+                        g.setColor(Color.LIGHT_GRAY);
+                    }
+                    
+                    g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+                    //g.setColor(Color.BLACK);
+                    //g.drawRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+                    break;
                 case OfficeEnv.GARB:
                     g.setColor(new Color(153, 102, 0));
                     g.fillOval(x * cellSizeW + cellSizeW / 4, y * cellSizeH + cellSizeH / 4, cellSizeW / 2,
@@ -422,6 +513,7 @@ public class OfficeEnv extends Environment {
                     break;
             }
         }
+
 
         @Override
         public void drawAgent(Graphics g, int x, int y, Color c, int id) {
@@ -445,7 +537,7 @@ public class OfficeEnv extends Environment {
                 label = "H";
             }
             super.drawAgent(g, x, y, c, id);
-            super.drawString(g, x, y, defaultFont, label);
+            //super.drawString(g, x, y, defaultFont, label);
             repaint();
         }
     }
