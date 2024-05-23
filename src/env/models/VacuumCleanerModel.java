@@ -42,6 +42,7 @@ public class VacuumCleanerModel {
 	public static final Literal pick_garbage = Literal.parseLiteral("pick_garbage");
 
 	public static final Literal people_in_current_room = Literal.parseLiteral("people_in_current_room");
+	public static final Literal check_room_empty = Literal.parseLiteral("check_room_empty");
 	
 	public static final Literal get_location = Literal.parseLiteral("get_location");
 	public static final Literal error = Literal.parseLiteral("error");
@@ -147,6 +148,9 @@ public class VacuumCleanerModel {
             else if (action.equals(fix)) {
                 fix();
             }
+			else if (action.equals(check_room_empty)) {
+				// this is effectively an active wait so the percepts of the agent get updated
+			}
 			else {
 				System.out.println("Action not implemented: " + action);
 			}

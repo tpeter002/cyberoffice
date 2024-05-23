@@ -5,18 +5,35 @@ error(false).
 
 // Plans
 
-// print function when the printer is ready
+// Notify mainframe that printer is ready
++error(false)
+    : true
+    <- .send(mainframe, tell, printer_ready);
+        .print("Printer ready.").
+
+
+// Print function when printer is ready
 +print(Agent)[source(SenderAgent)]
     : printer_ready(true)
    <-  -printer_ready(true);
     +printer_ready(false);
     .print("Printing for ", Agent, "...");
     print;
-    !print_success(Agent, SenderAgent);
+    !print_success(Agent).
+
+
+// Print function after repairing the printer (for Agent)
++!print(Agent)[source(self)]
+   <-  -printer_ready(true);
+    +printer_ready(false);
+    .print("Printing again for ", Agent, "...");
+    !print_success(Agent);
+    print;
     +printer_ready(true);
     -printer_ready(false).
-    
-// print function when the printer is not ready
+
+
+// Print function when the printer is not ready - add to queue
 +print(Agent)[source(SenderAgent)]
     : printer_ready(false)
     <- .print("Agent ", Agent, " is in the queue.");
@@ -25,44 +42,66 @@ error(false).
     .wait(5000);
     !in_queue(Agent, SenderAgent).
 
-// plan for being in the queue
+
+// Being in the queue: trying to print again
 +!in_queue(Agent, SenderAgent)
     : true
     <-.print(Agent,"is trying to print again."); 
     -print(Agent)[source(SenderAgent)];
    +print(Agent)[source(SenderAgent)].
 
-// plan for "print success" if some error occurs
-+!print_success(Agent, SenderAgent)
+
+// When error occurs
++!print_success(Agent)
     : error(true)
    <- .print("Printing failed for ", Agent);
-      !notify_mainframe_error(Agent, SenderAgent).
+      !notify_mainframe_error(Agent).
 
-// plan for "print success" if no error occurs
-+!print_success(Agent, SenderAgent)
+
+// When printing is successful
++!print_success(Agent)
     : error(false)
    <- .print("Printing successful for ", Agent);
-   .send(dummymainframe, tell, printer_done(Agent)).
+      .print("sending mainframe im done");
+       +printer_ready(true);
+        -printer_ready(false);
+   .send(mainframe, tell, done(Agent)).
 
-// plan if error occurs
+// From the java file if error occurs
 +printer_error
     : true
    <- +error(true).
 
-// plan to notify mainframe about error
-+!notify_mainframe_error(Agent, SenderAgent)
+// Notifying the mainframe about the error
++!notify_mainframe_error(Agent)
     : true
    <- .print("Notifying mainframe about error for ", Agent);
-   .send(SenderAgent, tell, printer_error(Agent)).
+   .send(mainframe, tell, error(Agent)).
 
-// plan to notify mainframe about printer ready
-+!notify_mainframe_ready(Agent, SenderAgent)
-    : true
-   <- .send(mainframe, tell, printer_ready(SenderAgent)).
 
-// plan to repair the printer
+// Repairing the printer
 +repair[source(Agent)]
     : true
    <- -error(true);
+    .print("Javítanak:)");
    .print("Printer repaired.");
+   .send(mainframe, tell, printer_ready);
+    gotrepaired;
+    !print(Agent);
    +error(false).
+    
+
+
+// Reporting location
++report_location
+   <- 
+       get_location;
+       .print("Szoltak h szoljak javanak!");
+      -report_location[source(mainframe)].
+
+// Sending the printer's location to the mainframe
++location(X, Y)[source(percept)]
+   <- 
+      .send(mainframe, tell, location(X, Y));
+      .print("Megint el kell mondanom hol vagyok!");
+      -location(_,_)[source(percept)].

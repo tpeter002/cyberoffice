@@ -9,7 +9,7 @@
 	<-  
 		.print("recieved 'done' from ", Source, ", forwarding to ", Requester);
 		.send(Source, tell, report_location).
-		// this will continue via +location(_,_,_)
+		// this will continue via +location(_,_)
 
 // Report an error that happened during a request from a requester
 +error(Requester)[source(Source)]
@@ -17,7 +17,7 @@
 		.print("recieved 'error' from ", Source, ", to task from ", Requester);
 		//.send(Requester, tell, error(Source)); // we seem to not need this :D
 
-		!private_fix_error(Source, Requester).
+		!fix_error(Source, Requester).
 
 // Report an error that happened randomly
 +error[source(Source)]
@@ -28,7 +28,38 @@
 		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Humans, SelectedHuman);
 
-		!private_fix_error(Source, SelectedHuman).
+		!fix_error(Source, SelectedHuman).
+
++!fix_error(Errorer, Requester)
+	<-	
+		+error_in_need_of_fixing(Errorer, Requester);
+		.print("asking ", Errorer, " for their location ");
+		.send(Errorer, tell, report_location).
+
++location(X, Y)[source(Source)]
+	:	error_in_need_of_fixing(Source, _) & not done(_)[source(Source)]
+	<-
+		.findall(Requester, error_in_need_of_fixing(Source, Requester), Requesters);
+
+		if (not .empty(Requesters)) {
+			.nth(0, Requesters, Requester);
+			.print("sending ", Requester, " to fix ", Source);
+			.send(Requester, tell, go_fix(Source, X, Y));
+		}
+
+		-location(X, Y)[source(Source)].
+
++location(X, Y)[source(Source)]
+	:	done(_)[source(Source)]
+	<-
+		.findall(Requester, done(Requester)[source(Source)], Requesters);
+		if (not .empty(Requesters)) {
+			.nth(0, Requesters, Requester);
+			.send(Requester, tell, done(Source, X, Y));
+		}
+
+		-done(Requester)[source(Source)];
+		-location(X, Y)[source(Source)].
 
 
 
@@ -58,7 +89,7 @@
 		RandomIndex = math.floor(R * Length);
 		.nth(RandomIndex, Printers, SelectedPrinter);
 
-		!private_print(SelectedPrinter, Requester);
+		!tell_print(SelectedPrinter, Requester);
 		-print[source(Requester)].
 
 // Wait for printers to boot up before sending print requests
@@ -89,6 +120,18 @@
 		-error(Printer);
 		-printer_ready.
 
++!tell_print(Printer, Requester)
+	:	not error(Printer)
+	<-	
+		.print("recieved 'print' from ", Requester, ", forwarding to ", Printer);
+		.send(Printer, tell, print(Requester)).
+
++!tell_print(Printer, Requester)
+	:	error(Printer)
+	<-	
+		.print("recieved 'print' from ", Requester, ", but ", Printer, " is non functional");
+		!fix_error(Printer, Requester).
+
 
 
 /* VACUUM 
@@ -100,39 +143,43 @@
 	:	not error(Vacuum)
 	<-	
 		+vacuum(Vacuum);
+		!try_find_empty_room_and_clean(Vacuum);
 		-vacuum_ready.
 
 +vacuum_ready[source(Vacuum)]
 	:	error(Vacuum)
 	<-	
 		-error(Vacuum);
+		!try_find_empty_room_and_clean(Vacuum);
 		-vacuum_ready.
 
-// Sent every time to vacuum when there's an empty room
-+room_empty(Room)
-	:	vacuum(_)
-	<-	
-		.findall(Vacuum, vacuum(Vacuum), Vacuums);
-		.length(Vacuums, Length);
-		.random(R);
-		RandomIndex = math.floor(R * Length);
-		.nth(RandomIndex, Vacuums, SelectedVacuum);
-
-		.send(SelectedVacuum, tell, room_empty(Room));
-
-		-room_empty(Room).
-
-// Sent every time to vacuum when a room is not empty
-+room_not_empty(Room)
-	:	vacuum(_)
++vacuum_finished_room(FinishedRoom)[source(Vacuum)]
 	<-
-		.findall(Vacuum, vacuum(Vacuum), Vacuums);
-		for (.member(vacuum(Vacuum), Vacuums)) {
-			.send(Vacuum, tell, room_not_empty(Room));
-		};
+		!try_find_empty_room_and_clean(Vacuum).
 
-    	-room_not_empty(Room).
++!try_find_empty_room_and_clean(Vacuum)
+	<-
+		.findall(ERoom, room_empty(ERoom), EmptyRooms);
+		.findall(FRoom, vacuum_finished_room(FRoom), FinishedRooms);
 
+		.difference(EmptyRooms, FinishedRooms, OtherEmptyRooms);
+
+		if(not .empty(OtherEmptyRooms)) {
+			.length(OtherEmptyRooms, Length);
+			.random(R);
+			RandomIndex = math.floor(R * Length);
+			.nth(RandomIndex, OtherEmptyRooms, SelectedEmptyRoom);
+
+			.send(Vacuum, tell, room_empty(SelectedEmptyRoom));
+			-vacuum_finished_room(_)[source(Vacuum)];
+			
+		} else {
+			.wait(1000);
+			!try_find_empty_room_and_clean(Vacuum);
+		}
+
+		.
+		
 
 
 /* LIGHT
@@ -151,48 +198,3 @@
 	<-	
 		-error(Light);
 		-light_ready.
-
-
-
-/* private helper "functions" */
-
-+!private_print(Printer, Requester)
-	:	not error(Printer)
-	<-	
-		.print("recieved 'print' from ", Requester, ", forwarding to ", Printer);
-		.send(Printer, tell, print(Requester)).
-
-+!private_print(Printer, Requester)
-	:	error(Printer)
-	<-	
-		.print("recieved 'print' from ", Requester, ", but ", Printer, " is non functional");
-		!private_fix_error(Printer, Requester).
-
-+!private_fix_error(Errorer, Requester)
-	<-	
-		+error_in_need_of_fixing(Errorer, Requester);
-		.print("asking ", Errorer, " for their location ");
-		.send(Errorer, tell, report_location).
-
-// only here to help with the error fixing above
-+location(X, Y)[source(Errorer)]
-	:	error_in_need_of_fixing(Errorer, _)
-	<-
-		.findall(Requester, error_in_need_of_fixing(Errorer, Requester), Requesters);
-
-		if (not .empty(Requesters)) {
-			.nth(0, Requesters, Requester);
-			.print("sending ", Requester, " to fix ", Errorer);
-			.send(Requester, tell, go_fix(Errorer, X, Y));
-		}.
-
-// report location after done signal so requester can eg pick up the print
-+location(X, Y)[source(Source)]
-	:	done(_)[source(Source)]
-	<-
-		.findall(Requester, done(Requester)[source(Source)], Requesters);
-		if (not .empty(Requesters)) {
-			.nth(0, Requesters, Requester);
-			.send(Requester, tell, done(Source, X, Y));
-		};
-		-done(Requester)[source(Source)].
