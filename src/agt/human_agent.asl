@@ -54,14 +54,23 @@ load.
 
 +stay: true <-
 .suspend(move);
+loadpos;
 .print("ittmaradok dolgozok");
 .wait(10000);
-load;
-.resume(move).
+-stay[source(_)];
+.resume(move);
+load.
 
 //+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
 
-
+/* +!move: stay <-
+    .print("ittmaradok dolgozok");
+    .wait(1000);
+    -stay[source(_)];
+    clear(stay[source(_)]);
+    load;
+    !move.
+ */
 
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
@@ -104,6 +113,7 @@ load;
 +!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
     .print("I have reached the target position (", Xt, ",", Yt, ")");
     -target(Xt, Yt)[source(_)];
+    .wait(10000);
     load.
 
 
@@ -121,17 +131,17 @@ load;
 
 +!move : go_fix(_,_,_) <- .print("nemerdekel").
 
-+!move: not go_fix(_,_,_) & not target(_,_) <- 
++!move: not go_fix(_,_,_) & not target(_,_) & not done(_,_,_)  & not stay<- 
 .print("Kész vagyok a rutinommal :)").
 
 
-
+/* 
 +pos(X, Y) : pos(Xc, Yc) & not (X == Xc & Y == Yc) <-
     -pos(Xc, Yc)[source(_)];
-/*     -adjacent(Xc+1, Yc)[source(_)];
+    -adjacent(Xc+1, Yc)[source(_)];
     -adjacent(Xc-1, Yc)[source(_)];
     -adjacent(Xc, Yc+1)[source(_)];
-    -adjacent(Xc, Yc-1)[source(_)]; */
+    -adjacent(Xc, Yc-1)[source(_)];
     .abolish(adjacent(_,_));
    // clear(pos(Xc, Yc)[source(_)]);
     .min([X+1, 19], AdjXa);
@@ -141,7 +151,7 @@ load;
     +adjacent(AdjXa, Y);
     +adjacent(AdjXb, Y);
     +adjacent(X, AdjYa);
-    +adjacent(X, AdjYb).
+    +adjacent(X, AdjYb). */
 
 
 /* +pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-

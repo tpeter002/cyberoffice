@@ -25,10 +25,11 @@ error(false).
 // Print function after repairing the printer (for Agent)
 +!print(Agent)[source(self)]
    <-  -printer_ready(true);
+    .send(mainframe, tell, printer_ready);
     +printer_ready(false);
     .print("Printing again for ", Agent, "...");
-    !print_success(Agent);
     print;
+    !print_success(Agent);
     +printer_ready(true);
     -printer_ready(false).
 
@@ -65,11 +66,11 @@ error(false).
       .print("sending mainframe im done");
        +printer_ready(true);
         -printer_ready(false);
+        -print(Agent)[source(SenderAgent)];
    .send(mainframe, tell, done(Agent)).
 
 // From the java file if error occurs
 +printer_error
-    : true
    <- +error(true).
 
 // Notifying the mainframe about the error
@@ -87,6 +88,7 @@ error(false).
    .print("Printer repaired.");
    .send(mainframe, tell, printer_ready);
     gotrepaired;
+    -repair[source(Agent)];
     !print(Agent);
    +error(false).
     

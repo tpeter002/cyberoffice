@@ -46,6 +46,7 @@ public class HumanAgentModel {
 
     ArrayList<Percept> percepts_pre = new ArrayList<Percept>();
     ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
+    ArrayList<Percept> percepts_to_remove_by_unif = new ArrayList<Percept>();
 
     
 
@@ -143,6 +144,13 @@ public class HumanAgentModel {
         return percepts;
     }
 
+    public ArrayList<Percept> getPerceptsToRemoveByUnif(){
+        ArrayList<Percept> percepts = new ArrayList<Percept>();
+        percepts.addAll(percepts_to_remove_by_unif);
+        percepts_to_remove_by_unif.clear();
+        return percepts;
+    }
+
     public Literal getNextRoutineElement(String agentName) {
         int load_counter = load_counters.get(agentName);
         Literal result = null;
@@ -156,8 +164,6 @@ public class HumanAgentModel {
                     //hlogger.info(agentName+"-nek parancs: "+ element);
                     result = Literal.parseLiteral(element);
                 }
-
-
             }
         }
 
@@ -207,9 +213,8 @@ public class HumanAgentModel {
                 percepts_pre.add(new_element);
             }
             else if(action.equals(loadpos)){
-                Literal hpos=getPosLiteral(agentName);
-                Percept new_loc=new Percept(agentName, hpos);
-                percepts_pre.add(new_loc);
+                loadPosition(agentName);
+                
             }
             else if (action.getFunctor().equals("moveto")) {
                 moveto(agentName, action);
@@ -224,12 +229,50 @@ public class HumanAgentModel {
         }
     }
 
+    public void loadPosition(String agentName){
+        int id = getID(agentName);
+        Location hLoc = model.getAgPos(id);
+        Literal hpos=getPosLiteral(agentName);
+        Percept new_loc=new Percept(agentName, hpos);
+        Percept old_adj=new Percept(agentName, Literal.parseLiteral("adjacent(_,_)[source(_)]"));
+        Percept old_pos=new Percept(agentName, Literal.parseLiteral("pos(_,_)[source(_)]"));
+        percepts_to_remove_by_unif.add(old_adj);
+        percepts_to_remove_by_unif.add(old_pos);
+        percepts_pre.add(new_loc);
+        int adjX=hLoc.x;
+        int adjY=hLoc.y;
+        if(hLoc.x+1<GSize){
+            adjX=hLoc.x+1;
+            adjY=hLoc.y;
+            Percept new_adj=new Percept(agentName, Literal.parseLiteral( "adjacent(" + adjX + "," + adjY + ")" ));
+            percepts_pre.add(new_adj);
+        }
+        if(hLoc.x-1>=0){
+            adjX=hLoc.x-1;
+            adjY=hLoc.y;
+            Percept new_adj=new Percept(agentName, Literal.parseLiteral( "adjacent(" + adjX + "," + adjY + ")" ));
+            percepts_pre.add(new_adj);
+        }
+        if(hLoc.y+1<GSize){
+            adjX=hLoc.x;
+            adjY=hLoc.y+1;
+            Percept new_adj=new Percept(agentName, Literal.parseLiteral( "adjacent(" + adjX + "," + adjY + ")" ));
+            percepts_pre.add(new_adj);
+        }
+        if(hLoc.y-1>=0){
+            adjX=hLoc.x;
+            adjY=hLoc.y-1;
+            Percept new_adj=new Percept(agentName, Literal.parseLiteral( "adjacent(" + adjX + "," + adjY + ")" ));
+            percepts_pre.add(new_adj);
+        }
+        
+    }
     public void addToRemovePercept(String agentName, Structure action){
         String perceptToClear = action.getTerm(0).toString();
         //hlogger.info("Ezt elpusztitom percept: "+perceptToClear);
         Literal perceptToClearLit=Literal.parseLiteral(perceptToClear);
         Percept removed=new Percept(agentName, perceptToClearLit);
-        percepts_to_remove.add(removed);
+        percepts_to_remove_by_unif.add(removed);
     }
 
     public void dropGarbage(String agentName){
@@ -285,9 +328,9 @@ public class HumanAgentModel {
         int agentid = getID(agentName);
         //Human agent = getHumanByID(agentid);
 
-        Location loc = model.getAgPos(agentid); // 4, 5
+        Location loc = model.getAgPos(agentid); // 19, 16
         int x = (int) ((NumberTerm) action.getTerm(0)).solve(); //19
-        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //0
+        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //19
         int newX = loc.x; 
         int newY = loc.y;
 
@@ -322,36 +365,46 @@ public class HumanAgentModel {
             } */
 
         }
+        boolean xChanged=false;
+        boolean yChanged=false;
 
-        if (loc.x < x) 
+        if (loc.x < x) {
             newX = loc.x + 1; 
-        else if (loc.x > x)
+            xChanged=true;
+        }
+        else if (loc.x > x){
             newX = loc.x - 1;
-        if (loc.y < y)
-            newY = loc.y + 1;
-        else if (loc.y > y)
+            xChanged=true;
+        }
+        if (loc.y < y){
+            newY = loc.y + 1; //newX=19, newY=17
+            yChanged=true;
+        }
+        else if (loc.y > y){
             newY = loc.y - 1;
-
+            yChanged=true;
+        }
+        //egyenesen oda
         if (canStep(newX, newY)) {
             loc.x = newX;
             loc.y = newY; 
-        } else if (canStep(newX, loc.y)) {
+        } else if (xChanged && canStep(newX, loc.y)) {
             loc.x = newX;
-        } else if (canStep(loc.x, newY)) {
+        } else if (yChanged && canStep(loc.x, newY)) {
             loc.y = newY;      
-        } else if (canStep(newX, loc.y+1)) {
+        } else if (xChanged && canStep(newX, loc.y+1)) {
             loc.x = newX;
             loc.y=loc.y+1;
         }
-        else if (canStep(newX, loc.y-1)) {
+        else if (xChanged && canStep(newX, loc.y-1)) {
             loc.x = newX;
             loc.y=loc.y-1;
         }
-        else if (canStep(loc.x+1, newY)) {
+        else if (yChanged && canStep(loc.x+1, newY)) {
             loc.x = loc.x+1;
             loc.y=newY;  
         }
-        else if (canStep(loc.x-1, newY)) {
+        else if (yChanged && canStep(loc.x-1, newY)) {
             loc.x = loc.x-1;
             loc.y=newY;
         }
