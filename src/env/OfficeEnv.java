@@ -115,8 +115,9 @@ public class OfficeEnv extends Environment {
 
     public void updatePercepts(String agentName) {
         clearPercepts();
-        ArrayList<Percept> percepts = model.getNewPercepts(agentName);
         ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
+        ArrayList<Percept> percepts = model.getNewPercepts(agentName);
+
 
         // inform mainframe about empty rooms
         for (OfficeModel.ROOM room : OfficeModel.ROOM.values()) {
@@ -369,7 +370,7 @@ public class OfficeEnv extends Environment {
             ArrayList<Percept> percepts_new = new ArrayList<Percept>();
 
             if (agentName.equals("printer")) {
-                //percepts_new.addAll(printerModel.newPercepts());
+                percepts_new.addAll(printerModel.newPercepts());
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_new.addAll(vacuumCleanerModel.newPercepts());
             } else if (agentName.charAt(0)=='h') {
@@ -387,7 +388,7 @@ public class OfficeEnv extends Environment {
             ArrayList<Percept> percepts_to_remove = new ArrayList<Percept>();
 
             if (agentName.equals("printer")) {
-                //percepts_to_remove.addAll(printerModel.perceptsToRemove());
+                percepts_to_remove.addAll(printerModel.perceptsToRemove());
             } else if (agentName.equals("vacuumcleaner")) {
                 percepts_to_remove.addAll(vacuumCleanerModel.perceptsToRemove());
             } else if (agentName.charAt(0)=='h') {
