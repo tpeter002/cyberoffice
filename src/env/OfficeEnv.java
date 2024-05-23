@@ -27,8 +27,9 @@ import env.BackgroundMusic;
 public class OfficeEnv extends Environment {
 
     public static final int GSize = 20; // grid size
-    public static final int GARB  = 8; // garbage code in grid model
+    public static final int GARB  = 16; // garbage code in grid model
     public static final int WALL = 4; // wall code in grid model
+    public static final int LACK_OF_LIGHT = 8;
 
 
     public static final Term load = Literal.parseLiteral("load");
@@ -209,6 +210,7 @@ public class OfficeEnv extends Environment {
                 // add human agents
                 humanAgentModel = new HumanAgentModel(this, GSize); 
 
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -340,18 +342,20 @@ public class OfficeEnv extends Environment {
                     }
                     break;
             }
+            turnOffLight(room);
             return true;
         }
 
         //magic numbers
         public boolean isWall(int x, int y) {
             // 4 is the code of the wall
-            return !isFree(4, x, y); 
+            return !isFree(OfficeEnv.WALL, x, y); 
         }
 
         public boolean cellOccupied(int x, int y) {
             return humanAgentModel.cellOccupied(x, y);
         }
+
 
         public void addGarbage(int x, int y) {
             add(OfficeEnv.GARB, x, y);
@@ -363,6 +367,30 @@ public class OfficeEnv extends Environment {
 
         public boolean hasGarbage(int x, int y) {
             return hasObject(OfficeEnv.GARB, x, y);
+        }
+
+        public int getData(int x, int y) {
+            return data[x][y];
+        }
+
+        public void turnOffLight(ROOM room) {
+            for (int x = 0; x < GSize; x++) {
+                for (int y = 0; y < GSize; y++) {
+                    if (whichRoom(x, y) == room) {
+                        add(LACK_OF_LIGHT, x, y);
+                    }
+                }
+            }
+        }
+
+        public void turnOnLight(ROOM room) {
+            for (int x = 0; x < GSize; x++) {
+                for (int y = 0; y < GSize; y++) {
+                    if (whichRoom(x, y) == room) {
+                        remove(LACK_OF_LIGHT, x, y);
+                    }
+                }
+            }
         }
 
         public ArrayList<Percept> getNewPercepts(String agentName) {
@@ -406,23 +434,31 @@ public class OfficeEnv extends Environment {
 
     class OfficeView extends GridWorldView {
 
+        OfficeModel omodel;
+
         public OfficeView(OfficeModel model) {
             super(model, "Office World", 600);
+            omodel = model;
             defaultFont = new Font("Arial", Font.BOLD, 18); // change default font
             setVisible(true);
-            repaint();
         }
+
 
         /** draw application objects */
         @Override
         public void draw(Graphics g, int x, int y, int object) {
             switch (object) {
+                case OfficeEnv.LACK_OF_LIGHT:
+                    g.setColor(Color.LIGHT_GRAY);
+                    g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
+                    break;
                 case OfficeEnv.GARB:
                     g.setColor(new Color(153, 102, 0));
                     g.fillOval(x * cellSizeW + cellSizeW / 4, y * cellSizeH + cellSizeH / 4, cellSizeW / 2, cellSizeH / 2);
                     break;
             }
         }
+
 
         @Override
         public void drawAgent(Graphics g, int x, int y, Color c, int id) {
