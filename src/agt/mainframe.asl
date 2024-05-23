@@ -37,7 +37,7 @@
 		.send(Errorer, tell, report_location).
 
 +location(X, Y)[source(Source)]
-	:	error_in_need_of_fixing(Source, _)
+	:	error_in_need_of_fixing(Source, _) & not done(_)[source(Source)]
 	<-
 		.findall(Requester, error_in_need_of_fixing(Source, Requester), Requesters);
 
