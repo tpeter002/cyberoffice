@@ -116,6 +116,7 @@ public class OfficeEnv extends Environment {
     public void updatePercepts(String agentName) {
         clearPercepts();
         ArrayList<Percept> perceptsToRemove = model.getPerceptsToRemove(agentName);
+        ArrayList<Percept> perceptsToRemoveByUnif=model.humanAgentModel.getPerceptsToRemoveByUnif();
         ArrayList<Percept> percepts = model.getNewPercepts(agentName);
 
 
@@ -129,6 +130,23 @@ public class OfficeEnv extends Environment {
                 }
             }
         }
+        // inform agents about percepts to remove
+        
+        for (Percept percept : perceptsToRemove) {
+            if (percept.hasDestination()) {
+                removePercept(percept.destination, percept.message);
+            } else {
+                removePercept(agentName, percept.message);
+            }
+        }
+
+        for (Percept percept : perceptsToRemoveByUnif) {
+            if (percept.hasDestination()) {
+                removePerceptsByUnif(percept.destination, percept.message);
+            } else {
+                removePerceptsByUnif(agentName, percept.message);
+            }
+        }
 
         // inform agents about new percepts
         for (Percept percept : percepts) {
@@ -139,15 +157,7 @@ public class OfficeEnv extends Environment {
             }
         }
 
-        // inform agents about percepts to remove
         
-        for (Percept percept : perceptsToRemove) {
-            if (percept.hasDestination()) {
-                removePercept(percept.destination, percept.message);
-            } else {
-                removePercept(agentName, percept.message);
-            }
-        }
 
     }
 
