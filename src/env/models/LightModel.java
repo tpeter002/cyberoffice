@@ -25,13 +25,18 @@ public class LightModel {
         for (int i = 0; i < lights.size(); i++) {
             Light light = lights.get(i);
             light.set_id((i + 1));
-            if (i == 1) {
-                light.setLocation(0, 1);
+            if (i == 0) {
+                // printer room
+                light.setLocation(2, 2);
+                light.setUntilBreakDown(1);
+            } else if (i == 1) {
+                // hall
+                light.setLocation(10, 10);
             } else if (i == 2) {
-                light.setLocation(0, GSize - 1);
-            } else if (i == 3) {
-                light.setLocation(GSize - 1, 0);
+                // vacuum room
+                light.setLocation(2, 12);
             }
+            System.out.println("[l" + light._id + "] Location: " + light.x + ", " + light.y + " Room: " + light.room);
         }
     }
 
@@ -106,7 +111,7 @@ public class LightModel {
         public Light(OfficeModel.ROOM room) {
             this.room = room;
             this.isOn = false;
-            this.untilBreakDown = 5;
+            this.untilBreakDown = 10;
             this.isBroken = false;
             this.newPercepts = new ArrayList<>();
             this.removePercepts = new ArrayList<>();
@@ -167,14 +172,13 @@ public class LightModel {
         }
 
         public void executeAction(Structure action) {
-            System.out.println("[l" + this._id + "] Light in room " + this.room + " is On: " + this.isOn);
+            System.out.println("áááááááááááááá" + action);
 
             if (action.equals(repair)) {
                 this.repair();
             } else if (action.equals(getLocation)) {
-                newPercepts
-                        .add(new Percept("l" + this._id,
-                                Literal.parseLiteral("location(" + this.x + ", " + this.y + ")")));
+                newPercepts.add(new Percept("l" + this._id,
+                        Literal.parseLiteral("location(" + this.x + ", " + this.y + ")")));
             } else if (action.equals(operate)) {
                 this.poolRoomState();
             }
@@ -195,6 +199,10 @@ public class LightModel {
 
         public int getId() {
             return _id;
+        }
+
+        public void setUntilBreakDown(int untilBreakDown) {
+            this.untilBreakDown = untilBreakDown;
         }
     }
 }
