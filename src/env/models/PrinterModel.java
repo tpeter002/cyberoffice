@@ -126,7 +126,6 @@ public class PrinterModel {
 
     public void get_location() {
         this.requestedLocation = true;
-        System.out.println("Requested location");
     }
 
 }

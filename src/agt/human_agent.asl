@@ -13,15 +13,15 @@ working.
 
 +!nextroutine: true <- load.
 
-+go_fix(Errorer, Xe, Ye) : true <-  .print("kaptam go fixet"); !move.
++go_fix(Errorer, Xe, Ye) : true <-  .print("I got a fix"); !move.
 
 
-+done(Source, Xd, Yd): true <- .print("kaptam hogy done"); !move.
++done(Source, Xd, Yd): true <- .print("I got a done"); !move.
 
 
 +print: working <- 
     .send(mainframe, tell, print);
-    .print("EZENNEL EZT A NYOMDAT LEFOGLALOM");
+    .print("I hereby reserve the printer for myself");
     -print[source(_)].
 
 +move(X, Y) : working & not target(X, Y) <-
@@ -32,7 +32,7 @@ working.
 
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
-    .print("elertem fixeles pozit: ", Xe,", ", Ye);
+    .print("I reached the fixing position: ", Xe,", ", Ye);
     clear(go_fix(Errorer,Xe,Ye)[source(_)]);
     .send(Errorer, tell, repair);
     -go_fix(Errorer, Xe, Ye)[source(_)];
@@ -50,7 +50,7 @@ working.
 
 //A nyomtató célját elérte
 +!move : not go_fix(_,_,_) & done(Source, Xd, Yd) & (pos(Xd, Yd) | adjacent(Xd, Yd)) <-
-    .print("!!!!!!!!!!!!!!!!!!I have reached the printing position (", Xd, ",", Yd, ")");
+    .print("I have reached the printing position (", Xd, ",", Yd, ")");
     clear(done(Source, Xd, Yd)[source(_)]);
     -done(Source, Xd, Yd)[source(_)];
     load;
@@ -60,13 +60,12 @@ working.
 //A nyomtató céljához megy
 +!move : not go_fix(_,_,_) & working & done(Source, Xd, Yd) & not pos(Xd, Yd) & not adjacent(Xd, Yd) <- 
     //?pos(Xc, Yc);
-    .print("megyek a nyomtato fele");
+    .print("I'm going toward the printer right now");
     moveto(Xd, Yd);
     loadpos;
     .random(A);
     .wait(500 + A * 1000);
     !move.
-
 
  //A rutin célját elérte
 +!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & pos(Xt, Yt) <-
@@ -74,7 +73,6 @@ working.
     -target(Xt, Yt)[source(_)];
     .wait(10000);
     load.
-
 
 //A rutin céljához megy
 +!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt)<- 
@@ -97,21 +95,15 @@ working.
      true <-
      .random(Felejtesifaktor);
      .wait(Felejtesifaktor*10000+5000);
-     .print("fu nagyon be csilleztem elfelejtettem mit kene csinalni :((");
+     .print("I'm chilling so hard that I forgot what to do :((");
      -move[source(_)];
      -working;
      -target[source(_)];
      .send(mainframe, tell, human_chilling).
      
-
-     
-
 +!szemetel : 
      true <- 
     .random(B);
     .wait(10000+B*5000);    
     garbagedrop;
      !szemetel.
-
-
-

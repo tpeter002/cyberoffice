@@ -23,16 +23,14 @@ first_belief.
     : not error & slot_has_garbage & not at_room_end(Room) & not people_in_current_room
    <- 
       pick_garbage;
-      .print("hopp egy szemét, felveszem");
+      .print("Trash detected, picking it up.");
       .wait(500);
       !check(Room).
 
 // LETS GO TO OTHER ROOM
-// ide kéne egy while amíg nincs üres szoba
 +!check(Room)
     : not error & at_room_end(Room)
-   <-  // elmegyünk másik szobába
-      .print("elértem a szoba végét megyek máshova");
+   <-  
       -room_empty(_)[source(Mainframe)];
       .send(mainframe, tell, vacuum_finished_room(Room));
       +searching_for_empty_room.
@@ -42,14 +40,13 @@ first_belief.
     : not error & people_in_current_room & not at_room_start(Room)
    <- 
       go_to_start(Room);
-      .print("ember van a szobában visszamegyek a start pozira várakozni");
+      .print("Human in room, cleaning permission temporary removed.");
       .wait(100);
       !check(Room).
 
 +!check(Room)
     : not error & people_in_current_room & at_room_start(Room)
    <- 
-      .print("ember van a szobában várok");
       .wait(1000);
       check_room_empty;
       !check(Room).
@@ -58,15 +55,15 @@ first_belief.
 +!check(Room)
     : error
    <- 
-      .print("elromlottam, varom az embert hogy megjavitson");
-      .wait(2000);
+      .print("I'm broken:(");
+      .wait(1000);
       !check(Room).
 
 // Maybe I should ask the mainframe for an empty room not him informing me of an empty room
 +room_empty(Room)[source(Mainframe)]
    : searching_for_empty_room // if i dont have any other percept of a room being empty
    <- -searching_for_empty_room;
-      .print("Megkaptam a feladatot: " , Room);
+      .print("I recevied an empty room to clean: " , Room);
       +should_clean_room(Room).
 
 +should_clean_room(SelectedRoom)
@@ -86,20 +83,18 @@ first_belief.
 +!go_to_other_room(SelectedRoom)
     : not error & not at_room(SelectedRoom)
    <-    go_to(SelectedRoom);
-        .print("Megyek a másik szobába takkerolni");
         .wait(100);
         !go_to_other_room(SelectedRoom).
 
 +!go_to_other_room(SelectedRoom)
     : not error & at_room(SelectedRoom) & not at_room_start(SelectedRoom)
    <-   go_to_start(SelectedRoom);
-        .print("Megyek a szobában a kezdő pozira");
         .wait(100);
         !go_to_other_room(SelectedRoom).
 
 +!go_to_other_room(SelectedRoom)
     : not error & at_room(SelectedRoom) & at_room_start(SelectedRoom)
-   <-   .print("Itt vagyok a másik szoba startjában és nincs itt senki, akkor nyomom");
+   <-   .print("I just arrived at the starting postion, starting to clean");
         .wait(1000);
         +should_clean_room(SelectedRoom).
 
@@ -110,7 +105,7 @@ first_belief.
       -first_belief;
       -at_room(2);
       -at_room_start(2);
-      .print("cleareltem az első beliefjeim").
+      .print("I just cleared my inital beliefs").
 
 +!first_round
    : not first_belief
