@@ -58,6 +58,7 @@ public class HumanAgentModel {
         n_human_agents = ((OfficeModel) model).n_human_agents;
 
         this.id = 2;
+        this.GSize = GSize;
 
         this.model = model;
         routines = readRoutineFromFile("routine.txt");
@@ -69,7 +70,7 @@ public class HumanAgentModel {
             load_counters.put(hname, 0);
 
         }
-        this.GSize = GSize;
+        
 
         vacuum_hall_doorway = new Location(4, 5);
 

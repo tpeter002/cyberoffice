@@ -3,13 +3,10 @@
 /* Initial beliefs and rules */
 working.
 /* Initial goals */
-
 !csill.
 !ready.
-!loadinitialpos. // initial goal to rutin
-//!pause. // initial goal to break
+!loadinitialpos. 
 !szemetel.
-
 
 +!ready: true <- .send(mainframe, tell, human_ready).
 +!loadinitialpos: true <-  load; !nextroutine.
@@ -21,25 +18,17 @@ working.
 
 +done(Source, Xd, Yd): true <- .print("kaptam hogy done"); !move.
 
+
 +print: working <- 
-.send(mainframe, tell, print);
-.print("I hereby reserve the printer for myself");
--print[source(_)];
-load.
+    .send(mainframe, tell, print);
+    .print("I hereby reserve the printer for myself");
+    -print[source(_)].
 
 +move(X, Y) : working & not target(X, Y) <-
     -move(X, Y)[source(_)];
     +target(X, Y);
     !move.
 
-+stay: true <-
-.suspend(move);
-loadpos;
-.print("I'm staying here to work");
-.wait(10000);
--stay[source(_)];
-.resume(move);
-load.
 
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
@@ -64,6 +53,7 @@ load.
     .print("I have reached the printing position (", Xd, ",", Yd, ")");
     clear(done(Source, Xd, Yd)[source(_)]);
     -done(Source, Xd, Yd)[source(_)];
+    load;
     !move.
 
 
@@ -78,14 +68,14 @@ load.
     !move.
 
  //A rutin célját elérte
-+!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
++!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & pos(Xt, Yt) <-
     .print("I have reached the target position (", Xt, ",", Yt, ")");
     -target(Xt, Yt)[source(_)];
     .wait(10000);
     load.
 
 //A rutin céljához megy
-+!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- 
++!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt)<- 
     //?pos(Xc, Yc);
     moveto(Xt, Yt);
     loadpos;
@@ -93,10 +83,13 @@ load.
     .wait(500 + A * 1000);
     !move.
 
-+!move : go_fix(_,_,_) <- .print("I don't care").
 
-+!move: not go_fix(_,_,_) & not target(_,_) & not done(_,_,_)  & not stay<- 
-.print("I finished my routine :)").
+
++!move: not go_fix(_,_,_) & not target(_,_) & not done(_,_,_) <- 
+    .wait(1000);
+    !move.
+
+
 
 +!csill :
      true <-
@@ -112,19 +105,8 @@ load.
      true <- 
     .random(B);
     .wait(10000+B*5000);    
-    //.print("szemeteltem oriasit :)");
     garbagedrop;
      !szemetel.
 
 
-//ez az hogy megall neha barhol
-+!pause: true <- 
-     .random(B);
-     .wait(B*10000);    
-     .print("just standing...");
-     .suspend(move);
-     .wait(B*10000);     
-     .resume(move);
-     .print("...and going on");
-     !pause.
 
