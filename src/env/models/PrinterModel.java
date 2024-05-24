@@ -97,7 +97,6 @@ public class PrinterModel {
         if (this.requestedLocation) {
             // Need to change the corrdinates if GSize changes
             newpercepts.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
-            System.out.println("Location sent with percept");
             this.requestedLocation = false;
         }
         if(this.printerError){
@@ -126,7 +125,6 @@ public class PrinterModel {
 
     public void get_location() {
         this.requestedLocation = true;
-        System.out.println("Requested location");
     }
 
 }

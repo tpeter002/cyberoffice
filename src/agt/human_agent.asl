@@ -2,7 +2,6 @@
 
 /* Initial beliefs and rules */
 working.
-//pos(0,0).
 /* Initial goals */
 
 !csill.
@@ -10,8 +9,6 @@ working.
 !loadinitialpos. // initial goal to rutin
 //!pause. // initial goal to break
 !szemetel.
-//go_fix(printer, 19, 0).
-//done(printer, 19, 0).
 
 
 +!ready: true <- .send(mainframe, tell, human_ready).
@@ -24,26 +21,9 @@ working.
 
 +done(Source, Xd, Yd): true <- .print("kaptam hogy done"); !move.
 
-
-/* +!fixtarget: working & go_fix(Errorer,Xe,Ye) & not pos(Xe, Ye) & not adjacent(Xe, Ye) <- 
-    .suspend(move);
-    //?pos(Xc, Yc);
-    moveto(Xe, Ye);
-    loadpos;
-    .random(A);
-    .wait(A * 1000);
-    !fixtarget.
-
-+!fixtarget: go_fix(Errorer, Xe, Ye) & pos(Xe, Ye) | adjacent(Xe, Ye) <-
-    .print("elertem fixeles pozit: ", Xe,", ", Ye);
-    -go_fix(Errorer, Xe, Ye)[source(_)];
-    loadpos;
-    !move.
-    //.send(Errorer, tell, repair).
- */
 +print: working <- 
 .send(mainframe, tell, print);
-.print("EZENNEL EZT A NYOMDAT LEFOGLALOM");
+.print("I hereby reserve the printer for myself");
 -print[source(_)];
 load.
 
@@ -55,26 +35,15 @@ load.
 +stay: true <-
 .suspend(move);
 loadpos;
-.print("ittmaradok dolgozok");
+.print("I'm staying here to work");
 .wait(10000);
 -stay[source(_)];
 .resume(move);
 load.
 
-//+!move : go_fix(_,_,_) <- loadpos; .print("nemerdekel").
-
-/* +!move: stay <-
-    .print("ittmaradok dolgozok");
-    .wait(1000);
-    -stay[source(_)];
-    clear(stay[source(_)]);
-    load;
-    !move.
- */
-
 //elerte javitast
 +!move: go_fix(Errorer,Xe,Ye) & working & (pos(Xe, Ye) | adjacent(Xe, Ye)) <-
-    .print("elertem fixeles pozit: ", Xe,", ", Ye);
+    .print("I reached the fixing position: ", Xe,", ", Ye);
     clear(go_fix(Errorer,Xe,Ye)[source(_)]);
     .send(Errorer, tell, repair);
     -go_fix(Errorer, Xe, Ye)[source(_)];
@@ -92,7 +61,7 @@ load.
 
 //A nyomtató célját elérte
 +!move : not go_fix(_,_,_) & done(Source, Xd, Yd) & (pos(Xd, Yd) | adjacent(Xd, Yd)) <-
-    .print("!!!!!!!!!!!!!!!!!!I have reached the printing position (", Xd, ",", Yd, ")");
+    .print("I have reached the printing position (", Xd, ",", Yd, ")");
     clear(done(Source, Xd, Yd)[source(_)]);
     -done(Source, Xd, Yd)[source(_)];
     !move.
@@ -101,13 +70,12 @@ load.
 //A nyomtató céljához megy
 +!move : not go_fix(_,_,_) & working & done(Source, Xd, Yd) & not pos(Xd, Yd) & not adjacent(Xd, Yd) <- 
     //?pos(Xc, Yc);
-    .print("megyek a nyomtato fele");
+    .print("I'm going toward the printer right now");
     moveto(Xd, Yd);
     loadpos;
     .random(A);
     .wait(500 + A * 1000);
     !move.
-
 
  //A rutin célját elérte
 +!move : not go_fix(_,_,_) & not done(_,_,_) & target(Xt, Yt) & (pos(Xt, Yt) | adjacent(Xt, Yt)) <-
@@ -115,7 +83,6 @@ load.
     -target(Xt, Yt)[source(_)];
     .wait(10000);
     load.
-
 
 //A rutin céljához megy
 +!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt) & not adjacent(Xt, Yt) <- 
@@ -126,52 +93,21 @@ load.
     .wait(500 + A * 1000);
     !move.
 
-
-
-
-+!move : go_fix(_,_,_) <- .print("nemerdekel").
++!move : go_fix(_,_,_) <- .print("I don't care").
 
 +!move: not go_fix(_,_,_) & not target(_,_) & not done(_,_,_)  & not stay<- 
-.print("Kész vagyok a rutinommal :)").
-
-
-/* 
-+pos(X, Y) : pos(Xc, Yc) & not (X == Xc & Y == Yc) <-
-    -pos(Xc, Yc)[source(_)];
-    -adjacent(Xc+1, Yc)[source(_)];
-    -adjacent(Xc-1, Yc)[source(_)];
-    -adjacent(Xc, Yc+1)[source(_)];
-    -adjacent(Xc, Yc-1)[source(_)];
-    .abolish(adjacent(_,_));
-   // clear(pos(Xc, Yc)[source(_)]);
-    .min([X+1, 19], AdjXa);
-    .max([X-1, 0], AdjXb);
-    .min([Y+1, 19], AdjYa);
-    .max([Y-1, 0], AdjYb);
-    +adjacent(AdjXa, Y);
-    +adjacent(AdjXb, Y);
-    +adjacent(X, AdjYa);
-    +adjacent(X, AdjYb). */
-
-
-/* +pos(X, Y) : pos(Xc, Yc) & (X == Xc & Y == Yc) <-
-    .print("stabil vagyok").
-    */ 
-
+.print("I finished my routine :)").
 
 +!csill :
      true <-
      .random(Felejtesifaktor);
      .wait(Felejtesifaktor*10000+5000);
-     .print("fu nagyon be csilleztem elfelejtettem mit kene csinalni :((");
+     .print("I'm chilling so hard that I forgot what to do :((");
      -move[source(_)];
      -working;
      -target[source(_)];
      .send(mainframe, tell, human_chilling).
      
-
-     
-
 +!szemetel : 
      true <- 
     .random(B);
@@ -185,37 +121,10 @@ load.
 +!pause: true <- 
      .random(B);
      .wait(B*10000);    
-     .print("alldigalok");
+     .print("just standing...");
      .suspend(move);
      .wait(B*10000);     
      .resume(move);
-     .print("csak megyek megyek");
+     .print("...and going on");
      !pause.
 
-
-     /*    
-+adjacent(Xt, Yt) : pos(Xc, Yc) & ((math.abs(Xc - Xt) == 1 & math.abs(Yc - Yt) == 0) | (math.abs(Xc - Xt) == 0 & math.abs(Yc - Yt) == 1)) <-
-    true.
-*/
-
-/*
-+printelj: working <- .print("sikeresen beolvastam egy dolgot AAAAAAAAAAAAAAAAAAAAAAAAAAAA"); .random(A); .wait(A*5000); load.
-
-+move(X, Y): not pos(P, X, Y) <- -move(X, Y)[source(percept)]; !move(X, Y).
-
-+!move(X,Y): not pos(P, X, Y) <- moveto(X, Y); .random(A); .wait(A*1000); !move(X, Y).
-
-
-
-+!move(X,Y): pos(P, X, Y) <- .print("tortenik itt vagyok sztem"); load.
-*/
-
-
-
-//+!doneprinting(X, Y): true <- !move(X, Y).
-//+!move(X, Y): not pos(P,X,Y) <- moveto(X, Y); !move(X,Y).
-//+!move(X,Y): pos(P,X,Y) <- wait(5000); !randommove.
-
-
-//+!randommove: true <- 
-//!interact(X).

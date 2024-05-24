@@ -161,7 +161,6 @@ public class HumanAgentModel {
             for (String[] agentRoutine : routines) {
                 if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
                     String element = agentRoutine[load_counter];
-                    //hlogger.info(agentName+"-nek parancs: "+ element);
                     result = Literal.parseLiteral(element);
                 }
             }
@@ -269,7 +268,6 @@ public class HumanAgentModel {
     }
     public void addToRemovePercept(String agentName, Structure action){
         String perceptToClear = action.getTerm(0).toString();
-        //hlogger.info("Ezt elpusztitom percept: "+perceptToClear);
         Literal perceptToClearLit=Literal.parseLiteral(perceptToClear);
         Percept removed=new Percept(agentName, perceptToClearLit);
         percepts_to_remove_by_unif.add(removed);
@@ -292,7 +290,6 @@ public class HumanAgentModel {
                 return h;
             }
         }
-        hlogger.info("getbyidfail");
         return null;
     }
 
@@ -341,28 +338,6 @@ public class HumanAgentModel {
             Location doorway=model.getDoorwayPos(currentRoom, targetRoom);
             x=doorway.x;
             y=doorway.y;
-
-            /* if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
-                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
-                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
-                x = vacuum_hall_doorway.x;
-                y = vacuum_hall_doorway.y;
-            } else if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.PRINTER)
-                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.HALL)
-                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.PRINTER)) {
-                x = printer_hall_doorway.x;
-                y = printer_hall_doorway.y;
-
-            }else if((currentRoom==ROOM.DOORWAY && targetRoom==ROOM.HALL)){
-                hlogger.info("!!!!!!!!!!!!!doorwayt erzekel"+Integer.toString(loc.x)+", "+Integer.toString(loc.y));
-                x=loc.x;
-                y=loc.y+1;
-            }
-            //doorwayen at csak egyenesen lehet menni pont mint a valosagban!
-            else if((currentRoom==ROOM.DOORWAY && (targetRoom==ROOM.VACUUM || targetRoom==ROOM.PRINTER))){
-                x=loc.x;
-                y=loc.y-1;
-            } */
 
         }
         boolean xChanged=false;

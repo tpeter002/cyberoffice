@@ -2,15 +2,6 @@
 !initialize.
 !operating.
 
-//light_ready -> message to mainframe that light is ready (Csuti kéri) + hol van
-//light_ready -> message to mainframe that light has been repaired (Csuti kéri)
-
-//light_on
-//light_off 
-//light_repaired -> message to mainframe that light is repaired ()
-//light_broken -> message to mainframe that light is broken (Csuti error-t kér és lekezeli)
-
-
 //Check room if there is a person in the room POLLING?
 
 +!initialize : not initialized 

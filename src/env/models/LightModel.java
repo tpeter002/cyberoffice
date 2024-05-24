@@ -38,7 +38,6 @@ public class LightModel {
                 // vacuum room
                 light.setLocation(2, 12);
             }
-            System.out.println("[l" + light._id + "] Location: " + light.x + ", " + light.y + " Room: " + light.room);
         }
     }
 
@@ -161,14 +160,8 @@ public class LightModel {
                 this.isOn = false;
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_broken")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
-                // System.out.println("[l" + this._id + "] " + "pooling room states:" +
-                // this.room + "Person detected in room: ----------------------------------
-                // turnOn() called but failed, light is broken");
             } else {
                 model.turnOnLight(room);
-                // System.out.println("[l" + this._id + "] " + "pooling room states:" +
-                // this.room + "Person detected in room: ----------------------------------
-                // turnOn() called");
                 this.isOn = true;
                 newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
                 removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
@@ -177,9 +170,6 @@ public class LightModel {
 
         public void turnOff() {
             model.turnOffLight(room);
-            // System.out.println("[l" + this._id + "] " + "pooling room states:" +
-            // this.room + " Person left the Room:----------------------------------
-            // turnOff() called");
             this.isOn = false;
             newPercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_off")));
             removePercepts.add(new Percept("l" + _id, Literal.parseLiteral("light_on")));
