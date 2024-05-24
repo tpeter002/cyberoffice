@@ -3,16 +3,12 @@ move(19, 19)
 move(0, 19)
 move(19, 6)
 move(6,0)
-stay
 print
 move(6,4)
-stay
 print
 move(6,0)
-stay
 print
 move(6,4)
-stay
 print
 move(19,19)
 ;
@@ -21,16 +17,12 @@ move(0, 19)
 move(19, 6)
 move(19, 19)
 move(10,0)
-stay
 print
 move(10,4)
-stay
 print
 move(10,0)
-stay
 print
 move(10,4)
-stay
 print
 move(19,18)
 ;
@@ -39,37 +31,26 @@ move(15, 19);
 move(17, 10);
 move(0, 13);
 move(17,0)
-stay
 print
 move(19,4)
-stay
 print
 move(19,4)
-stay
 print
 move(19,4)
-stay
 print
 move(19,19)
 ;
 h4
 move(0, 1)
-stay
 move(4, 4)
-stay
 move(0, 4)
-stay
 move(17,0)
-stay
 print
 move(15,4)
-stay
 print
 move(17,0)
-stay
 print
 move(15,4)
-stay
 print
 move(19,19)
 ;
