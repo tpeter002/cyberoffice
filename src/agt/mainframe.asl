@@ -40,24 +40,21 @@
 	:	error_in_need_of_fixing(Source, _) & not done(_)[source(Source)]
 	<-
 		.findall(Requester, error_in_need_of_fixing(Source, Requester), Requesters);
+		.nth(0, Requesters, Requester);
+		.print("sending ", Requester, " to fix ", Source);
+		.send(Requester, tell, go_fix(Source, X, Y));
 
-		if (not .empty(Requesters)) {
-			.nth(0, Requesters, Requester);
-			.print("sending ", Requester, " to fix ", Source);
-			.send(Requester, tell, go_fix(Source, X, Y));
-			-error(Requester)[source(Source)];
-			-error[source(Source)];
-		}
+		-error_in_need_of_fixing(Source, Requester);
+		-error(Requester)[source(Source)];
+		-error[source(Source)];
 		-location(X, Y)[source(Source)].
 
 +location(X, Y)[source(Source)]
 	:	done(_)[source(Source)]
 	<-
 		.findall(Requester, done(Requester)[source(Source)], Requesters);
-		if (not .empty(Requesters)) {
-			.nth(0, Requesters, Requester);
-			.send(Requester, tell, done(Source, X, Y));
-		}
+		.nth(0, Requesters, Requester);
+		.send(Requester, tell, done(Source, X, Y));
 
 		-done(Requester)[source(Source)];
 		-location(X, Y)[source(Source)].
