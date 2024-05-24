@@ -35,8 +35,6 @@ public class HumanAgentModel {
     private ArrayList<String[]> routines; 
     private HashMap<String, Integer> load_counters;
     private int n_human_agents;
-    private Location vacuum_hall_doorway;
-    private Location printer_hall_doorway;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
 
@@ -67,20 +65,16 @@ public class HumanAgentModel {
 
         for (int i = 1; i <= n_human_agents; i++) {
             String hname = "h" + Integer.toString(i);
-            load_counters.put(hname, 0);
+            load_counters.put(hname, 1);
 
         }
-        
 
-        vacuum_hall_doorway = new Location(4, 5);
-
-        printer_hall_doorway = new Location(16, 5);
     }
 
     public void initializePositions(int GSize) {
         // Initialize the positions
 
-        int h_id = n_human_agents + 2;
+        int h_id = n_human_agents + this.id;
 
         for (int i = 2; i < h_id; i++) {
 
@@ -104,10 +98,7 @@ public class HumanAgentModel {
                 return true;
             }
         }
-  
-
         return false;
-
     }
 
     private class Human {
@@ -156,22 +147,19 @@ public class HumanAgentModel {
         int load_counter = load_counters.get(agentName);
         Literal result = null;
 
-        if (load_counter == 0) {
-            result = getPosLiteral(agentName);
-        } else {
-            for (String[] agentRoutine : routines) {
-                if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
-                    String element = agentRoutine[load_counter];
-                    result = Literal.parseLiteral(element);
-                }
+
+        for (String[] agentRoutine : routines) {
+            if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
+                String element = agentRoutine[load_counter];
+                result = Literal.parseLiteral(element);
+
             }
         }
-
+    
         load_counters.put(agentName, load_counter + 1);
         return result;
     }
 
-    //ez igazabol getnextroutine element csak loadcounter inkrementalas nelkul(meg mas agentname megszerzes ugye), nem tom meglehetne e oldani hogy ez nalad legyen kicsit szivas lenne sztem, max officeenvbe is lehetne load counter i guess es akk te is elerned
 
     public Literal getReminder(String humanName){
         
@@ -324,11 +312,9 @@ public class HumanAgentModel {
 
     public void moveto(String agentName, Structure action) throws Exception {
         int agentid = getID(agentName);
-        //Human agent = getHumanByID(agentid);
-
-        Location loc = model.getAgPos(agentid); // 19, 16
-        int x = (int) ((NumberTerm) action.getTerm(0)).solve(); //19
-        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //19
+        Location loc = model.getAgPos(agentid); 
+        int x = (int) ((NumberTerm) action.getTerm(0)).solve(); 
+        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); 
         int newX = loc.x; 
         int newY = loc.y;
 
@@ -339,6 +325,7 @@ public class HumanAgentModel {
             Location doorway=model.getDoorwayPos(currentRoom, targetRoom);
             x=doorway.x;
             y=doorway.y;
+
 
         }
         boolean xChanged=false;
@@ -353,7 +340,7 @@ public class HumanAgentModel {
             xChanged=true;
         }
         if (loc.y < y){
-            newY = loc.y + 1; //newX=19, newY=17
+            newY = loc.y + 1; 
             yChanged=true;
         }
         else if (loc.y > y){

@@ -9,9 +9,8 @@ working.
 !szemetel.
 
 +!ready: true <- .send(mainframe, tell, human_ready).
-+!loadinitialpos: true <-  load; !nextroutine.
++!loadinitialpos: true <-  loadpos; load.
 
-+!nextroutine: true <- load.
 
 +go_fix(Errorer, Xe, Ye) : true <-  .print("I got a fix"); !move.
 
@@ -21,7 +20,9 @@ working.
 
 +print: working <- 
     .send(mainframe, tell, print);
+
     .print("I hereby reserve the printer for myself");
+
     -print[source(_)].
 
 +move(X, Y) : working & not target(X, Y) <-
@@ -40,8 +41,6 @@ working.
 
 //javitani megy
 +!move: go_fix(Errorer,Xe,Ye) & working & not pos(Xe, Ye) & not adjacent(Xe, Ye) <-
-
-    //?pos(Xc, Yc);
     moveto(Xe, Ye);
     loadpos;
     .random(A);
@@ -76,7 +75,7 @@ working.
 
 //A rutin céljához megy
 +!move : not go_fix(_,_,_) & not done(_,_,_) & working & target(Xt, Yt) & not pos(Xt, Yt)<- 
-    //?pos(Xc, Yc);
+
     moveto(Xt, Yt);
     loadpos;
     .random(A);
@@ -107,3 +106,4 @@ working.
     .wait(10000+B*5000);    
     garbagedrop;
      !szemetel.
+
