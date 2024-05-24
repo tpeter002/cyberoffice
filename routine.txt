@@ -1,21 +1,24 @@
 h1
-move(19, 19)
-move(0, 19)
-move(19, 6)
-move(6,0)
+move(20, 6)
 print
-move(6,4)
+move(20, 6)
 print
-move(6,0)
+move(20, 6)
+move(4,0)
 print
-move(6,4)
+move(4,4)
+print
+move(4,0)
+print
+move(4,4)
 print
 move(19,19)
 ;
 h2
-move(0, 19)
-move(19, 6)
-move(19, 19)
+move(6, 4)
+print
+move(6, 4)
+move(0, 4)
 move(10,0)
 print
 move(10,4)
@@ -27,8 +30,9 @@ print
 move(19,18)
 ;
 h3
-move(15, 19);
-move(17, 10);
+move(20, 20);
+move(10, 10);
+move(20,20);
 move(0, 13);
 move(17,0)
 print
@@ -41,10 +45,10 @@ print
 move(19,19)
 ;
 h4
-move(0, 1)
-move(4, 4)
-move(0, 4)
-move(17,0)
+move(0, 19)
+move(9,9)
+move(0, 19)
+move(9,9)
 print
 move(15,4)
 print
