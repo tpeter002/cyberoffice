@@ -58,12 +58,11 @@ error(false).
    <- .print("Printing failed for ", Agent);
       !notify_mainframe_error(Agent).
 
-
 // When printing is successful
 +!print_success(Agent)
     : error(false)
    <- .print("Printing successful for ", Agent);
-      .print("sending mainframe im done");
+      .print("Sending mainframe im done");
        +printer_ready(true);
         -printer_ready(false);
         -print(Agent)[source(SenderAgent)];
@@ -84,7 +83,7 @@ error(false).
 +repair[source(Agent)]
     : true
    <- -error(true);
-    .print("Javítanak:)");
+    .print("I'm being repaired :)");
    .print("Printer repaired.");
    .send(mainframe, tell, printer_ready);
     gotrepaired;
@@ -92,18 +91,15 @@ error(false).
     !print(Agent);
    +error(false).
     
-
-
 // Reporting location
 +report_location
    <- 
        get_location;
-       .print("Szoltak h szoljak javanak!");
       -report_location[source(mainframe)].
 
 // Sending the printer's location to the mainframe
 +location(X, Y)[source(percept)]
    <- 
       .send(mainframe, tell, location(X, Y));
-      .print("Megint el kell mondanom hol vagyok!");
+      .print("I have to tell where am I, once again!");
       -location(_,_)[source(percept)].

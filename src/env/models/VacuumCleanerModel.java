@@ -12,7 +12,6 @@ import env.Percept;
 import java.time.OffsetTime;
 import java.util.ArrayList;
 
-// Human agent environment class
 public class VacuumCleanerModel {
 
 	private OfficeModel model;
@@ -61,7 +60,17 @@ public class VacuumCleanerModel {
 		this.GSize = GSize;
 		initializePositions(GSize);
 	}
-
+	/* Adds the new percepts
+	 * We update our java level location based on the environment
+	 * The percepts are:
+	 * 		at_room - the current room
+	 * 		at_room_start - the start of the current room
+	 * 		at_room_end - the end of the current room
+	 * 		slot_has_garbage - if the current location has garbage
+	 * 		people_in_current_room - if there are people in the current room
+	 * 		error - if the vacuum cleaner is broken
+	 * 		location - the location of the vacuum cleaner
+	 */
 	public ArrayList<Percept> newPercepts() {
 		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
@@ -93,7 +102,7 @@ public class VacuumCleanerModel {
 		}
 		return percepts;
 	}
-
+	/* Removes the old percepts, most of the logic is based on states changing, thus percepts need to be removed */
 	public ArrayList<Percept> perceptsToRemove() {
 		ArrayList<Percept> percepts = new ArrayList<Percept>();
 
@@ -124,7 +133,17 @@ public class VacuumCleanerModel {
 		}
 		return percepts;
 	}
-
+	/* Executes the action of the agent
+	 * @param action - the action to be executed
+	 * The actions are:
+	 * next_slot - cleans the current room
+	 * go_to - moves to a specific room
+	 * go_to_start - moves to the start of a specific room
+	 * pick_garbage - picks garbage from the current location
+	 * get_location - requests the location of the vacuum cleaner
+	 * fix - fixes the vacuum cleaner
+	 * check_room_empty - checks if the room is empty
+	 */
 	public void executeAction(Structure action) {
 		try {
 			if (action.equals(next_slot)) {
@@ -155,13 +174,13 @@ public class VacuumCleanerModel {
 			e.printStackTrace();
 		}
 	}
-
+	/* Initializes the vacuum cleaner position and rooms*/
 	private void initializePositions(int GSize) {
 		model.setAgPos(this.id, 0, 0);
 		updateCurrentRoom();
 		this.oldRoom = this.currentRoom;
 	}
-
+	/* Internal function to update location and reset the Y offset */
 	private void updateCurrentRoom() {
 		OfficeModel.ROOM newRoom = model.whichRoom(model.getAgPos(this.id).x, model.getAgPos(this.id).y);
 		if (this.currentRoom != newRoom) {
@@ -172,7 +191,9 @@ public class VacuumCleanerModel {
 		}
 		this.currentRoom = newRoom;
 	}
-
+	/* Picks garbage from the current location
+	 * Sometimes breaks the vacuum cleaner
+	 */
 	public void pickGarbage() {
 		Location vc = model.getAgPos(this.id);
 		model.removeGarbage(vc.x, vc.y);
@@ -181,15 +202,21 @@ public class VacuumCleanerModel {
 			this.isBroken = true;
 		}
 	}
-
+	/* Requests the location of the vacuum cleaner */
 	public void get_location() {
 		this.requestedLocation = true;
 	}
-
+	/* Fixes java level broken state */
 	public void fix() {
 		this.isBroken = false;
 	}
-
+	/* Avoids obstacles on the map by checking the desired location to move to and shifts
+	 * to a location where it is possible to move 
+	 * When encountering an obstacle adds a Y offset to the location to move to
+	 * to be able to keep the horizontal direction
+	 * @param vc - the desired location to move to
+	 * @return vc - the new location shifted location
+	 */
 	public Location avoidObstacle(Location vc) {
 		if (this.areHumansFriend) {
 			if ((!(model.isFree(vc.x, vc.y)) && !(model.hasGarbage(vc.x, vc.y)))) {
@@ -227,7 +254,7 @@ public class VacuumCleanerModel {
 		}
 		return vc;
 	}
-
+	/* Moves the vacuum cleaner towards a location */
 	public void moveTowards(Location loc) {
 
 		Location vc = model.getAgPos(this.id);
@@ -247,18 +274,13 @@ public class VacuumCleanerModel {
 			if (vc.y > loc.y)
 				next.y = vc.y - 1;
 		}
-		/*
-		 * if (model.isWall(next.x, vc.y)) {
-		 * next.x = vc.x;
-		 * }
-		 * if (model.isWall(vc.x, next.y)) {
-		 * next.y = vc.y;
-		 * }
-		 */
 		next = avoidObstacle(next);
 		model.setAgPos(this.id, next);
 	}
-
+	/* Cleans the current room by going to the right until it's not possible anymore
+	 * then switches direction and goes to the left until it's not possible anymore
+	 * then calls avoidObstacle to not go through objects on the map
+	 */
 	public void cleanCurrentRoom() {
 		Location vc = model.getAgPos(this.id);
 		if (yOffset != 0) {
@@ -285,7 +307,7 @@ public class VacuumCleanerModel {
 		vc = avoidObstacle(vc);
 		model.setAgPos(this.id, vc);
 	}
-
+	/* Switches Y direction */
 	private void switchXDirection() {
 		if (this.xDirection == DIRECTION.RIGHT) {
 			this.xDirection = DIRECTION.LEFT;

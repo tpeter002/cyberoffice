@@ -68,6 +68,7 @@ public class HumanAgentModel {
             load_counters.put(hname, 1);
 
         }
+
     }
 
     public void initializePositions(int GSize) {
@@ -146,10 +147,12 @@ public class HumanAgentModel {
         int load_counter = load_counters.get(agentName);
         Literal result = null;
 
+
         for (String[] agentRoutine : routines) {
             if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
                 String element = agentRoutine[load_counter];
                 result = Literal.parseLiteral(element);
+
             }
         }
     
@@ -276,7 +279,6 @@ public class HumanAgentModel {
                 return h;
             }
         }
-        hlogger.info("getbyidfail");
         return null;
     }
 
@@ -416,5 +418,4 @@ public class HumanAgentModel {
         return routines;
 
     }
-
 }
