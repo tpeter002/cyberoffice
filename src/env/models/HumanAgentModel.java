@@ -389,21 +389,6 @@ public class HumanAgentModel {
     } 
 
 
-       
-
-  /*
-    public void executeAction(String agentName, Structure action){
-
-        if(action.equals(load)){
-            Literal routine_element=getNextRoutineElement(agentName);
-            percepts_pre.add(new Percept(agentName, routine_element));
-        }
-        */
-
-
-
-   
-
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
         ArrayList<String[]> routine = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -445,5 +430,4 @@ public class HumanAgentModel {
         return routines;
 
     }
-
 }
