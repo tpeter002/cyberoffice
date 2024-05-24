@@ -16,7 +16,6 @@ first_belief.
     : not error & not slot_has_garbage & not at_room_end(Room) & not people_in_current_room
    <- 
       next_slot;
-      //.print("chekkolom a slotokat faszaság");
       .wait(100);
       !check(Room).
 
@@ -60,26 +59,26 @@ first_belief.
     : error
    <- 
       .print("elromlottam, varom az embert hogy megjavitson");
-      .wait(1000);
+      .wait(2000);
       !check(Room).
 
 // Maybe I should ask the mainframe for an empty room not him informing me of an empty room
 +room_empty(Room)[source(Mainframe)]
    : searching_for_empty_room // if i dont have any other percept of a room being empty
    <- -searching_for_empty_room;
-      .print("Megkaptam: " , Room);
+      .print("Megkaptam a feladatot: " , Room);
       +should_clean_room(Room).
 
 +should_clean_room(SelectedRoom)
    : not at_room(SelectedRoom)
-   <- .print("SHOULD CLEAN OTHER ROOM_: ", SelectedRoom);
+   <- 
       -should_clean_room(SelectedRoom);
       !first_round;
       !go_to_other_room(SelectedRoom).
 
 +should_clean_room(SelectedRoom)
    : at_room(SelectedRoom)
-   <- .print("SHOULD CLEAN THIS FUCKING ROOM_: ", SelectedRoom);
+   <- 
       -should_clean_room(SelectedRoom);
       !first_round;
       !check(SelectedRoom).
@@ -111,7 +110,7 @@ first_belief.
       -first_belief;
       -at_room(2);
       -at_room_start(2);
-      .print("cleareltem a beliefjeim").
+      .print("cleareltem az első beliefjeim").
 
 +!first_round
    : not first_belief
@@ -126,16 +125,17 @@ first_belief.
 +report_location
    <- 
       get_location; // java code
-      -report_location.
+      -report_location[source(mainframe)].
 
 +location(X, Y)
    <- 
       .send(mainframe, tell, location(X, Y));
-      -location(_,_).
+      -location(_,_)[source(percept)].
 
-+repair
++repair[source(Human)]
    <- 
-      -repair;
+      -error;
       fix; // java code
-      .print("I'm ready to go once again!");
-      .send(mainframe, tell, vacuum_ready).
+      .print("I'm ready to go once again!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      .send(mainframe, tell, vacuum_ready);
+      -repair[source(Human)].

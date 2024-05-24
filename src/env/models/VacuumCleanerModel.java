@@ -50,7 +50,7 @@ public class VacuumCleanerModel {
 	public static final Literal fix = Literal.parseLiteral("fix");
 
 	Random random = new Random(System.currentTimeMillis());
-	private static final double ERROR_PROBABILITY = 0.00;
+	private static final double ERROR_PROBABILITY = 0.01;
 
 	public VacuumCleanerModel(OfficeModel model, int GSize) {
 		this.id = 1;
