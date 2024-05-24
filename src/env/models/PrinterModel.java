@@ -96,7 +96,7 @@ public class PrinterModel {
         ArrayList<Percept> newpercepts = new ArrayList<>();
         if (this.requestedLocation) {
             // Need to change the corrdinates if GSize changes
-            newpercepts.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
+            newpercepts.add(new Percept(Literal.parseLiteral("location(" + (20) + ", " + (0) + ")")));
             System.out.println("Location sent with percept");
             this.requestedLocation = false;
         }
@@ -110,7 +110,7 @@ public class PrinterModel {
         ArrayList<Percept> perceptsToRemove = new ArrayList<>();
         if(!this.requestedLocation)
         {
-            perceptsToRemove.add(new Percept(Literal.parseLiteral("location(" + (19) + ", " + (0) + ")")));
+            perceptsToRemove.add(new Percept(Literal.parseLiteral("location(" + (20) + ", " + (0) + ")")));
         }
         if(!this.printerError)
         {
