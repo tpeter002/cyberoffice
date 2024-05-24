@@ -127,8 +127,8 @@
 +!tell_print(Printer, Requester)
 	:	error(Printer)
 	<-	
-		.print("recieved 'print' from ", Requester, ", but ", Printer, " is non functional");
-		!fix_error(Printer, Requester).
+		.wait(1000);
+		!tell_print(Printer, Requester).
 
 
 
