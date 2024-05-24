@@ -13,10 +13,10 @@ working.
 
 +!nextroutine: true <- load.
 
-+go_fix(Errorer, Xe, Ye) : true <-  .print("kaptam go fixet"); !move.
++go_fix(Errorer, Xe, Ye) : true <-  .print("I got a fix"); !move.
 
 
-+done(Source, Xd, Yd): true <- .print("kaptam hogy done"); !move.
++done(Source, Xd, Yd): true <- .print("I got a done"); !move.
 
 
 +print: working <- 
@@ -107,6 +107,3 @@ working.
     .wait(10000+B*5000);    
     garbagedrop;
      !szemetel.
-
-
-
