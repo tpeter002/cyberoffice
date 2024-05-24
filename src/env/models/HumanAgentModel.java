@@ -35,8 +35,6 @@ public class HumanAgentModel {
     private ArrayList<String[]> routines; 
     private HashMap<String, Integer> load_counters;
     private int n_human_agents;
-    private Location vacuum_hall_doorway;
-    private Location printer_hall_doorway;
 
     static Logger hlogger = Logger.getLogger(HumanAgentModel.class.getName());
 
@@ -67,20 +65,15 @@ public class HumanAgentModel {
 
         for (int i = 1; i <= n_human_agents; i++) {
             String hname = "h" + Integer.toString(i);
-            load_counters.put(hname, 0);
+            load_counters.put(hname, 1);
 
         }
-        
-
-        vacuum_hall_doorway = new Location(4, 5);
-
-        printer_hall_doorway = new Location(16, 5);
     }
 
     public void initializePositions(int GSize) {
         // Initialize the positions
 
-        int h_id = n_human_agents + 2;
+        int h_id = n_human_agents + this.id;
 
         for (int i = 2; i < h_id; i++) {
 
@@ -104,10 +97,7 @@ public class HumanAgentModel {
                 return true;
             }
         }
-  
-
         return false;
-
     }
 
     private class Human {
@@ -156,23 +146,17 @@ public class HumanAgentModel {
         int load_counter = load_counters.get(agentName);
         Literal result = null;
 
-        if (load_counter == 0) {
-            result = getPosLiteral(agentName);
-        } else {
-            for (String[] agentRoutine : routines) {
-                if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
-                    String element = agentRoutine[load_counter];
-                    //hlogger.info(agentName+"-nek parancs: "+ element);
-                    result = Literal.parseLiteral(element);
-                }
+        for (String[] agentRoutine : routines) {
+            if (agentRoutine.length > load_counter && agentRoutine[0].equals(agentName)) {
+                String element = agentRoutine[load_counter];
+                result = Literal.parseLiteral(element);
             }
         }
-
+    
         load_counters.put(agentName, load_counter + 1);
         return result;
     }
 
-    //ez igazabol getnextroutine element csak loadcounter inkrementalas nelkul(meg mas agentname megszerzes ugye), nem tom meglehetne e oldani hogy ez nalad legyen kicsit szivas lenne sztem, max officeenvbe is lehetne load counter i guess es akk te is elerned
 
     public Literal getReminder(String humanName){
         
@@ -270,7 +254,6 @@ public class HumanAgentModel {
     }
     public void addToRemovePercept(String agentName, Structure action){
         String perceptToClear = action.getTerm(0).toString();
-        //hlogger.info("Ezt elpusztitom percept: "+perceptToClear);
         Literal perceptToClearLit=Literal.parseLiteral(perceptToClear);
         Percept removed=new Percept(agentName, perceptToClearLit);
         percepts_to_remove_by_unif.add(removed);
@@ -327,11 +310,9 @@ public class HumanAgentModel {
 
     public void moveto(String agentName, Structure action) throws Exception {
         int agentid = getID(agentName);
-        //Human agent = getHumanByID(agentid);
-
-        Location loc = model.getAgPos(agentid); // 19, 16
-        int x = (int) ((NumberTerm) action.getTerm(0)).solve(); //19
-        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); //19
+        Location loc = model.getAgPos(agentid); 
+        int x = (int) ((NumberTerm) action.getTerm(0)).solve(); 
+        int y = (int) ((NumberTerm) action.getTerm(1)).solve(); 
         int newX = loc.x; 
         int newY = loc.y;
 
@@ -343,27 +324,6 @@ public class HumanAgentModel {
             x=doorway.x;
             y=doorway.y;
 
-            /* if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.HALL)
-                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.VACUUM)
-                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.VACUUM)) {
-                x = vacuum_hall_doorway.x;
-                y = vacuum_hall_doorway.y;
-            } else if ((targetRoom == ROOM.VACUUM && currentRoom == ROOM.PRINTER)
-                    || (targetRoom == ROOM.PRINTER && currentRoom == ROOM.HALL)
-                    || (targetRoom == ROOM.HALL && currentRoom == ROOM.PRINTER)) {
-                x = printer_hall_doorway.x;
-                y = printer_hall_doorway.y;
-
-            }else if((currentRoom==ROOM.DOORWAY && targetRoom==ROOM.HALL)){
-                hlogger.info("!!!!!!!!!!!!!doorwayt erzekel"+Integer.toString(loc.x)+", "+Integer.toString(loc.y));
-                x=loc.x;
-                y=loc.y+1;
-            }
-            //doorwayen at csak egyenesen lehet menni pont mint a valosagban!
-            else if((currentRoom==ROOM.DOORWAY && (targetRoom==ROOM.VACUUM || targetRoom==ROOM.PRINTER))){
-                x=loc.x;
-                y=loc.y-1;
-            } */
 
         }
         boolean xChanged=false;
@@ -378,7 +338,7 @@ public class HumanAgentModel {
             xChanged=true;
         }
         if (loc.y < y){
-            newY = loc.y + 1; //newX=19, newY=17
+            newY = loc.y + 1; 
             yChanged=true;
         }
         else if (loc.y > y){
@@ -414,21 +374,6 @@ public class HumanAgentModel {
 
     } 
 
-
-       
-
-  /*
-    public void executeAction(String agentName, Structure action){
-
-        if(action.equals(load)){
-            Literal routine_element=getNextRoutineElement(agentName);
-            percepts_pre.add(new Percept(agentName, routine_element));
-        }
-        */
-
-
-
-   
 
     private static ArrayList<String[]> readRoutineFromFile(String filename) {
         ArrayList<String[]> routine = new ArrayList<>();
